@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="32 80 708 684" width="708" height="684" font-family="Segoe UI, Aptos, Calibri, -apple-system, sans-serif">
+  <defs>
+    <filter id="soft" x="-25%" y="-25%" width="150%" height="150%">
+      <feDropShadow dx="0" dy="6" stdDeviation="9" flood-color="#000000" flood-opacity="0.28"/>
+    </filter>
+  </defs>
+
+  <rect x="32" y="80" width="708" height="684" fill="#f7f4ef"/>
+
+  <!-- ===================== HOST PAGE (DARK) ===================== -->
+  <rect x="56" y="104" width="660" height="636" rx="12" fill="#14161a" stroke="#2a2f38" stroke-width="1.5" filter="url(#soft)"/>
+  <rect x="56" y="104" width="660" height="40" rx="12" fill="#1e2127"/>
+  <rect x="56" y="132" width="660" height="12" fill="#1e2127"/>
+  <circle cx="78" cy="124" r="5" fill="#3a4049"/>
+  <circle cx="95" cy="124" r="5" fill="#3a4049"/>
+  <circle cx="112" cy="124" r="5" fill="#3a4049"/>
+  <rect x="150" y="113" width="450" height="22" rx="11" fill="#0f1114"/>
+  <text x="375" y="128" text-anchor="middle" font-size="11" fill="#7d828a" font-family="Consolas, monospace">beitmidrash.example/parashat-kedoshim</text>
+  <text x="672" y="129" text-anchor="middle" font-size="12" fill="#7d828a">☾</text>
+
+  <!-- host page content -->
+  <text x="88" y="192" font-size="19" font-weight="700" fill="#e8e6e3">Parashat Kedoshim: “A Great Principle”</text>
+  <text x="88" y="216" font-size="11.5" fill="#7d828a">A reader’s blog · 6 min read · dark theme enabled</text>
+  <line x1="88" y1="232" x2="684" y2="232" stroke="#2a2f38"/>
+
+  <text x="88" y="266" font-size="13.5" fill="#c8ccd2">The verse that Rabbi Akiva singled out is short enough to miss on a first</text>
+  <text x="88" y="290" font-size="13.5" fill="#c8ccd2">reading. It appears near the end of the chapter, at <tspan fill="#ff8fb0" text-decoration="underline">Leviticus 19:18</tspan>, and the</text>
+  <text x="88" y="314" font-size="13.5" fill="#c8ccd2">whole of the surrounding passage turns on it.</text>
+
+  <!-- ref-link callout -->
+  <rect x="386" y="274" width="94" height="22" rx="5" fill="none" stroke="#e0407a" stroke-width="1.2" stroke-dasharray="4 3"/>
+  <rect x="544" y="277" width="115" height="16" rx="4" fill="#241a20"/>
+  <text x="551" y="289" font-size="9.5" font-weight="600" fill="#ff8fb0" font-family="Consolas, monospace">&lt;sefaria-ref-link&gt;</text>
+
+  <!-- ===================== POPUP ===================== -->
+  <rect x="176" y="336" width="196" height="20" rx="5" fill="#e0407a"/>
+  <rect x="176" y="348" width="196" height="10" fill="#e0407a"/>
+  <text x="185" y="350" font-size="9.5" font-weight="700" fill="#ffffff" font-family="Consolas, monospace">&lt;sefaria-popup&gt; · shadow root</text>
+
+  <rect x="176" y="352" width="424" height="256" rx="10" fill="#1e2127" stroke="#3a4049" stroke-width="1.5" filter="url(#soft)"/>
+  <rect x="176" y="352" width="424" height="5" rx="2.5" fill="#e0407a"/>
+
+  <!-- header -->
+  <text x="388" y="392" text-anchor="middle" font-size="15.5" font-weight="600" fill="#e8e6e3">Leviticus 19:18</text>
+  <text x="202" y="394" font-size="15" fill="#9aa0a6">✕</text>
+  <line x1="176" y1="410" x2="600" y2="410" stroke="#2a2f38"/>
+
+  <!-- body -->
+  <text x="576" y="450" text-anchor="start" font-size="19" fill="#eceae7" direction="rtl" unicode-bidi="bidi-override" font-family="Taamey Frank CLM, SBL Hebrew, Times New Roman, serif">וְאָֽהַבְתָּ֥ לְרֵעֲךָ֖ כָּמ֑וֹךָ אֲנִ֖י יְהֹוָֽה׃</text>
+  <text x="200" y="482" font-size="13.5" fill="#c8ccd2">Love your fellow as yourself: I am the LORD.</text>
+  <text x="200" y="508" font-size="10.5" fill="#7d828a">The Contemporary Torah, JPS 2006 · CC-BY-NC</text>
+
+  <line x1="176" y1="530" x2="600" y2="530" stroke="#2a2f38"/>
+  <text x="200" y="574" font-size="12.5" fill="#7d828a">Powered by</text>
+  <circle cx="278" cy="569" r="7" fill="none" stroke="#9aa0a6" stroke-width="2"/>
+  <text x="292" y="574" font-size="13.5" font-weight="600" fill="#c8ccd2">Sefaria</text>
+  <rect x="452" y="554" width="124" height="32" rx="6" fill="#252932" stroke="#3a4049"/>
+  <text x="514" y="575" text-anchor="middle" font-size="12.5" fill="#e8e6e3">Read More ›</text>
+
+  <!-- dotted component regions + inline labels -->
+  <rect x="186" y="366" width="404" height="40" rx="6" fill="none" stroke="#e0407a" stroke-width="1.2" stroke-dasharray="4 3"/>
+  <rect x="196" y="358" width="122" height="16" rx="4" fill="#2a2028"/>
+  <text x="203" y="370" font-size="9.5" font-weight="600" fill="#ff8fb0" font-family="Consolas, monospace">&lt;sefaria-ref-label&gt;</text>
+
+  <rect x="186" y="418" width="404" height="104" rx="6" fill="none" stroke="#e0407a" stroke-width="1.2" stroke-dasharray="4 3"/>
+  <rect x="196" y="410" width="168" height="16" rx="4" fill="#2a2028"/>
+  <text x="203" y="422" font-size="9.5" font-weight="600" fill="#ff8fb0" font-family="Consolas, monospace">&lt;sefaria-bilingual-segment&gt;</text>
+
+  <rect x="186" y="540" width="404" height="56" rx="6" fill="none" stroke="#e0407a" stroke-width="1.2" stroke-dasharray="4 3"/>
+  <rect x="196" y="532" width="134" height="16" rx="4" fill="#2a2028"/>
+  <text x="203" y="544" font-size="9.5" font-weight="600" fill="#ff8fb0" font-family="Consolas, monospace">&lt;sefaria-attribution&gt;</text>
+
+  <!-- rest of host page -->
+  <text x="88" y="646" font-size="13.5" fill="#c8ccd2">Rashi, following the Sifra, reads it as the axis of the entire section — a</text>
+  <text x="88" y="670" font-size="13.5" fill="#c8ccd2">claim the later commentators spend considerable effort qualifying.</text>
+
+  <!-- brief property pills -->
+  <rect x="88" y="696" width="164" height="26" rx="13" fill="#252932" stroke="#3a4049"/>
+  <text x="170" y="713" text-anchor="middle" font-size="11" fill="#c8ccd2">Honors host dark mode</text>
+
+  <rect x="264" y="696" width="176" height="26" rx="13" fill="#252932" stroke="#3a4049"/>
+  <text x="352" y="713" text-anchor="middle" font-size="11" fill="#c8ccd2">Shadow DOM encapsulated</text>
+
+  <rect x="452" y="696" width="188" height="26" rx="13" fill="#252932" stroke="#3a4049"/>
+  <text x="546" y="713" text-anchor="middle" font-size="11" fill="#c8ccd2">Keyboard + screen-reader ready</text>
+</svg>

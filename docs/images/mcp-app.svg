@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="24 78 668 648" width="668" height="648" font-family="Segoe UI, Aptos, Calibri, -apple-system, sans-serif">
+  <rect x="24" y="78" width="668" height="648" fill="#f7f4ef"/>
+
+  <defs>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="7" flood-color="#000000" flood-opacity="0.10"/>
+    </filter>
+  </defs>
+
+  <!-- ================= CHAT WINDOW ================= -->
+  <rect x="48" y="102" width="620" height="600" rx="12" fill="#ffffff" stroke="#dedede" stroke-width="1.5" filter="url(#soft)"/>
+  <rect x="48" y="102" width="620" height="40" rx="12" fill="#f0ede8"/>
+  <rect x="48" y="130" width="620" height="12" fill="#f0ede8"/>
+  <circle cx="70" cy="122" r="5" fill="#d8d3cc"/>
+  <circle cx="87" cy="122" r="5" fill="#d8d3cc"/>
+  <circle cx="104" cy="122" r="5" fill="#d8d3cc"/>
+  <text x="358" y="127" text-anchor="middle" font-size="12.5" font-weight="600" fill="#6f6f6f">AI assistant · MCP host</text>
+
+  <!-- user message -->
+  <rect x="268" y="162" width="380" height="38" rx="10" fill="#b11f4b"/>
+  <text x="632" y="186" text-anchor="end" font-size="13.5" fill="#ffffff">What does the Torah say about loving your neighbor?</text>
+
+  <!-- assistant text -->
+  <text x="68" y="232" font-size="13.5" fill="#242424">That phrase comes from Leviticus 19:18. Here is the source itself,</text>
+  <text x="68" y="252" font-size="13.5" fill="#242424">with its classical commentary:</text>
+
+  <!-- ============ THE COMPONENT ============ -->
+  <rect x="66" y="270" width="584" height="286" rx="10" fill="#fcfbf8" stroke="#b11f4b" stroke-width="2"/>
+
+  <!-- component label tab -->
+  <rect x="66" y="270" width="230" height="24" rx="10" fill="#b11f4b"/>
+  <rect x="66" y="282" width="230" height="12" fill="#b11f4b"/>
+  <text x="80" y="287" font-size="11" font-weight="700" fill="#ffffff" font-family="Consolas, monospace">&lt;sefaria-reader&gt;</text>
+
+  <!-- ref header -->
+  <text x="86" y="322" font-size="15" font-weight="700" fill="#242424">Leviticus 19:18</text>
+  <text x="630" y="322" text-anchor="end" font-size="10.5" font-weight="600" fill="#b11f4b" letter-spacing="0.8">ATTRIBUTED SEFARIA SOURCE</text>
+  <line x1="86" y1="332" x2="630" y2="332" stroke="#e4e0da"/>
+
+  <!-- hebrew -->
+  <text x="630" y="366" text-anchor="start" font-size="21" fill="#242424" direction="rtl" unicode-bidi="bidi-override" font-family="Taamey Frank CLM, SBL Hebrew, Times New Roman, serif">וְאָֽהַבְתָּ֥ לְרֵעֲךָ֖ כָּמ֑וֹךָ אֲנִ֖י יְהֹוָֽה׃</text>
+  <text x="86" y="392" font-size="13.5" fill="#5c5c5c">Love your fellow as yourself: I am the LORD.</text>
+  <text x="86" y="412" font-size="10.5" fill="#9a9a9a">Version: The Contemporary Torah, JPS · via Sefaria</text>
+
+  <!-- inner primitive callout -->
+  <rect x="80" y="340" width="558" height="84" rx="7" fill="none" stroke="#e8bcc9" stroke-width="1.2" stroke-dasharray="4 3"/>
+  <rect x="86" y="332" width="234" height="17" rx="4" fill="#fdf1f4"/>
+  <text x="94" y="345" font-size="9.5" font-weight="600" fill="#b11f4b" font-family="Consolas, monospace">&lt;sefaria-bilingual-segment&gt; + ref-label</text>
+
+  <!-- connections -->
+  <line x1="86" y1="438" x2="630" y2="438" stroke="#e4e0da"/>
+  <text x="86" y="458" font-size="11" font-weight="700" fill="#6f6f6f" letter-spacing="0.6">COMMENTARY</text>
+
+  <rect x="86" y="468" width="170" height="34" rx="6" fill="#ffffff" stroke="#b11f4b" stroke-width="1.4"/>
+  <text x="98" y="489" font-size="12.5" font-weight="600" fill="#242424">Rashi</text>
+  <text x="244" y="489" text-anchor="end" font-size="11" fill="#8a8a8a">1</text>
+
+  <rect x="266" y="468" width="170" height="34" rx="6" fill="#ffffff" stroke="#dedede"/>
+  <text x="278" y="489" font-size="12.5" fill="#242424">Ramban</text>
+  <text x="424" y="489" text-anchor="end" font-size="11" fill="#8a8a8a">1</text>
+
+  <rect x="446" y="468" width="184" height="34" rx="6" fill="#ffffff" stroke="#dedede"/>
+  <text x="458" y="489" font-size="12.5" fill="#242424">Sifra</text>
+  <text x="618" y="489" text-anchor="end" font-size="11" fill="#8a8a8a">3</text>
+
+  <rect x="86" y="510" width="544" height="34" rx="6" fill="#f5f5f5" stroke="#dedede"/>
+  <text x="98" y="531" font-size="12" fill="#5c5c5c">Rashi on Leviticus 19:18 — “Rabbi Akiva said: this is a great principle of the Torah.”</text>
+
+  <rect x="80" y="458" width="558" height="94" rx="7" fill="none" stroke="#e8bcc9" stroke-width="1.2" stroke-dasharray="4 3"/>
+  <rect x="430" y="450" width="208" height="17" rx="4" fill="#fdf1f4"/>
+  <text x="438" y="463" font-size="9.5" font-weight="600" fill="#b11f4b" font-family="Consolas, monospace">&lt;sefaria-connections-panel&gt;</text>
+
+  <!-- after component -->
+  <text x="68" y="586" font-size="13.5" fill="#242424">Rashi cites Rabbi Akiva calling this a foundational principle. Open the</text>
+  <text x="68" y="606" font-size="13.5" fill="#242424">commentary above to keep reading, or ask me about a different source.</text>
+
+  <rect x="68" y="628" width="580" height="44" rx="22" fill="#ffffff" stroke="#dedede" stroke-width="1.5"/>
+  <text x="90" y="656" font-size="13" fill="#a8a8a8">Ask a follow-up…</text>
+</svg>
