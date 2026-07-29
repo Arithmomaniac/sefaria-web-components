@@ -1,8 +1,8 @@
 # Sefaria Web Components
 
-> **Experimental.** This is a Microsoft Global Hackathon 2026 project. It carries
-> no support and no quality guarantee, and nothing here is stable. It is not an
-> official Sefaria project.
+> **Experimental.** This is a Microsoft Global Hackathon 2026 project, developed
+> in active collaboration with Sefaria. It carries no support and no quality
+> guarantee, and nothing here is stable. It is not an official Sefaria product.
 
 The UI of Sefaria — the open-source library of Jewish texts — as framework-agnostic
 Web Components anyone can build with.
@@ -110,14 +110,16 @@ real users.
 
 ## Relationship to Sefaria
 
-This project is derived from Sefaria's own open-source codebases —
+This project is developed in active collaboration with Sefaria, and is derived
+from Sefaria's own open-source codebases —
 [Sefaria-Project](https://github.com/Sefaria/Sefaria-Project) (web) and
 [Sefaria-Mobile](https://github.com/Sefaria/Sefaria-Mobile) (mobile) — both
 licensed GPL-3.0. This repository is licensed GPL-3.0 to match.
 
-It is an independent effort and is not affiliated with or endorsed by Sefaria.
-All texts, translations, and commentary remain the property of their respective
-rights holders; this library renders Sefaria's data and does not redistribute it.
+It is not an official Sefaria product, and nothing here should be taken as a
+commitment by Sefaria to adopt or support it. All texts, translations, and
+commentary remain the property of their respective rights holders; this library
+renders Sefaria's data and does not redistribute it.
 
 ## Status
 
