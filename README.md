@@ -116,10 +116,18 @@ from Sefaria's own open-source codebases —
 [Sefaria-Mobile](https://github.com/Sefaria/Sefaria-Mobile) (mobile) — both
 licensed GPL-3.0. This repository is licensed GPL-3.0 to match.
 
-It is not an official Sefaria product, and nothing here should be taken as a
-commitment by Sefaria to adopt or support it. All texts, translations, and
-commentary remain the property of their respective rights holders; this library
-renders Sefaria's data and does not redistribute it.
+It is a Microsoft Global Hackathon *Hack for Good* project, which runs under a
+signed agreement: **Sefaria owns the resulting work**, and Microsoft receives a
+licence back to it. The GPL-3.0 licence therefore follows the upstream this
+derives from, and the result is owned by the same organisation that owns that
+upstream.
+
+**Ownership is not endorsement.** Nothing here is an official Sefaria product,
+nothing here has been adopted, reviewed, or shipped by Sefaria, and nothing here
+should be taken as a commitment by Sefaria to use or support it.
+
+All texts, translations, and commentary remain the property of their respective
+rights holders; this library renders Sefaria's data and does not redistribute it.
 
 ## Status
 
@@ -130,4 +138,5 @@ theming token set will follow in a subsequent change.
 
 ## License
 
-[GPL-3.0](LICENSE)
+[GPL-3.0](LICENSE), following the upstream Sefaria codebases this work derives
+from. See [Relationship to Sefaria](#relationship-to-sefaria) for ownership.
