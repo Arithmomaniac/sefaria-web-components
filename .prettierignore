@@ -1,0 +1,10 @@
+dist
+node_modules
+coverage
+playwright-report
+test-results
+demos/mcp/fixture-server/src/sefaria_mcp_fixture/static
+pnpm-lock.yaml
+demos/mcp/fixture-server/requirements.lock
+CODE_OF_CONDUCT.md
+SECURITY.md

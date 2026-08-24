@@ -1,0 +1,8 @@
+packages:
+  - packages/*
+  - demos/*
+  - demos/mcp/*
+  - tests/*
+
+allowBuilds:
+  esbuild: true

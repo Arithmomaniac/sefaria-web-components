@@ -1,5 +1,6 @@
 # Dependencies
 node_modules/
+.venv/
 .pnp
 .pnp.js
 
@@ -8,6 +9,8 @@ dist/
 build/
 out/
 *.tsbuildinfo
+demos/mcp/fixture-server/src/sefaria_mcp_fixture/static/
+demos/mcp/fixture-server/uv.lock
 
 # Test and coverage output
 coverage/
@@ -16,8 +19,12 @@ playwright-report/
 test-results/
 
 # Caches
+__pycache__/
+*.py[cod]
 .cache/
 .parcel-cache/
+.pytest_cache/
+.vitest-attachments/
 .eslintcache
 .turbo/
 .vite/

@@ -1,0 +1,16 @@
+{
+  "name": "@sefaria-demo/component-lab",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@sefaria/components": "workspace:*",
+    "lit": "^3.3.3"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json && vite build",
+    "dev": "vite",
+    "preview": "vite preview",
+    "typecheck": "tsc -p tsconfig.json"
+  }
+}
