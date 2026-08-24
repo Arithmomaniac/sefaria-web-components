@@ -24,7 +24,7 @@ export class SefariaSourceCard extends SefariaElement {
     css`
       :host {
         padding: 1rem;
-        border: 1px solid var(--sefaria-border);
+        border: 1px solid var(--_sefaria-border);
         border-radius: 0.75rem;
       }
 
@@ -36,7 +36,7 @@ export class SefariaSourceCard extends SefariaElement {
 
       header,
       footer {
-        color: var(--sefaria-fg-muted);
+        color: var(--_sefaria-fg-muted);
       }
 
       .text {
@@ -54,12 +54,12 @@ export class SefariaSourceCard extends SefariaElement {
       }
 
       [dir="rtl"] {
-        font-family: var(--sefaria-font-hebrew);
+        font-family: var(--_sefaria-font-hebrew);
         font-size: 1.35em;
       }
 
       [dir="ltr"] {
-        font-family: var(--sefaria-font-english);
+        font-family: var(--_sefaria-font-english);
       }
     `,
   ];

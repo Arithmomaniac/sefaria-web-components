@@ -8,9 +8,9 @@ export abstract class SefariaElement extends LitElement {
       :host {
         box-sizing: border-box;
         display: block;
-        background: var(--sefaria-surface);
-        color: var(--sefaria-fg);
-        font-size: calc(1em * var(--sefaria-font-scale));
+        background: var(--_sefaria-surface);
+        color: var(--_sefaria-fg);
+        font-size: calc(1rem * var(--_sefaria-font-scale));
       }
 
       *,
