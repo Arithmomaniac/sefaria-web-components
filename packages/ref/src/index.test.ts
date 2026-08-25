@@ -168,6 +168,15 @@ describe("parseRef", () => {
     });
   });
 
+  it("supports Talmud-addressed works that begin on daf 1", () => {
+    expect(parseRef("Shabbat 1a:1-1b:2", index)).toMatchObject({
+      sections: ["1a", "1"],
+      toSections: ["1b", "2"],
+      sectionPositions: [1, 1],
+      toSectionPositions: [2, 2],
+    });
+  });
+
   it("supports commentary at the configured depth", () => {
     expect(parseRef("Rashi on Genesis 1:1:1", index)).toMatchObject({
       book: "Rashi on Genesis",
@@ -410,7 +419,6 @@ describe("parseRef", () => {
     ["Genesis 1:1-2:3-4", "invalid-range"],
     ["Genesis 2:1-1:1", "invalid-range"],
     ["Genesis 1:1:1", "unsupported-structure"],
-    ["Shabbat 1a:1", "invalid-daf"],
     ["Shabbat 2c:1", "invalid-daf"],
     ["Sheet 0", "malformed-sections"],
   ])("returns %s as %s", (ref, code) => {
@@ -477,6 +485,8 @@ describe("formatting", () => {
 
 describe("dafToInt", () => {
   it.each([
+    ["1a", 0],
+    ["1b", 1],
     ["2a", 2],
     ["2b", 3],
     ["15a", 28],
@@ -485,16 +495,13 @@ describe("dafToInt", () => {
     expect(dafToInt(daf)).toBe(expected);
   });
 
-  it.each(["1a", "2c", "2A", "0b", "-2a", "a"])(
-    "rejects invalid daf %s",
-    (daf) => {
-      expect(dafToInt(daf)).toEqual({
-        type: "invalid-ref",
-        code: "invalid-daf",
-        input: daf,
-      });
-    },
-  );
+  it.each(["2c", "2A", "0b", "-2a", "a"])("rejects invalid daf %s", (daf) => {
+    expect(dafToInt(daf)).toEqual({
+      type: "invalid-ref",
+      code: "invalid-daf",
+      input: daf,
+    });
+  });
 
   it("rejects daf values that produce unsafe coordinates", () => {
     expect(dafToInt("9007199254740991a")).toEqual({

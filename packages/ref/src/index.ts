@@ -74,6 +74,10 @@ interface ParsedAddress {
 }
 
 const MAX_RANGE_EXPANSION = 10_000;
+const catalogValidationCache = new WeakMap<
+  object,
+  RefDataErrorCode | undefined
+>();
 
 function refError(input: string, code: RefErrorCode): RefError {
   return { type: "invalid-ref", code, input };
@@ -144,13 +148,8 @@ function isPositiveSafeInteger(value: unknown): value is number {
   return typeof value === "number" && Number.isSafeInteger(value) && value > 0;
 }
 
-function isBookIndex(value: unknown): value is BookIndex {
-  return (
-    isRecord(value) &&
-    isRecord(value.aliases) &&
-    Object.values(value.aliases).every(isString) &&
-    isRecord(value.nodes)
-  );
+function hasBookIndexShape(value: unknown): value is BookIndex {
+  return isRecord(value) && isRecord(value.aliases) && isRecord(value.nodes);
 }
 
 function isBookIndexNode(value: unknown): value is BookIndexNode {
@@ -168,10 +167,16 @@ function isBookIndexNode(value: unknown): value is BookIndexNode {
   );
 }
 
-function validateCatalog(
-  index: BookIndex,
-  input: string,
-): RefDataError | undefined {
+function validateCatalog(index: BookIndex): RefDataErrorCode | undefined {
+  if (catalogValidationCache.has(index)) {
+    return catalogValidationCache.get(index);
+  }
+
+  if (!Object.values(index.aliases).every(isString)) {
+    catalogValidationCache.set(index, "inconsistent-data");
+    return "inconsistent-data";
+  }
+
   for (const [key, value] of Object.entries(index.nodes)) {
     if (
       !isBookIndexNode(value) ||
@@ -179,10 +184,12 @@ function validateCatalog(
       !Object.hasOwn(index.aliases, value.title) ||
       index.aliases[value.title] !== key
     ) {
-      return dataError(input, "inconsistent-data");
+      catalogValidationCache.set(index, "inconsistent-data");
+      return "inconsistent-data";
     }
   }
 
+  catalogValidationCache.set(index, undefined);
   return undefined;
 }
 
@@ -193,7 +200,7 @@ export function dafToInt(daf: string): number | RefError {
   }
 
   const page = Number(match[1]);
-  if (!Number.isSafeInteger(page) || page < 2) {
+  if (!Number.isSafeInteger(page) || page < 1) {
     return refError(daf, "invalid-daf");
   }
 
@@ -356,21 +363,19 @@ function findAlias(
   normalized: string,
   index: BookIndex,
 ): { alias: string; nodeKey: string } | undefined {
-  const aliases = Object.entries(index.aliases).sort(
-    ([left], [right]) => right.length - left.length,
-  );
+  for (let length = normalized.length; length > 0; length -= 1) {
+    const boundary = normalized[length];
+    if (boundary !== undefined && boundary !== " " && boundary !== ".") {
+      continue;
+    }
 
-  return aliases
-    .filter(([alias]) => normalized.startsWith(alias))
-    .map(([alias, nodeKey]) => ({
-      alias,
-      nodeKey,
-      boundary: normalized[alias.length],
-    }))
-    .find(
-      ({ boundary }) =>
-        boundary === undefined || boundary === " " || boundary === ".",
-    );
+    const alias = normalized.slice(0, length);
+    if (Object.hasOwn(index.aliases, alias)) {
+      return { alias, nodeKey: index.aliases[alias]! };
+    }
+  }
+
+  return undefined;
 }
 
 function parseRange(
@@ -456,13 +461,13 @@ export function parseRef(
     return parseSheet(ref, normalized);
   }
 
-  if (!isBookIndex(index)) {
+  if (!hasBookIndexShape(index)) {
     return dataError(ref, "inconsistent-data");
   }
 
-  const catalogError = validateCatalog(index, ref);
+  const catalogError = validateCatalog(index);
   if (catalogError) {
-    return catalogError;
+    return dataError(ref, catalogError);
   }
 
   const match = findAlias(normalized, index);
@@ -641,14 +646,10 @@ function isRangeTopology(value: unknown): value is RangeTopology {
 }
 
 function validateTopology(
-  topology: unknown,
+  topology: RangeTopology,
   parsed: ParsedRef,
   index: BookIndex,
-): topology is RangeTopology {
-  if (!isRangeTopology(topology)) {
-    return false;
-  }
-
+): readonly ParsedRef[] | undefined {
   if (
     topology.nodeKey !== parsed.nodeKey ||
     topology.depth !== parsed.sectionPositions.length ||
@@ -656,9 +657,10 @@ function validateTopology(
     topology.coverageEnd.length !== topology.depth ||
     comparePositions(topology.coverageStart, topology.coverageEnd) > 0
   ) {
-    return false;
+    return undefined;
   }
 
+  const parsedEntries: ParsedRef[] = [];
   let previous: readonly number[] | undefined;
   for (const entry of topology.refs) {
     const entryRef = parseRef(entry.ref, index);
@@ -672,12 +674,13 @@ function validateTopology(
       !arraysEqual(entryRef.sectionPositions, entry.positions) ||
       !arraysEqual(entryRef.toSectionPositions, entry.positions)
     ) {
-      return false;
+      return undefined;
     }
+    parsedEntries.push(entryRef);
     previous = entry.positions;
   }
 
-  return true;
+  return parsedEntries;
 }
 
 function expandArithmeticRange(
@@ -744,7 +747,12 @@ export function splitRangingRef(
     return dataError(ref, "missing-range-topology");
   }
 
-  if (!validateTopology(topology, parsed, index)) {
+  if (!isRangeTopology(topology)) {
+    return dataError(ref, "inconsistent-data");
+  }
+
+  const topologyEntries = validateTopology(topology, parsed, index);
+  if (!topologyEntries) {
     return dataError(ref, "inconsistent-data");
   }
 
@@ -755,16 +763,15 @@ export function splitRangingRef(
     return dataError(ref, "missing-range-topology");
   }
 
-  const refs = topology.refs
+  const refs = topologyEntries
     .filter(
       (entry) =>
-        comparePositions(entry.positions, parsed.sectionPositions) >= 0 &&
-        comparePositions(entry.positions, parsed.toSectionPositions) <= 0,
+        comparePositions(entry.sectionPositions, parsed.sectionPositions) >=
+          0 &&
+        comparePositions(entry.sectionPositions, parsed.toSectionPositions) <=
+          0,
     )
-    .map((entry) => {
-      const entryRef = parseRef(entry.ref, index) as ParsedRef;
-      return makeHumanRef(entryRef);
-    });
+    .map(makeHumanRef);
 
   return refs.length <= MAX_RANGE_EXPANSION
     ? refs

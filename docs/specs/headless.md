@@ -114,7 +114,8 @@ dafToInt(daf: string): number | RefError
 form such as `Genesis 1:1`.
 
 `dafToInt` matches the zero-based web and mobile helper. Therefore,
-`dafToInt("2a")` returns `2`, and `dafToInt("2b")` returns `3`.
+`dafToInt("1a")` returns `0`, `dafToInt("2a")` returns `2`, and `dafToInt("2b")`
+returns `3`.
 
 Parsed refs use one-based comparison coordinates. A parsed `2a` label therefore
 has position `3`, which matches the server reference response.

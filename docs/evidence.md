@@ -56,6 +56,10 @@ states that this difference prevents a shared cache key.
 The web and mobile `dafToInt` helpers use zero-based array positions. Both
 return `2` for `2a`.
 
+The helpers also return `0` for `1a`. Although Babylonian tractates usually
+begin on `2a`, other Talmud-addressed works, including Rif and Tikkunei Zohar,
+have valid references on daf 1.
+
 The Python address implementation and `/api/ref` use one-based reference
 positions. The live `/api/ref/Shabbat%202a%3A1` response reports position `3`.
 
