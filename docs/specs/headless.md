@@ -18,69 +18,237 @@ package makes network requests.
 
 ### Responsibility
 
-The package parses, normalizes, compares, and splits Sefaria references.
+The package parses, formats, compares, and splits Sefaria references without
+network access.
+
+The caller supplies an immutable `BookIndex`. Some range operations also need an
+immutable `RangeTopology`.
 
 ```ts
-parseRef(ref: string, index: BookIndex): ParsedRef | RefError
-makeRef(parsed: ParsedRef): string
-normRef(ref: string): string
-humanRef(ref: string): string
-splitRangingRef(ref: string, index: BookIndex): string[]
-refContains(outer: string, inner: string, index: BookIndex): boolean
-sectionRef(ref: string, index: BookIndex): string
-dafToInt(daf: string): number
+type RefAddressType = "integer" | "talmud";
+
+interface BookIndexNode {
+  readonly key: string;
+  readonly title: string;
+  readonly indexTitle: string;
+  readonly nodePath: readonly string[];
+  readonly addressTypes: readonly RefAddressType[];
+  readonly sectionNames: readonly string[];
+}
+
+interface BookIndex {
+  readonly aliases: Readonly<Record<string, string>>;
+  readonly nodes: Readonly<Record<string, BookIndexNode>>;
+}
+
+interface RangeTopologyEntry {
+  readonly ref: string;
+  readonly positions: readonly number[];
+}
+
+interface RangeTopology {
+  readonly nodeKey: string;
+  readonly depth: number;
+  readonly coverageStart: readonly number[];
+  readonly coverageEnd: readonly number[];
+  readonly refs: readonly RangeTopologyEntry[];
+}
+
+interface ParsedRef {
+  readonly book: string;
+  readonly index: string;
+  readonly nodeKey: string;
+  readonly nodePath: readonly string[];
+  readonly addressTypes: readonly RefAddressType[];
+  readonly sections: readonly string[];
+  readonly toSections: readonly string[];
+  readonly sectionPositions: readonly number[];
+  readonly toSectionPositions: readonly number[];
+}
 ```
 
-`normRef` returns a URL form such as `Genesis_1.1`. `humanRef` returns a display
+`BookIndex.aliases` maps each accepted title to a node key. An alias can
+identify a known title before its node metadata is loaded.
+
+`BookIndex.nodes` contains flattened schema nodes. Each node has a stable key
+and its root-to-leaf path.
+
+Each canonical node title must also appear in `BookIndex.aliases` and map to
+that node.
+
+The client package will adapt public index responses into this shape. The
+reference package does not parse raw schema trees.
+
+`RangeTopology` describes a complete ordered range for one node and depth. Its
+entries contain only refs that exist.
+
+Schema metadata and range topology remain separate. They have different sources
+and completeness rules.
+
+`ParsedRef.sections` and `toSections` contain display labels such as `2a`. The
+position arrays contain one-based comparison coordinates.
+
+```ts
+parseRef(ref: string, index: BookIndex): ParsedRef | RefError | RefDataError
+makeRef(parsed: ParsedRef): string
+normRef(ref: string, index: BookIndex): string | RefError | RefDataError
+humanRef(ref: string, index: BookIndex): string | RefError | RefDataError
+splitRangingRef(
+  ref: string,
+  index: BookIndex,
+  topology?: RangeTopology,
+): readonly string[] | RefError | RefDataError
+refContains(
+  outer: string,
+  inner: string,
+  index: BookIndex,
+): boolean | RefError | RefDataError
+sectionRef(
+  ref: string,
+  index: BookIndex,
+): string | RefError | RefDataError
+dafToInt(daf: string): number | RefError
+```
+
+`normRef` returns a URL form such as `Genesis.1.1`. `humanRef` returns a display
 form such as `Genesis 1:1`.
 
-`dafToInt("2a")` returns `3`. Its numbering must stay compatible with Sefaria
-reference behavior.
+`dafToInt` matches the zero-based web and mobile helper. Therefore,
+`dafToInt("2a")` returns `2`, and `dafToInt("2b")` returns `3`.
 
-### Book index
+Parsed refs use one-based comparison coordinates. A parsed `2a` label therefore
+has position `3`, which matches the server reference response.
 
-The caller supplies a `BookIndex`. The package does not read process-global
-state.
+### Supported grammar
 
-The Sefaria front end fills `booksDict` during application startup. This side
-effect prevents reuse outside that application.
+Core supports:
 
-A consumer can build `BookIndex` from `/api/index/titles`. The package does not
-need private data.
+- canonical English titles
+- caller-supplied aliases, including Unicode title strings
+- integer-like section labels
+- Talmud daf and amud labels
+- flattened primary-schema complex leaves
+- abbreviated ranges within one schema node
+- `Sheet N`, where `N` is a positive sheet ID
+
+Core does not support Hebrew section numerals, alternate structures, Year or
+Folio addresses, virtual nodes, dictionary nodes, or cross-node ranges.
+
+`Sheet N` support applies only to parsing and formatting. Sheet content, models,
+and rendering remain outside this project's scope.
 
 ### Errors
 
-`parseRef` returns a typed `RefError` for an expected parse failure. It does not
-throw for invalid user input.
+Expected invalid user input returns a `RefError`. Missing or inconsistent caller
+data returns a `RefDataError`.
 
-The error distinguishes these cases:
+```ts
+type RefErrorCode =
+  | "unknown-book"
+  | "malformed-reference"
+  | "malformed-sections"
+  | "unsupported-structure"
+  | "invalid-range"
+  | "range-too-large"
+  | "invalid-daf";
 
-- an unknown book
-- malformed sections
-- an unsupported structural shape
-- an invalid range
-- an invalid daf value
+interface RefError {
+  type: "invalid-ref";
+  code: RefErrorCode;
+  input: string;
+}
+
+type RefDataErrorCode =
+  | "missing-book-metadata"
+  | "missing-hierarchy"
+  | "missing-range-topology"
+  | "inconsistent-data";
+
+interface RefDataError {
+  type: "ref-data";
+  code: RefDataErrorCode;
+  input: string;
+}
+```
+
+No function throws for invalid user input. The package does not return `false`,
+an empty list, or a partial result for missing data.
+
+### Formatting
+
+`makeRef` accepts a validated `ParsedRef`. It derives the canonical URL form
+without global data.
+
+`normRef` and `humanRef` use `BookIndex` for alias-aware parsing. They do not
+perform syntax-only fallback conversion.
+
+Canonical URL output follows the pinned web and server form. An underscore
+separates words inside a title, and a period starts the address.
+
+### Containment and sections
+
+`refContains` uses structural containment. It compares canonical node ancestry
+and one-based coordinates.
+
+A less-specific coordinate prefix contains deeper refs in the same node
+hierarchy. Sibling nodes and unrelated books do not contain one another.
+
+Missing node ancestry returns `missing-hierarchy`. The function does not claim
+topology-based equality between a section and its complete segment range.
+
+`sectionRef` removes one address level from both endpoints. A section-level
+input remains unchanged.
+
+For example, `sectionRef("Genesis 1:31-2:3", index)` returns `Genesis 1-2`.
+
+### Range splitting
+
+Range splitting preserves the addressed depth.
+
+An arithmetic expansion contains at most 10,000 refs. A larger range returns
+`range-too-large`.
+
+| Input class                 | Example                         | Output                                        |
+| --------------------------- | ------------------------------- | --------------------------------------------- |
+| Non-range                   | `Genesis 1:1`                   | One canonical ref at the input depth          |
+| Same-parent terminal range  | `Genesis 1:1-3`                 | Segment refs                                  |
+| Same-depth section range    | `Genesis 1-2`                   | Section refs                                  |
+| Same-depth daf range        | `Shabbat 15a-16b`               | Daf refs                                      |
+| Cross-parent terminal range | `Genesis 1:31-2:3`              | Existing terminal refs from complete topology |
+| Sparse deep range           | Commentary with empty positions | Existing terminal refs from complete topology |
+
+Cross-parent terminal ranges require a complete `RangeTopology`. Missing or
+incomplete topology returns `missing-range-topology`.
+
+The function returns all refs or an error. It does not copy the web fallback
+that returns only the first non-spanning part.
 
 ### Required cases
 
 - Unknown books.
 - Empty and malformed section strings.
+- Known aliases with missing node metadata.
 - Ranges in one section.
 - Spanning ranges such as `Genesis 1:31-2:3`.
+- Section-level ranges such as `Genesis 1-2`.
 - Daf notation and amud suffixes.
 - Complex works with different index and book titles.
 - Commentary references of any depth, such as `Rashi on Genesis 1:1:1`.
 - The special `Sheet 123` form.
 - Containment and section operations on ranged references.
+- Sparse, incomplete, and inconsistent topology.
 
 ### Acceptance criteria
 
 - Every public function is deterministic.
 - No function reads global state.
+- No function makes a network request.
 - URL and human forms round-trip for the supported corpus.
+- Local parsing proves structural validity, not text existence.
 - Range splitting preserves canonical order.
-- Compatibility results show structural or code-point differences.
-- Known differences do not change the stored baseline without review.
+- Range splitting never returns a partial success.
+- Targeted pinned fixtures record each intentional difference from web, mobile,
+  or server behavior.
 
 ## `@sefaria/client`
 
@@ -108,10 +276,17 @@ client.getText(ref: string, options?: {
 
 client.getVersions(ref: string): Promise<VersionMetadata[]>
 client.getLinks(ref: string): Promise<LinkRef[]>
+client.resolveRef(ref: string): Promise<ParsedRef>
 ```
 
 The default host is `https://www.sefaria.org`. A caller can supply `fetch` for
 tests or a non-browser host.
+
+`resolveRef` uses `/api/ref/{tref}`. It converts the server response into the
+semantic `ParsedRef` shape.
+
+`resolveRef` does not call `parseRef` first. Local and remote resolution remain
+explicit operations.
 
 ### API version
 
@@ -241,8 +416,8 @@ interface LinkRef {
 interface TextResponse {
   ref: string;
   heRef?: string;
-  sections: number[];
-  toSections: number[];
+  sections: string[];
+  toSections: string[];
   sectionRef?: string;
   next?: string;
   prev?: string;
@@ -556,6 +731,9 @@ The completion requirements for a headless Core capability are:
 
 - its public contract is implemented
 - each named edge case has a test
-- the compatibility result reports known differences
+- targeted pinned fixtures report known differences
 - a clean checkout passes the complete repository check
 - the specification matches the behavior
+
+The representative compatibility report belongs to the later compatibility task.
+An implementation issue does not depend on that report to close.

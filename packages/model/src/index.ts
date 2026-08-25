@@ -23,8 +23,8 @@ export interface Version {
 export interface TextResponse {
   ref: string;
   heRef?: string;
-  sections: number[];
-  toSections: number[];
+  sections: string[];
+  toSections: string[];
   sectionRef?: string;
   next?: string;
   prev?: string;

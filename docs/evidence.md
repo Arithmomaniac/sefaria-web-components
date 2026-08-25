@@ -34,6 +34,65 @@ rendering behavior. Live Sefaria surfaces supplement those repositories.
 Consumer projects show integration needs and independent use. They do not define
 Sefaria behavior.
 
+## Reference handling
+
+The Sefaria web client is the primary implementation source for local reference
+helpers. The mobile client is the second implementation source.
+
+The web parser uses the process-global `booksDict` at
+`static/js/sefaria/sefaria.js:35-110`. Its formatter uses parsed title data at
+`sefaria.js:115-160`.
+
+The web URL form separates the title and address with a period. For example, it
+produces `Genesis.1.1`, not `Genesis_1.1`.
+
+The mobile client finds the longest known title at
+`Sefaria-Mobile/sefaria.js:126-135`. Its `refToUrl` helper is at
+`sefaria.js:143-156`.
+
+The mobile source states that complex URLs can differ from web URLs. It also
+states that this difference prevents a shared cache key.
+
+The web and mobile `dafToInt` helpers use zero-based array positions. Both
+return `2` for `2a`.
+
+The Python address implementation and `/api/ref` use one-based reference
+positions. The live `/api/ref/Shabbat%202a%3A1` response reports position `3`.
+
+These values are different coordinate systems. The reference package preserves
+both meanings with different fields.
+
+The web `refContains` implementation at `sefaria.js:243-275` contains an
+apparent self-comparison error. The project does not port that condition.
+
+The Python `Ref.contains` implementation also uses schema ancestry and text
+extent. The portable package implements bounded structural containment instead.
+
+The web `splitRangingRef` function is at `sefaria.js:315-346`. It uses cached
+text for complete spanning expansion.
+
+If cached text is absent, the web function returns only the first non-spanning
+part. The portable package returns a missing-data result instead.
+
+The live reference endpoints expose different data:
+
+| Endpoint                      | Observed role                                  |
+| ----------------------------- | ---------------------------------------------- |
+| `/api/index/titles`           | Flat title and alias list                      |
+| `/api/v2/index/{title}`       | Canonical title and schema metadata            |
+| `/api/ref/{tref}`             | Canonical parsed reference and navigation data |
+| `/api/name/{name}?ref_only=1` | Parsed reference and completion data           |
+| `/api/v3/texts/{ref}`         | Nested text and spanning text shape            |
+
+The index metadata contains aggregate lengths. It does not contain every chapter
+or segment boundary.
+
+The text response can supply concrete range topology. A partial or empty version
+does not prove that a segment does not exist.
+
+The compatibility task will compare a representative corpus later. The
+implementation task uses small pinned fixtures only.
+
 ## Linker HTML trust
 
 `linker.v3/popup.js` builds its shell with `innerHTML` at `popup.js:238`. It
