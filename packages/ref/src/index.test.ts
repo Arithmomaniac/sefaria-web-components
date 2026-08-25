@@ -460,6 +460,14 @@ describe("formatting", () => {
     expect(normRef("Bereshit 1:1", index)).toBe("Genesis.1.1");
   });
 
+  it("does not synthesize a fallback URL for invalid input", () => {
+    expect(normRef("Unknown Work 1:1", index)).toEqual({
+      type: "invalid-ref",
+      code: "unknown-book",
+      input: "Unknown Work 1:1",
+    });
+  });
+
   it("converts URL refs to canonical human refs", () => {
     expect(humanRef("Genesis.1.31-2.3", index)).toBe("Genesis 1:31-2:3");
   });

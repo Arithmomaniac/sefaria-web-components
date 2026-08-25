@@ -135,6 +135,21 @@ Each specification owns its acceptance rules:
 
 ## Integration boundaries
 
+Reference handling has explicit local and remote paths.
+
+- `@sefaria/ref` parses and formats synchronously from caller-supplied immutable
+  index data.
+- `@sefaria/client.resolveRef()` asks Sefaria's public API for authoritative
+  remote resolution.
+- Local parsing never performs a hidden network fallback.
+- Remote resolution does not require local parsing to succeed first.
+- Both paths produce the same semantic parsed-reference contract, even when raw
+  server fields use different coordinate representations.
+
+Consumers choose the path that matches their needs. Offline and deterministic
+consumers use the local package. Consumers that need grammar outside the local
+subset use explicit remote resolution.
+
 The MCP App is one self-contained HTML resource. A Python package can serve the
 resource without the TypeScript checkout.
 

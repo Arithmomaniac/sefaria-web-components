@@ -202,6 +202,33 @@ input remains unchanged.
 
 For example, `sectionRef("Genesis 1:31-2:3", index)` returns `Genesis 1-2`.
 
+### Compatibility with Sefaria clients
+
+Ordinary canonical refs, URL formatting, human formatting, and same-parent
+ranges follow Sefaria web behavior.
+
+The portable contract intentionally differs in these cases:
+
+- An alias resolves to the canonical title supplied by `BookIndex`. Sefaria web
+  can preserve the matched alias.
+- Invalid normalization returns a typed error. Sefaria web can return a fallback
+  string with spaces replaced by underscores.
+- A non-ranging ref passed to `splitRangingRef` returns its canonical human
+  form. Sefaria web returns the original input.
+- A spanning range without complete topology returns `missing-range-topology`.
+  Sefaria web can silently return only its first non-spanning part.
+- Daf range expansion preserves every amud in order.
+- Containment is structural. The package does not claim Python's database-backed
+  equality between a section and its complete segment range.
+- Section refs come from schema depth rather than cached API data or string
+  truncation.
+- Malformed separators, unsupported address systems, and ranges above the
+  expansion limit return typed errors rather than best-effort results.
+
+These differences favor explicit failure over plausible incomplete output. The
+remote `client.resolveRef` operation is the later authoritative path for valid
+Sefaria grammar outside the local subset.
+
 ### Range splitting
 
 Range splitting preserves the addressed depth.
