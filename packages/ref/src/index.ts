@@ -1,3 +1,12 @@
+/**
+ * Portable extraction of Sefaria reference behavior.
+ *
+ * The parsing and formatting rules originate in Sefaria-Project's
+ * static/js/sefaria/sefaria.js and Sefaria-Mobile's sefaria.js. This package
+ * replaces their process-global title catalog, API caches, and partial
+ * fallbacks with caller-supplied immutable data and typed failures. Python
+ * Ref behavior supplies evidence where both clients are incomplete.
+ */
 export type RefAddressType = "integer" | "talmud";
 
 export interface BookIndexNode {
@@ -74,6 +83,8 @@ interface ParsedAddress {
 }
 
 const MAX_RANGE_EXPANSION = 10_000;
+// The upstream clients build their catalog once. Cache validation by immutable
+// index identity so parsing a real Sefaria-sized title list remains interactive.
 const catalogValidationCache = new WeakMap<
   object,
   RefDataErrorCode | undefined
@@ -194,6 +205,8 @@ function validateCatalog(index: BookIndex): RefDataErrorCode | undefined {
 }
 
 export function dafToInt(daf: string): number | RefError {
+  // Port of the shared web/mobile zero-based formula. ParsedRef adds one when
+  // it needs the server's one-based coordinate instead.
   const match = /^(\d+)([ab])$/.exec(daf);
   if (!match) {
     return refError(daf, "invalid-daf");
@@ -320,6 +333,8 @@ function validateNode(
 }
 
 function normalizeInput(input: string): string | RefError {
+  // Mirrors the web parser's URL decoding, underscore handling, whitespace
+  // normalization, and first-letter capitalization without its global cache.
   let decoded: string;
   try {
     decoded = decodeURIComponent(input);
@@ -336,6 +351,8 @@ function normalizeInput(input: string): string | RefError {
 }
 
 function parseSheet(input: string, normalized: string): ParsedRef | RefError {
+  // The web parser treats Sheet as a virtual book. This package deliberately
+  // ports only its reference grammar, not sheet loading or rendering.
   const match = /^Sheet(?:\s+|[.:])(\d+)$/.exec(normalized);
   if (!match) {
     return refError(input, "malformed-sections");
@@ -363,6 +380,9 @@ function findAlias(
   normalized: string,
   index: BookIndex,
 ): { alias: string; nodeKey: string } | undefined {
+  // This is the web/mobile longest-title-prefix algorithm expressed as direct
+  // catalog lookups. Sorting every alias per parse blocked the main thread for
+  // the full Sefaria title catalog.
   for (let length = normalized.length; length > 0; length -= 1) {
     const boundary = normalized[length];
     if (boundary !== undefined && boundary !== " " && boundary !== ".") {
@@ -390,6 +410,8 @@ function parseRange(
       toSectionPositions: readonly number[];
     }
   | RefError {
+  // Port of the web parser's abbreviated range-end rule: missing leading
+  // levels come from the start ref (Genesis 1:1-3 => Genesis 1:1-1:3).
   const parts = value.split("-");
   if (parts.length > 2) {
     return refError(input, "invalid-range");
@@ -452,6 +474,8 @@ export function parseRef(
   ref: string,
   index: BookIndex,
 ): ParsedRef | RefError | RefDataError {
+  // Unlike the web implementation, every dependency is explicit: aliases,
+  // schema depth, address types, and node ancestry all come from BookIndex.
   const normalized = normalizeInput(ref);
   if (typeof normalized !== "string") {
     return normalized;
@@ -539,6 +563,8 @@ function formatRange(
 }
 
 export function makeRef(parsed: ParsedRef): string {
+  // Direct behavioral port of Sefaria.makeRef: encode the title, use periods
+  // for address levels, and abbreviate the unchanged prefix of a range end.
   const book = encodeURIComponent(parsed.book.replaceAll(" ", "_"));
   const address = formatRange(parsed.sections, parsed.toSections, ".");
   return address.length > 0 ? `${book}.${address}` : book;
@@ -553,6 +579,8 @@ export function normRef(
   ref: string,
   index: BookIndex,
 ): string | RefError | RefDataError {
+  // The web helper falls back to replacing spaces when parsing fails. The
+  // portable contract returns the typed failure instead of a plausible URL.
   const parsed = parseRef(ref, index);
   return isRefFailure(parsed) ? parsed : makeRef(parsed);
 }
@@ -561,6 +589,8 @@ export function humanRef(
   ref: string,
   index: BookIndex,
 ): string | RefError | RefDataError {
+  // As in the web helper, human form is parse-then-format. BookIndex replaces
+  // the process-global booksDict used by the original implementation.
   const parsed = parseRef(ref, index);
   return isRefFailure(parsed) ? parsed : makeHumanRef(parsed);
 }
@@ -569,6 +599,8 @@ export function sectionRef(
   ref: string,
   index: BookIndex,
 ): string | RefError | RefDataError {
+  // Web sectionRef prefers cached API data and falls back to string slicing.
+  // Schema depth makes this deterministic for ordinary and complex works.
   const parsed = parseRef(ref, index);
   if (isRefFailure(parsed)) {
     return parsed;
@@ -593,6 +625,9 @@ export function refContains(
   inner: string,
   index: BookIndex,
 ): boolean | RefError | RefDataError {
+  // The web function contains an apparent self-comparison bug; Python Ref also
+  // uses database-backed text extent. This bounded port uses node ancestry and
+  // coordinates only, so undecidable extensional equivalence is not claimed.
   const outerRef = parseRef(outer, index);
   if (isRefFailure(outerRef)) {
     return outerRef;
@@ -650,6 +685,8 @@ function validateTopology(
   parsed: ParsedRef,
   index: BookIndex,
 ): readonly ParsedRef[] | undefined {
+  // Web range splitting gets this ordering from cached text. Validate injected
+  // topology once and retain the parsed entries for the final result.
   if (
     topology.nodeKey !== parsed.nodeKey ||
     topology.depth !== parsed.sectionPositions.length ||
@@ -723,6 +760,9 @@ export function splitRangingRef(
   index: BookIndex,
   topology?: RangeTopology,
 ): readonly string[] | RefError | RefDataError {
+  // Same-parent arithmetic follows the web implementation. For spanning refs,
+  // web returns only the first non-spanning part when text is absent; this
+  // package instead requires complete topology and never returns partial data.
   const parsed = parseRef(ref, index);
   if (isRefFailure(parsed)) {
     return parsed;
