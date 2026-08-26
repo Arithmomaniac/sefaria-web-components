@@ -8,17 +8,16 @@
  * Python `Ref` behavior supplies evidence where both clients are incomplete.
  */
 export { humanRef, makeRef, normRef } from "./format.js";
-export { refContains, sectionRef, splitRangingRef } from "./operations.js";
+export { refContains, sectionRef, splitLocalRange } from "./operations.js";
 export { dafToInt, parseRef } from "./parser.js";
 export type {
   BookIndex,
   BookIndexNode,
   ParsedRef,
-  RangeTopology,
-  RangeTopologyEntry,
   RefAddressType,
-  RefDataError,
-  RefDataErrorCode,
   RefError,
-  RefErrorCode,
+  RefInvalidInputCode,
+  RefLocalDataCode,
+  RefRemoteRequiredCode,
+  RefResult,
 } from "./types.js";

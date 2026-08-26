@@ -102,13 +102,28 @@ expose different data:
 | `/api/v2/index/{title}`       | Canonical title and schema metadata            |
 | `/api/ref/{tref}`             | Canonical parsed reference and navigation data |
 | `/api/name/{name}?ref_only=1` | Parsed reference and completion data           |
+| `/api/shape/{title}`          | Nested structural counts without text          |
 | `/api/v3/texts/{ref}`         | Nested text and spanning text shape            |
 
 The index metadata contains aggregate lengths. It does not contain every chapter
 or segment boundary.
 
-The text response can supply concrete range topology. A partial or empty version
-does not prove that a segment does not exist.
+Live shape probes showed:
+
+- [`/api/shape/Genesis`](https://www.sefaria.org/api/shape/Genesis) returns the
+  verse count for each chapter.
+- [`/api/shape/Shabbat`](https://www.sefaria.org/api/shape/Shabbat) returns line
+  counts by internal daf/amud position, including leading zero positions.
+- [`/api/shape/Rashi%20on%20Genesis`](https://www.sefaria.org/api/shape/Rashi%20on%20Genesis)
+  returns nested sparse commentary counts.
+- [`/api/shape/Pesach%20Haggadah`](https://www.sefaria.org/api/shape/Pesach%20Haggadah)
+  returns shape records for complex schema leaves.
+
+The shape endpoint accepts an Index title, not an arbitrary ref. Complete client
+expansion therefore composes canonical ref resolution with one cached shape
+request. It does not need to download text.
+
+A partial or empty text version does not prove that a segment does not exist.
 
 The compatibility task will compare a representative corpus later. The
 implementation task uses small pinned fixtures only.

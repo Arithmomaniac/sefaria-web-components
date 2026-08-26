@@ -1,3 +1,5 @@
+> Created/edited by GitHub Copilot with human review/feedback by avilevin.
+
 # Design
 
 This document defines the architecture, scope, and repository structure. The
@@ -138,9 +140,14 @@ Each specification owns its acceptance rules:
 Reference handling has explicit local and remote paths.
 
 - `@sefaria/ref` parses and formats synchronously from caller-supplied immutable
-  index data.
+  selected index data. Its higher-level operations consume `ParsedRef`.
 - `@sefaria/client.resolveRef()` asks Sefaria's public API for authoritative
   remote resolution.
+- `@sefaria/client.getBookIndex*()` explicitly fetches selected
+  `/api/v2/index/{title}` schema metadata for local parsing.
+- `@sefaria/client.expandRef()` explicitly fetches cached `/api/shape/{title}`
+  data for complete cross-parent expansion.
+- Text fetching remains a separate `/api/v3/texts/{ref}` operation.
 - Local parsing never performs a hidden network fallback.
 - Remote resolution does not require local parsing to succeed first.
 - Both paths produce the same semantic parsed-reference contract, even when raw

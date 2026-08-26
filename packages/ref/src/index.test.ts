@@ -1,15 +1,16 @@
 import { describe, expect, it } from "vitest";
 import {
   dafToInt,
-  humanRef,
+  humanRef as formatHumanRef,
   makeRef,
   normRef,
   parseRef,
-  refContains,
-  sectionRef,
-  splitRangingRef,
+  refContains as containsParsed,
+  sectionRef as deriveSectionRef,
+  splitLocalRange,
   type BookIndex,
-  type RangeTopology,
+  type ParsedRef,
+  type RefError,
 } from "./index.js";
 
 const index = {
@@ -85,18 +86,53 @@ const index = {
   },
 } as const satisfies BookIndex;
 
-const genesisSpanningTopology = {
-  nodeKey: "genesis",
-  depth: 2,
-  coverageStart: [1, 31],
-  coverageEnd: [2, 3],
-  refs: [
-    { ref: "Genesis 1:31", positions: [1, 31] },
-    { ref: "Genesis 2:1", positions: [2, 1] },
-    { ref: "Genesis 2:2", positions: [2, 2] },
-    { ref: "Genesis 2:3", positions: [2, 3] },
-  ],
-} as const satisfies RangeTopology;
+function parseFixture(
+  ref: string,
+  bookIndex: BookIndex = index,
+): ParsedRef | RefError {
+  return parseRef(ref, bookIndex);
+}
+
+function humanRef(
+  ref: string,
+  bookIndex: BookIndex = index,
+): string | RefError {
+  const parsed = parseFixture(ref, bookIndex);
+  return "type" in parsed ? parsed : formatHumanRef(parsed);
+}
+
+function sectionRef(
+  ref: string,
+  bookIndex: BookIndex = index,
+): string | RefError {
+  const parsed = parseFixture(ref, bookIndex);
+  return "type" in parsed ? parsed : formatHumanRef(deriveSectionRef(parsed));
+}
+
+function refContains(
+  outer: string,
+  inner: string,
+  bookIndex: BookIndex = index,
+): boolean | RefError {
+  const outerRef = parseFixture(outer, bookIndex);
+  if ("type" in outerRef) {
+    return outerRef;
+  }
+  const innerRef = parseFixture(inner, bookIndex);
+  return "type" in innerRef ? innerRef : containsParsed(outerRef, innerRef);
+}
+
+function splitRefLocally(
+  ref: string,
+  bookIndex: BookIndex = index,
+): readonly string[] | RefError {
+  const parsed = parseFixture(ref, bookIndex);
+  if ("type" in parsed) {
+    return parsed;
+  }
+  const split = splitLocalRange(parsed);
+  return "type" in split ? split : split.map(formatHumanRef);
+}
 
 describe("parseRef", () => {
   it("parses a canonical integer-addressed ref", () => {
@@ -205,20 +241,23 @@ describe("parseRef", () => {
 
   it("does not accept a known title as a prefix of another word", () => {
     expect(parseRef("Genesiss 1:1", index)).toEqual({
-      type: "invalid-ref",
-      code: "unknown-book",
+      type: "ref-error",
+      kind: "local-data",
+      code: "title-not-loaded",
       input: "Genesiss 1:1",
     });
   });
 
   it("distinguishes unknown titles from unloaded metadata", () => {
     expect(parseRef("Unknown 1:1", index)).toEqual({
-      type: "invalid-ref",
-      code: "unknown-book",
+      type: "ref-error",
+      kind: "local-data",
+      code: "title-not-loaded",
       input: "Unknown 1:1",
     });
     expect(parseRef("Known Without Metadata 1", index)).toEqual({
-      type: "ref-data",
+      type: "ref-error",
+      kind: "local-data",
       code: "missing-book-metadata",
       input: "Known Without Metadata 1",
     });
@@ -226,8 +265,9 @@ describe("parseRef", () => {
 
   it("does not treat a word that starts with Sheet as a sheet ref", () => {
     expect(parseRef("Sheeted 1", index)).toEqual({
-      type: "invalid-ref",
-      code: "unknown-book",
+      type: "ref-error",
+      kind: "local-data",
+      code: "title-not-loaded",
       input: "Sheeted 1",
     });
   });
@@ -248,7 +288,8 @@ describe("parseRef", () => {
         },
       }),
     ).toEqual({
-      type: "ref-data",
+      type: "ref-error",
+      kind: "local-data",
       code: "missing-hierarchy",
       input: "Broken 1",
     });
@@ -268,7 +309,8 @@ describe("parseRef", () => {
         },
       }),
     ).toEqual({
-      type: "ref-data",
+      type: "ref-error",
+      kind: "local-data",
       code: "inconsistent-data",
       input: "Broken 1",
     });
@@ -290,7 +332,8 @@ describe("parseRef", () => {
     } as unknown as BookIndex;
 
     expect(parseRef("Yearbook 2026", unsupported)).toEqual({
-      type: "ref-data",
+      type: "ref-error",
+      kind: "local-data",
       code: "inconsistent-data",
       input: "Yearbook 2026",
     });
@@ -303,7 +346,8 @@ describe("parseRef", () => {
         nodes: {},
       } as unknown as BookIndex),
     ).toEqual({
-      type: "ref-data",
+      type: "ref-error",
+      kind: "local-data",
       code: "inconsistent-data",
       input: "Genesis 1",
     });
@@ -314,7 +358,8 @@ describe("parseRef", () => {
         nodes: { broken: null },
       } as unknown as BookIndex),
     ).toEqual({
-      type: "ref-data",
+      type: "ref-error",
+      kind: "local-data",
       code: "inconsistent-data",
       input: "Broken 1",
     });
@@ -334,7 +379,8 @@ describe("parseRef", () => {
         },
       } as unknown as BookIndex),
     ).toEqual({
-      type: "ref-data",
+      type: "ref-error",
+      kind: "local-data",
       code: "inconsistent-data",
       input: "Broken 1",
     });
@@ -349,7 +395,8 @@ describe("parseRef", () => {
           nodes: {},
         }),
       ).toEqual({
-        type: "ref-data",
+        type: "ref-error",
+        kind: "local-data",
         code: "missing-book-metadata",
         input: "Known 1",
       });
@@ -363,7 +410,8 @@ describe("parseRef", () => {
         nodes: { genesis: index.nodes.genesis },
       }),
     ).toEqual({
-      type: "ref-data",
+      type: "ref-error",
+      kind: "local-data",
       code: "inconsistent-data",
       input: "Bereshit 1",
     });
@@ -393,7 +441,8 @@ describe("parseRef", () => {
         },
       }),
     ).toEqual({
-      type: "ref-data",
+      type: "ref-error",
+      kind: "local-data",
       code: "inconsistent-data",
       input: "Alpha 1",
     });
@@ -418,19 +467,29 @@ describe("parseRef", () => {
     ["Genesis . . 1:2", "malformed-sections"],
     ["Genesis 1:1-2:3-4", "invalid-range"],
     ["Genesis 2:1-1:1", "invalid-range"],
-    ["Genesis 1:1:1", "unsupported-structure"],
     ["Shabbat 2c:1", "invalid-daf"],
     ["Sheet 0", "malformed-sections"],
   ])("returns %s as %s", (ref, code) => {
     expect(parseRef(ref, index)).toMatchObject({
-      type: "invalid-ref",
+      type: "ref-error",
+      kind: "invalid-input",
       code,
+    });
+  });
+
+  it("routes unsupported local grammar to the remote client", () => {
+    expect(parseRef("Genesis 1:1:1", index)).toEqual({
+      type: "ref-error",
+      kind: "remote-required",
+      code: "unsupported-local-grammar",
+      input: "Genesis 1:1:1",
     });
   });
 
   it("returns a typed error for malformed URI encoding", () => {
     expect(parseRef("Genesis%E0%A4%A 1:1", index)).toEqual({
-      type: "invalid-ref",
+      type: "ref-error",
+      kind: "invalid-input",
       code: "malformed-reference",
       input: "Genesis%E0%A4%A 1:1",
     });
@@ -462,8 +521,9 @@ describe("formatting", () => {
 
   it("does not synthesize a fallback URL for invalid input", () => {
     expect(normRef("Unknown Work 1:1", index)).toEqual({
-      type: "invalid-ref",
-      code: "unknown-book",
+      type: "ref-error",
+      kind: "local-data",
+      code: "title-not-loaded",
       input: "Unknown Work 1:1",
     });
   });
@@ -505,7 +565,8 @@ describe("dafToInt", () => {
 
   it.each(["2c", "2A", "0b", "-2a", "a"])("rejects invalid daf %s", (daf) => {
     expect(dafToInt(daf)).toEqual({
-      type: "invalid-ref",
+      type: "ref-error",
+      kind: "invalid-input",
       code: "invalid-daf",
       input: daf,
     });
@@ -513,7 +574,8 @@ describe("dafToInt", () => {
 
   it("rejects daf values that produce unsafe coordinates", () => {
     expect(dafToInt("9007199254740991a")).toEqual({
-      type: "invalid-ref",
+      type: "ref-error",
+      kind: "invalid-input",
       code: "invalid-daf",
       input: "9007199254740991a",
     });
@@ -569,13 +631,13 @@ describe("refContains", () => {
   });
 });
 
-describe("splitRangingRef", () => {
+describe("splitLocalRange", () => {
   it("returns one canonical human ref for a non-range", () => {
-    expect(splitRangingRef("Bereshit 1:1", index)).toEqual(["Genesis 1:1"]);
+    expect(splitRefLocally("Bereshit 1:1", index)).toEqual(["Genesis 1:1"]);
   });
 
   it("expands a same-parent terminal range", () => {
-    expect(splitRangingRef("Genesis 1:1-3", index)).toEqual([
+    expect(splitRefLocally("Genesis 1:1-3", index)).toEqual([
       "Genesis 1:1",
       "Genesis 1:2",
       "Genesis 1:3",
@@ -583,14 +645,14 @@ describe("splitRangingRef", () => {
   });
 
   it("preserves depth for a section range", () => {
-    expect(splitRangingRef("Genesis 1-2", index)).toEqual([
+    expect(splitRefLocally("Genesis 1-2", index)).toEqual([
       "Genesis 1",
       "Genesis 2",
     ]);
   });
 
   it("expands a same-depth daf range", () => {
-    expect(splitRangingRef("Shabbat 15a-16b", index)).toEqual([
+    expect(splitRefLocally("Shabbat 15a-16b", index)).toEqual([
       "Shabbat 15a",
       "Shabbat 15b",
       "Shabbat 16a",
@@ -599,145 +661,20 @@ describe("splitRangingRef", () => {
   });
 
   it("rejects an arithmetic range that is too large", () => {
-    expect(splitRangingRef("Genesis 1-10001", index)).toEqual({
-      type: "invalid-ref",
+    expect(splitRefLocally("Genesis 1-10001", index)).toEqual({
+      type: "ref-error",
+      kind: "invalid-input",
       code: "range-too-large",
       input: "Genesis 1-10001",
     });
   });
 
-  it("expands a spanning terminal range from complete topology", () => {
-    expect(
-      splitRangingRef("Genesis 1:31-2:3", index, genesisSpanningTopology),
-    ).toEqual(["Genesis 1:31", "Genesis 2:1", "Genesis 2:2", "Genesis 2:3"]);
-  });
-
-  it("does not return a partial spanning result without topology", () => {
-    expect(splitRangingRef("Genesis 1:31-2:3", index)).toEqual({
-      type: "ref-data",
-      code: "missing-range-topology",
+  it("requires remote shape for a cross-parent terminal range", () => {
+    expect(splitRefLocally("Genesis 1:31-2:3", index)).toEqual({
+      type: "ref-error",
+      kind: "remote-required",
+      code: "remote-shape-required",
       input: "Genesis 1:31-2:3",
     });
-  });
-
-  it("rejects topology for another node", () => {
-    expect(
-      splitRangingRef("Genesis 1:31-2:3", index, {
-        ...genesisSpanningTopology,
-        nodeKey: "shabbat",
-      }),
-    ).toEqual({
-      type: "ref-data",
-      code: "inconsistent-data",
-      input: "Genesis 1:31-2:3",
-    });
-  });
-
-  it("rejects topology refs that do not match their positions", () => {
-    expect(
-      splitRangingRef("Genesis 1:31-2:3", index, {
-        ...genesisSpanningTopology,
-        refs: [
-          ...genesisSpanningTopology.refs.slice(0, -1),
-          { ref: "Genesis 2:4", positions: [2, 3] },
-        ],
-      }),
-    ).toEqual({
-      type: "ref-data",
-      code: "inconsistent-data",
-      input: "Genesis 1:31-2:3",
-    });
-  });
-
-  it("distinguishes incomplete topology from inconsistent topology", () => {
-    expect(
-      splitRangingRef("Genesis 1:31-2:3", index, {
-        ...genesisSpanningTopology,
-        coverageEnd: [2, 2],
-        refs: genesisSpanningTopology.refs.slice(0, -1),
-      }),
-    ).toEqual({
-      type: "ref-data",
-      code: "missing-range-topology",
-      input: "Genesis 1:31-2:3",
-    });
-
-    expect(
-      splitRangingRef("Genesis 1:31-2:3", index, {
-        ...genesisSpanningTopology,
-        refs: [
-          genesisSpanningTopology.refs[1],
-          genesisSpanningTopology.refs[0],
-        ],
-      }),
-    ).toEqual({
-      type: "ref-data",
-      code: "inconsistent-data",
-      input: "Genesis 1:31-2:3",
-    });
-  });
-
-  it("rejects unsafe topology coordinates", () => {
-    expect(
-      splitRangingRef("Genesis 1:31-2:3", index, {
-        ...genesisSpanningTopology,
-        coverageEnd: [Number.NaN, 3],
-      }),
-    ).toEqual({
-      type: "ref-data",
-      code: "inconsistent-data",
-      input: "Genesis 1:31-2:3",
-    });
-  });
-
-  it("rejects malformed and sparse topology fields", () => {
-    expect(
-      splitRangingRef("Genesis 1:31-2:3", index, {
-        ...genesisSpanningTopology,
-        coverageStart: null,
-      } as unknown as RangeTopology),
-    ).toEqual({
-      type: "ref-data",
-      code: "inconsistent-data",
-      input: "Genesis 1:31-2:3",
-    });
-
-    expect(
-      splitRangingRef("Genesis 1:31-2:3", index, {
-        ...genesisSpanningTopology,
-        refs: null,
-      } as unknown as RangeTopology),
-    ).toEqual({
-      type: "ref-data",
-      code: "inconsistent-data",
-      input: "Genesis 1:31-2:3",
-    });
-
-    expect(
-      splitRangingRef("Genesis 1:31-2:3", index, {
-        ...genesisSpanningTopology,
-        coverageStart: Array<number>(2),
-        coverageEnd: Array<number>(2),
-      }),
-    ).toEqual({
-      type: "ref-data",
-      code: "inconsistent-data",
-      input: "Genesis 1:31-2:3",
-    });
-  });
-
-  it("uses complete topology without inventing sparse commentary refs", () => {
-    expect(
-      splitRangingRef("Rashi on Genesis 1:1:1-1:2:2", index, {
-        nodeKey: "rashi-genesis",
-        depth: 3,
-        coverageStart: [1, 1, 1],
-        coverageEnd: [1, 2, 2],
-        refs: [
-          { ref: "Rashi on Genesis 1:1:1", positions: [1, 1, 1] },
-          { ref: "Rashi on Genesis 1:2:2", positions: [1, 2, 2] },
-        ],
-      }),
-    ).toEqual(["Rashi on Genesis 1:1:1", "Rashi on Genesis 1:2:2"]);
   });
 });

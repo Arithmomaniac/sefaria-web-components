@@ -1,171 +1,79 @@
-import { makeHumanRef } from "./format.js";
+import { humanRef } from "./format.js";
 import {
   arraysEqual,
   comparePositions,
-  dataError,
-  isDenseArrayOf,
-  isPositiveSafeInteger,
+  inputError,
   isPrefix,
-  isRecord,
-  isRefFailure,
-  refError,
+  remoteRequiredError,
 } from "./internal.js";
-import { parseRef, positionToLabel } from "./parser.js";
-import type {
-  BookIndex,
-  ParsedRef,
-  RangeTopology,
-  RangeTopologyEntry,
-  RefDataError,
-  RefError,
-} from "./types.js";
+import { positionToLabel } from "./parser.js";
+import type { ParsedRef, RefError } from "./types.js";
 
 const MAX_RANGE_EXPANSION = 10_000;
 
 /**
- * Returns the section-level ref for a local reference.
+ * Returns the structured section-level ref.
  *
- * Sefaria web prefers cached API data and falls back to string slicing. This
- * implementation derives the result from schema depth, including complex and
- * spanning refs.
+ * Sefaria Web prefers cached API data and falls back to string slicing. This
+ * implementation derives the result from the schema depth stored in the
+ * validated ref.
  */
-export function sectionRef(
-  ref: string,
-  index: BookIndex,
-): string | RefError | RefDataError {
-  const parsed = parseRef(ref, index);
-  if (isRefFailure(parsed)) {
+export function sectionRef(parsed: ParsedRef): ParsedRef {
+  const sectionDepth = Math.max(0, parsed.addressTypes.length - 1);
+  if (parsed.sections.length <= sectionDepth) {
     return parsed;
   }
 
-  const sectionDepth = Math.max(0, parsed.addressTypes.length - 1);
-  if (parsed.sections.length <= sectionDepth) {
-    return makeHumanRef(parsed);
-  }
-
-  return makeHumanRef({
+  return {
     ...parsed,
     sections: parsed.sections.slice(0, sectionDepth),
     toSections: parsed.toSections.slice(0, sectionDepth),
     sectionPositions: parsed.sectionPositions.slice(0, sectionDepth),
     toSectionPositions: parsed.toSectionPositions.slice(0, sectionDepth),
-  });
+  };
 }
 
 /**
  * Tests bounded structural containment using schema ancestry and coordinates.
  *
- * Sefaria web contains an apparent self-comparison bug, while Python `Ref` can
- * use database-backed text extent. This local operation deliberately does not
- * claim extensional equality that requires text topology.
+ * This operation does not claim Python `Ref`'s database-backed equality
+ * between a section and its complete segment range.
  */
-export function refContains(
-  outer: string,
-  inner: string,
-  index: BookIndex,
-): boolean | RefError | RefDataError {
-  const outerRef = parseRef(outer, index);
-  if (isRefFailure(outerRef)) {
-    return outerRef;
-  }
-
-  const innerRef = parseRef(inner, index);
-  if (isRefFailure(innerRef)) {
-    return innerRef;
-  }
-
-  if (!isPrefix(outerRef.nodePath, innerRef.nodePath)) {
+export function refContains(outer: ParsedRef, inner: ParsedRef): boolean {
+  if (outer.index !== inner.index) {
     return false;
   }
 
-  if (outerRef.nodeKey !== innerRef.nodeKey) {
-    return outerRef.sectionPositions.length === 0;
+  if (!isPrefix(outer.nodePath, inner.nodePath)) {
+    return false;
   }
 
-  const depth = outerRef.sectionPositions.length;
-  if (innerRef.sectionPositions.length < depth) {
+  if (outer.nodeKey !== inner.nodeKey) {
+    return outer.sectionPositions.length === 0;
+  }
+
+  const depth = outer.sectionPositions.length;
+  if (inner.sectionPositions.length < depth) {
     return false;
   }
 
   return (
     comparePositions(
-      outerRef.sectionPositions,
-      innerRef.sectionPositions.slice(0, depth),
+      outer.sectionPositions,
+      inner.sectionPositions.slice(0, depth),
     ) <= 0 &&
     comparePositions(
-      outerRef.toSectionPositions,
-      innerRef.toSectionPositions.slice(0, depth),
+      outer.toSectionPositions,
+      inner.toSectionPositions.slice(0, depth),
     ) >= 0
   );
 }
 
-function isRangeTopology(value: unknown): value is RangeTopology {
-  return (
-    isRecord(value) &&
-    typeof value.nodeKey === "string" &&
-    isPositiveSafeInteger(value.depth) &&
-    isDenseArrayOf(value.coverageStart, isPositiveSafeInteger) &&
-    isDenseArrayOf(value.coverageEnd, isPositiveSafeInteger) &&
-    isDenseArrayOf(
-      value.refs,
-      (entry): entry is RangeTopologyEntry =>
-        isRecord(entry) &&
-        typeof entry.ref === "string" &&
-        isDenseArrayOf(entry.positions, isPositiveSafeInteger),
-    )
-  );
-}
-
-/**
- * Validates caller-asserted complete topology and returns parsed entries so the
- * split operation does not repeat reference parsing.
- */
-function validateTopology(
-  topology: RangeTopology,
-  parsed: ParsedRef,
-  index: BookIndex,
-): readonly ParsedRef[] | undefined {
-  if (
-    topology.nodeKey !== parsed.nodeKey ||
-    topology.depth !== parsed.sectionPositions.length ||
-    topology.coverageStart.length !== topology.depth ||
-    topology.coverageEnd.length !== topology.depth ||
-    comparePositions(topology.coverageStart, topology.coverageEnd) > 0
-  ) {
-    return undefined;
-  }
-
-  const parsedEntries: ParsedRef[] = [];
-  let previous: readonly number[] | undefined;
-  for (const entry of topology.refs) {
-    const entryRef = parseRef(entry.ref, index);
-    if (
-      entry.positions.length !== topology.depth ||
-      comparePositions(entry.positions, topology.coverageStart) < 0 ||
-      comparePositions(entry.positions, topology.coverageEnd) > 0 ||
-      (previous && comparePositions(previous, entry.positions) >= 0) ||
-      isRefFailure(entryRef) ||
-      entryRef.nodeKey !== topology.nodeKey ||
-      !arraysEqual(entryRef.sectionPositions, entry.positions) ||
-      !arraysEqual(entryRef.toSectionPositions, entry.positions)
-    ) {
-      return undefined;
-    }
-
-    parsedEntries.push(entryRef);
-    previous = entry.positions;
-  }
-
-  return parsedEntries;
-}
-
 function expandArithmeticRange(
   parsed: ParsedRef,
-  input: string,
-): readonly string[] | RefError {
+): readonly ParsedRef[] | RefError {
   const depth = parsed.sectionPositions.length;
   const addressType = parsed.addressTypes[depth - 1]!;
-  const refs: string[] = [];
   const start = parsed.sectionPositions[depth - 1]!;
   const end = parsed.toSectionPositions[depth - 1]!;
   const count = end - start + 1;
@@ -175,44 +83,35 @@ function expandArithmeticRange(
     count < 1 ||
     count > MAX_RANGE_EXPANSION
   ) {
-    return refError(input, "range-too-large");
+    return inputError(humanRef(parsed), "range-too-large");
   }
 
+  const refs: ParsedRef[] = [];
   for (let position = start; position <= end; position += 1) {
     const label = positionToLabel(position, addressType);
-    refs.push(
-      makeHumanRef({
-        ...parsed,
-        sections: [...parsed.sections.slice(0, -1), label],
-        toSections: [...parsed.sections.slice(0, -1), label],
-        sectionPositions: [...parsed.sectionPositions.slice(0, -1), position],
-        toSectionPositions: [...parsed.sectionPositions.slice(0, -1), position],
-      }),
-    );
+    refs.push({
+      ...parsed,
+      sections: [...parsed.sections.slice(0, -1), label],
+      toSections: [...parsed.sections.slice(0, -1), label],
+      sectionPositions: [...parsed.sectionPositions.slice(0, -1), position],
+      toSectionPositions: [...parsed.sectionPositions.slice(0, -1), position],
+    });
   }
 
   return refs;
 }
 
 /**
- * Splits a local range while preserving its addressed depth.
+ * Splits ranges whose members are decidable from their endpoints alone.
  *
- * Same-parent arithmetic follows Sefaria web. For spanning refs, web returns
- * only the first non-spanning part when cached text is absent; this portable
- * operation requires complete topology and never returns partial data.
+ * Cross-parent terminal ranges require Sefaria shape data and return
+ * `remote-shape-required`; `@sefaria/client.expandRef()` owns that operation.
  */
-export function splitRangingRef(
-  ref: string,
-  index: BookIndex,
-  topology?: RangeTopology,
-): readonly string[] | RefError | RefDataError {
-  const parsed = parseRef(ref, index);
-  if (isRefFailure(parsed)) {
-    return parsed;
-  }
-
+export function splitLocalRange(
+  parsed: ParsedRef,
+): readonly ParsedRef[] | RefError {
   if (arraysEqual(parsed.sectionPositions, parsed.toSectionPositions)) {
-    return [makeHumanRef(parsed)];
+    return [parsed];
   }
 
   const prefixLength = parsed.sectionPositions.length - 1;
@@ -223,40 +122,8 @@ export function splitRangingRef(
       parsed.toSectionPositions.slice(0, prefixLength),
     )
   ) {
-    return expandArithmeticRange(parsed, ref);
+    return expandArithmeticRange(parsed);
   }
 
-  if (!topology) {
-    return dataError(ref, "missing-range-topology");
-  }
-
-  if (!isRangeTopology(topology)) {
-    return dataError(ref, "inconsistent-data");
-  }
-
-  const topologyEntries = validateTopology(topology, parsed, index);
-  if (!topologyEntries) {
-    return dataError(ref, "inconsistent-data");
-  }
-
-  if (
-    comparePositions(topology.coverageStart, parsed.sectionPositions) > 0 ||
-    comparePositions(topology.coverageEnd, parsed.toSectionPositions) < 0
-  ) {
-    return dataError(ref, "missing-range-topology");
-  }
-
-  const refs = topologyEntries
-    .filter(
-      (entry) =>
-        comparePositions(entry.sectionPositions, parsed.sectionPositions) >=
-          0 &&
-        comparePositions(entry.sectionPositions, parsed.toSectionPositions) <=
-          0,
-    )
-    .map(makeHumanRef);
-
-  return refs.length <= MAX_RANGE_EXPANSION
-    ? refs
-    : refError(ref, "range-too-large");
+  return remoteRequiredError(humanRef(parsed), "remote-shape-required");
 }

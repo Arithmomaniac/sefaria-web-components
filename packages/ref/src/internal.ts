@@ -1,23 +1,30 @@
 import type {
   ParsedRef,
-  RefDataError,
-  RefDataErrorCode,
   RefError,
-  RefErrorCode,
-  RefFailure,
+  RefInvalidInputCode,
+  RefLocalDataCode,
+  RefRemoteRequiredCode,
 } from "./types.js";
 
-export function refError(input: string, code: RefErrorCode): RefError {
-  return { type: "invalid-ref", code, input };
+export function inputError(input: string, code: RefInvalidInputCode): RefError {
+  return { type: "ref-error", kind: "invalid-input", code, input };
 }
 
-export function dataError(input: string, code: RefDataErrorCode): RefDataError {
-  return { type: "ref-data", code, input };
+export function localDataError(
+  input: string,
+  code: RefLocalDataCode,
+): RefError {
+  return { type: "ref-error", kind: "local-data", code, input };
 }
 
-export function isRefFailure(
-  value: ParsedRef | RefFailure,
-): value is RefFailure {
+export function remoteRequiredError(
+  input: string,
+  code: RefRemoteRequiredCode,
+): RefError {
+  return { type: "ref-error", kind: "remote-required", code, input };
+}
+
+export function isRefFailure(value: ParsedRef | RefError): value is RefError {
   return "type" in value;
 }
 

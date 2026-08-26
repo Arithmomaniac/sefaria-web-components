@@ -28,26 +28,6 @@ export interface BookIndex {
   readonly nodes: Readonly<Record<string, BookIndexNode>>;
 }
 
-/** One existing ref and its one-based coordinates within a complete topology. */
-export interface RangeTopologyEntry {
-  readonly ref: string;
-  readonly positions: readonly number[];
-}
-
-/**
- * Complete ordered knowledge for a bounded range on one schema node.
- *
- * Entries may be sparse because nonexistent positions are omitted. The caller
- * is responsible for asserting that the declared coverage is complete.
- */
-export interface RangeTopology {
-  readonly nodeKey: string;
-  readonly depth: number;
-  readonly coverageStart: readonly number[];
-  readonly coverageEnd: readonly number[];
-  readonly refs: readonly RangeTopologyEntry[];
-}
-
 /**
  * A validated local reference.
  *
@@ -66,36 +46,48 @@ export interface ParsedRef {
   readonly toSectionPositions: readonly number[];
 }
 
-/** Expected invalid-input categories. */
-export type RefErrorCode =
-  | "unknown-book"
+export type RefInvalidInputCode =
   | "malformed-reference"
   | "malformed-sections"
-  | "unsupported-structure"
   | "invalid-range"
   | "range-too-large"
   | "invalid-daf";
 
-/** Invalid user input; callers should not retry without changing the ref. */
-export interface RefError {
-  readonly type: "invalid-ref";
-  readonly code: RefErrorCode;
-  readonly input: string;
-}
-
-/** Missing or inconsistent caller-supplied data categories. */
-export type RefDataErrorCode =
+export type RefLocalDataCode =
+  | "title-not-loaded"
   | "missing-book-metadata"
   | "missing-hierarchy"
-  | "missing-range-topology"
   | "inconsistent-data";
 
-/** A valid operation that cannot proceed with the supplied catalog or topology. */
-export interface RefDataError {
-  readonly type: "ref-data";
-  readonly code: RefDataErrorCode;
-  readonly input: string;
-}
+export type RefRemoteRequiredCode =
+  "unsupported-local-grammar" | "remote-shape-required";
 
-/** Failure returned by any fallible local reference operation. */
-export type RefFailure = RefError | RefDataError;
+/**
+ * Actionable failure from local reference handling.
+ *
+ * - `invalid-input`: change the input.
+ * - `local-data`: fetch or repair the selected `BookIndex`.
+ * - `remote-required`: use an explicit client operation.
+ */
+export type RefError =
+  | {
+      readonly type: "ref-error";
+      readonly kind: "invalid-input";
+      readonly code: RefInvalidInputCode;
+      readonly input: string;
+    }
+  | {
+      readonly type: "ref-error";
+      readonly kind: "local-data";
+      readonly code: RefLocalDataCode;
+      readonly input: string;
+    }
+  | {
+      readonly type: "ref-error";
+      readonly kind: "remote-required";
+      readonly code: RefRemoteRequiredCode;
+      readonly input: string;
+    };
+
+/** A successful parse result or actionable local failure. */
+export type RefResult = ParsedRef | RefError;

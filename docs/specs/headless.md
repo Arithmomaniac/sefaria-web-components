@@ -23,8 +23,8 @@ package makes network requests.
 The package parses, formats, compares, and splits Sefaria references without
 network access or process-global state.
 
-The caller supplies immutable title and schema data as a `BookIndex`. A
-cross-parent terminal range also requires complete `RangeTopology`.
+The caller supplies immutable title and schema data as a selected `BookIndex`.
+Absence from that snapshot does not prove that a title is globally invalid.
 
 The [package guide](../../packages/ref/README.md) defines Sefaria Index and
 schema-node vocabulary, explains the flattened data model, and provides diagrams
@@ -32,29 +32,21 @@ and examples. Exported TypeScript declarations are the canonical field-level API
 reference.
 
 ```ts
-parseRef(ref: string, index: BookIndex): ParsedRef | RefError | RefDataError
+parseRef(ref: string, index: BookIndex): ParsedRef | RefError
 makeRef(parsed: ParsedRef): string
-normRef(ref: string, index: BookIndex): string | RefError | RefDataError
-humanRef(ref: string, index: BookIndex): string | RefError | RefDataError
-splitRangingRef(
-  ref: string,
-  index: BookIndex,
-  topology?: RangeTopology,
-): readonly string[] | RefError | RefDataError
-refContains(
-  outer: string,
-  inner: string,
-  index: BookIndex,
-): boolean | RefError | RefDataError
-sectionRef(
-  ref: string,
-  index: BookIndex,
-): string | RefError | RefDataError
+normRef(ref: string, index: BookIndex): string | RefError
+humanRef(parsed: ParsedRef): string
+splitLocalRange(parsed: ParsedRef): readonly ParsedRef[] | RefError
+refContains(outer: ParsedRef, inner: ParsedRef): boolean
+sectionRef(parsed: ParsedRef): ParsedRef
 dafToInt(daf: string): number | RefError
 ```
 
-`normRef` returns a URL form such as `Genesis.1.1`. `humanRef` returns a display
-form such as `Genesis 1:1`.
+`parseRef` is the structured local resolver. `normRef` is a convenience
+equivalent to successful `parseRef` followed by `makeRef`.
+
+`makeRef` and `humanRef` format an existing `ParsedRef` as URL and display
+strings such as `Genesis.1.1` and `Genesis 1:1`.
 
 `ParsedRef` preserves display labels and separate one-based comparison
 coordinates. `dafToInt` retains the zero-based web/mobile contract: `1a` returns
@@ -80,8 +72,12 @@ and rendering remain outside this project's scope.
 
 ### Errors
 
-Expected invalid input returns `RefError`. Missing or inconsistent metadata
-returns `RefDataError`.
+`RefError` is one actionable union:
+
+- `invalid-input` means the syntax is definitely malformed.
+- `local-data` means the selected `BookIndex` lacks or contains invalid
+  metadata.
+- `remote-required` means the input needs grammar or shape data from the client.
 
 No function throws for expected invalid input. No operation returns a
 success-shaped fallback, empty list, or partial range when required data is
@@ -89,8 +85,8 @@ missing.
 
 ### Containment and sections
 
-`refContains` uses structural containment. It compares canonical node ancestry
-and one-based coordinates.
+`refContains` consumes validated refs and compares canonical node ancestry and
+one-based coordinates.
 
 A less-specific coordinate prefix contains deeper refs in the same node
 hierarchy. Sibling nodes and unrelated books do not contain one another.
@@ -98,9 +94,8 @@ hierarchy. Sibling nodes and unrelated books do not contain one another.
 Missing node ancestry returns `missing-hierarchy`. The function does not claim
 topology-based equality between a section and its complete segment range.
 
-`sectionRef` uses schema depth to remove the terminal address level. A
-section-level input remains unchanged. For example, `Genesis 1:31-2:3` becomes
-`Genesis 1-2`.
+`sectionRef` returns a structured ref with the terminal address level removed. A
+section-level input remains unchanged.
 
 ### Compatibility with Sefaria clients
 
@@ -113,10 +108,9 @@ The portable contract intentionally differs in these cases:
   can preserve the matched alias.
 - Invalid normalization returns a typed error. Sefaria Web can return a fallback
   string with spaces replaced by underscores.
-- A non-ranging ref passed to `splitRangingRef` returns its canonical human
-  form. Sefaria Web returns the original input.
-- A spanning range without complete topology returns `missing-range-topology`.
-  Sefaria Web can silently return only its first non-spanning part.
+- `splitLocalRange` returns structured refs rather than display strings.
+- A cross-parent terminal range returns `remote-shape-required`. Sefaria Web can
+  silently return only its first non-spanning part when cached text is absent.
 - Daf range expansion preserves every amud in order.
 - Containment is structural. The package does not claim Python's database-backed
   equality between a section and its complete segment range.
@@ -129,25 +123,24 @@ These differences favor explicit failure over plausible incomplete output. The
 future remote `client.resolveRef` operation is the authoritative path for valid
 Sefaria grammar outside the local subset.
 
-### Range splitting
+### Local range splitting
 
-Range splitting preserves the addressed depth.
+`splitLocalRange` preserves the addressed depth for ranges decidable from their
+endpoints.
 
 An arithmetic expansion contains at most 10,000 refs. A larger range returns
 `range-too-large`.
 
-| Input class                 | Example                         | Output                                        |
-| --------------------------- | ------------------------------- | --------------------------------------------- |
-| Non-range                   | `Genesis 1:1`                   | One canonical ref at the input depth          |
-| Same-parent terminal range  | `Genesis 1:1-3`                 | Segment refs                                  |
-| Same-depth section range    | `Genesis 1-2`                   | Section refs                                  |
-| Same-depth daf range        | `Shabbat 15a-16b`               | Daf refs                                      |
-| Cross-parent terminal range | `Genesis 1:31-2:3`              | Existing terminal refs from complete topology |
-| Sparse deep range           | Commentary with empty positions | Existing terminal refs from complete topology |
+| Input class                 | Example            | Local result               |
+| --------------------------- | ------------------ | -------------------------- |
+| Non-range                   | `Genesis 1:1`      | One ref at the input depth |
+| Same-parent terminal range  | `Genesis 1:1-3`    | Segment refs               |
+| Same-depth section range    | `Genesis 1-2`      | Section refs               |
+| Same-depth daf range        | `Shabbat 15a-16b`  | Daf refs                   |
+| Cross-parent terminal range | `Genesis 1:31-2:3` | `remote-shape-required`    |
 
-Cross-parent terminal ranges require complete `RangeTopology`. Missing coverage
-returns `missing-range-topology`; inconsistent topology returns
-`inconsistent-data`.
+Complete cross-parent expansion belongs to `client.expandRef`, backed by
+`/api/shape/{title}` rather than a text request.
 
 ### Required cases
 
@@ -162,7 +155,8 @@ returns `missing-range-topology`; inconsistent topology returns
 - Commentary references of any depth, such as `Rashi on Genesis 1:1:1`.
 - The special `Sheet 123` form.
 - Containment and section operations on ranged references.
-- Sparse, incomplete, and inconsistent topology.
+- Selected snapshots with absent and unloaded titles.
+- Cross-parent ranges that require remote shape.
 
 ### Acceptance criteria
 
@@ -172,7 +166,7 @@ returns `missing-range-topology`; inconsistent topology returns
 - URL and human forms round-trip for the supported corpus.
 - Local parsing proves structural validity, not text existence.
 - Range splitting preserves canonical order.
-- Range splitting never returns a partial success.
+- Local range splitting never returns a partial success.
 - Targeted pinned fixtures record each intentional difference from web, mobile,
   or server behavior.
 
@@ -203,6 +197,11 @@ client.getText(ref: string, options?: {
 client.getVersions(ref: string): Promise<VersionMetadata[]>
 client.getLinks(ref: string): Promise<LinkRef[]>
 client.resolveRef(ref: string): Promise<ParsedRef>
+client.getBookIndex(indexTitle: string): Promise<BookIndex>
+client.getBookIndexForRef(ref: string): Promise<BookIndex>
+client.getBookIndexes(indexTitles: readonly string[]): Promise<BookIndex>
+client.getRefShape(indexTitle: string): Promise<RefShape>
+client.expandRef(ref: string): Promise<readonly ParsedRef[]>
 ```
 
 The default host is `https://www.sefaria.org`. A caller can supply `fetch` for
@@ -213,6 +212,23 @@ semantic `ParsedRef` shape.
 
 `resolveRef` does not call `parseRef` first. Local and remote resolution remain
 explicit operations.
+
+### Reference metadata and shape
+
+`getBookIndex` fetches `/api/v2/index/{title}` and adapts one canonical Index,
+its title variants, primary schema nodes, address types, and ancestry into an
+immutable selected `BookIndex`.
+
+`getBookIndexForRef` explicitly composes `resolveRef` and `getBookIndex`.
+`getBookIndexes` fetches only caller-selected Index titles and returns one
+combined snapshot. The client does not implicitly fetch the whole library.
+
+`getRefShape` fetches `/api/shape/{title}`. `expandRef` combines canonical
+resolution with cached shape data to enumerate concrete refs without fetching
+text.
+
+Reference resolution, BookIndex metadata, shape, and text use separate cache
+keys. None of these methods silently falls back to a different endpoint.
 
 ### API version
 

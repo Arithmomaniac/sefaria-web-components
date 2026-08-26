@@ -1,6 +1,6 @@
 import { arraysEqual, isRefFailure } from "./internal.js";
 import { parseRef } from "./parser.js";
-import type { BookIndex, ParsedRef, RefDataError, RefError } from "./types.js";
+import type { BookIndex, ParsedRef, RefError } from "./types.js";
 
 function firstDifference(
   sections: readonly string[],
@@ -45,7 +45,7 @@ export function makeRef(parsed: ParsedRef): string {
 }
 
 /** Formats a validated parsed ref for human display. */
-export function makeHumanRef(parsed: ParsedRef): string {
+export function humanRef(parsed: ParsedRef): string {
   const address = formatRange(parsed.sections, parsed.toSections, ":");
   return address.length > 0 ? `${parsed.book} ${address}` : parsed.book;
 }
@@ -56,23 +56,7 @@ export function makeHumanRef(parsed: ParsedRef): string {
  * Sefaria web falls back to replacing spaces when parsing fails. The portable
  * contract returns that typed failure instead of a plausible URL.
  */
-export function normRef(
-  ref: string,
-  index: BookIndex,
-): string | RefError | RefDataError {
+export function normRef(ref: string, index: BookIndex): string | RefError {
   const parsed = parseRef(ref, index);
   return isRefFailure(parsed) ? parsed : makeRef(parsed);
-}
-
-/**
- * Parses and formats a canonical human-readable ref.
- *
- * `BookIndex` replaces the process-global `booksDict` used by Sefaria web.
- */
-export function humanRef(
-  ref: string,
-  index: BookIndex,
-): string | RefError | RefDataError {
-  const parsed = parseRef(ref, index);
-  return isRefFailure(parsed) ? parsed : makeHumanRef(parsed);
 }

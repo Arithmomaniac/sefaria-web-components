@@ -17,16 +17,17 @@ local subset.
 ```mermaid
 flowchart LR
     subgraph Public["Sefaria public data"]
-        TITLES["/api/index/titles<br/>title variants"]
         INDEX["/api/v2/index/{title}<br/>schema metadata"]
         REFAPI["/api/ref/{tref}<br/>server-canonical ref"]
-        TEXT["/api/v3/texts/{ref}<br/>nested text shape"]
+        SHAPE["/api/shape/{title}<br/>structural counts"]
+        TEXT["/api/v3/texts/{ref}<br/>text"]
     end
 
     subgraph Client["@sefaria/client (planned in #12)"]
-        ADAPT["index/schema adapter"]
+        BOOKS["getBookIndex()<br/>getBookIndexes()"]
         RESOLVE["resolveRef()"]
-        TOPOLOGY["topology adapter"]
+        EXPAND["getRefShape()<br/>expandRef()"]
+        GETTEXT["getText()"]
     end
 
     subgraph Ref["@sefaria/ref"]
@@ -35,24 +36,23 @@ flowchart LR
         PARSED["ParsedRef<br/>labels + coordinates"]
         FORMAT["makeRef()<br/>normRef()<br/>humanRef()"]
         RELATE["sectionRef()<br/>refContains()"]
-        RANGE["splitRangingRef()"]
-        RT["RangeTopology<br/>known existing refs"]
+        RANGE["splitLocalRange()"]
     end
 
     INPUT["input ref"] --> PARSE
-    TITLES -.-> ADAPT
-    INDEX -.-> ADAPT
-    ADAPT -.-> BOOKINDEX
+    INDEX -.-> BOOKS
+    BOOKS -.-> BOOKINDEX
     BOOKINDEX --> PARSE
     PARSE --> PARSED
     PARSED --> FORMAT
     PARSED --> RELATE
     PARSED --> RANGE
-    TEXT -.-> TOPOLOGY
-    TOPOLOGY -.-> RT
-    RT --> RANGE
     REFAPI -.-> RESOLVE
     RESOLVE -.-> PARSED
+    SHAPE -.-> EXPAND
+    RESOLVE -.-> EXPAND
+    EXPAND -.-> PARSED
+    TEXT -.-> GETTEXT
 ```
 
 Solid arrows are implemented by `@sefaria/ref`. Dotted arrows show the planned
@@ -112,7 +112,8 @@ The matching `sectionNames` describe those levels for humans, such as
 
 ## `BookIndex`
 
-`BookIndex` is the immutable local catalog supplied to reference operations.
+`BookIndex` is an immutable selected snapshot supplied to local parsing. It is
+not proof that every Sefaria title is loaded.
 
 ```ts
 const index: BookIndex = {
@@ -170,7 +171,7 @@ import { humanRef, normRef, parseRef, type BookIndex } from "@sefaria/ref";
 const parsed = parseRef("Bereshit 1:1", index);
 
 if ("type" in parsed) {
-  // Handle RefError or RefDataError.
+  // invalid-input, local-data, or remote-required
   throw new Error(parsed.code);
 }
 
@@ -179,7 +180,7 @@ parsed.sections; // ["1", "1"]
 parsed.sectionPositions; // [1, 1]
 
 normRef("Bereshit 1:1", index); // "Genesis.1.1"
-humanRef("Genesis.1.1", index); // "Genesis 1:1"
+humanRef(parsed); // "Genesis 1:1"
 ```
 
 `ParsedRef` keeps two representations:
@@ -193,52 +194,59 @@ The public `dafToInt()` helper follows Sefaria Web and Mobile's zero-based
 convention, so `dafToInt("2a")` returns `2`. Parsing adds one when it creates
 the server-compatible coordinate `3`.
 
-## Split ranges
+## Split local ranges
 
 Same-parent ranges can be expanded arithmetically:
 
 ```ts
-splitRangingRef("Genesis 1:1-3", index);
+const range = parseRef("Genesis 1:1-3", index);
+if ("type" in range) throw new Error(range.code);
+
+const split = splitLocalRange(range);
+if ("type" in split) throw new Error(split.code);
+
+split.map(humanRef);
 // ["Genesis 1:1", "Genesis 1:2", "Genesis 1:3"]
 ```
 
-A cross-parent terminal range needs text topology. The title and schema APIs do
-not say that Genesis chapter 1 ends at verse 31.
+A cross-parent terminal range needs Sefaria shape data. The pure package returns
+`remote-required/remote-shape-required` rather than guessing.
 
 ```ts
-const topology: RangeTopology = {
-  nodeKey: "genesis",
-  depth: 2,
-  coverageStart: [1, 31],
-  coverageEnd: [2, 3],
-  refs: [
-    { ref: "Genesis 1:31", positions: [1, 31] },
-    { ref: "Genesis 2:1", positions: [2, 1] },
-    { ref: "Genesis 2:2", positions: [2, 2] },
-    { ref: "Genesis 2:3", positions: [2, 3] },
-  ],
-};
-
-splitRangingRef("Genesis 1:31-2:3", index, topology);
+(await client.expandRef("Genesis 1:31-2:3")).map(humanRef);
 // ["Genesis 1:31", "Genesis 2:1", "Genesis 2:2", "Genesis 2:3"]
 ```
 
-`RangeTopology` is caller-asserted complete knowledge for its declared coverage.
-Its list can be sparse: positions that do not exist are omitted. Without
-complete topology, a cross-parent split returns `missing-range-topology` instead
-of Sefaria Web's partial fallback.
+The planned client operation resolves the ref and fetches cached
+`/api/shape/{title}` data. It does not download text for refs-only expansion.
 
 ## Errors
 
 Operations return errors as values for expected failures.
 
-| Error type     | Meaning                                                        | Typical caller action                                   |
-| -------------- | -------------------------------------------------------------- | ------------------------------------------------------- |
-| `RefError`     | The input is invalid or outside the local grammar              | Ask the user to change the ref or use remote resolution |
-| `RefDataError` | Required local metadata or topology is missing or inconsistent | Load or repair the data, then retry                     |
+| `RefError.kind`   | Meaning                                                     | Typical caller action                             |
+| ----------------- | ----------------------------------------------------------- | ------------------------------------------------- |
+| `invalid-input`   | The syntax is definitely malformed                          | Ask the user to change the ref                    |
+| `local-data`      | The selected `BookIndex` lacks or contains invalid metadata | Fetch or repair the selected snapshot             |
+| `remote-required` | The ref needs grammar or shape outside the local capability | Use `client.resolveRef()` or `client.expandRef()` |
 
 No operation makes a network request or silently changes from local to remote
 behavior.
+
+## Fetch a selected `BookIndex`
+
+Ordinary online consumers do not construct `BookIndex` manually. The planned
+client API makes provisioning explicit:
+
+```ts
+const genesis = await client.getBookIndex("Genesis");
+const forInput = await client.getBookIndexForRef("Bereshit 1:1");
+const core = await client.getBookIndexes(["Genesis", "Shabbat"]);
+```
+
+The methods fetch and cache `/api/v2/index/{title}` metadata. Batch fetching
+returns one combined immutable selected snapshot. There is no implicit
+whole-library download.
 
 ## Local compatibility boundary
 

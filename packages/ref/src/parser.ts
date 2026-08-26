@@ -1,19 +1,19 @@
 import {
   comparePositions,
-  dataError,
+  inputError,
   isDenseArrayOf,
+  localDataError,
   isRecord,
   isString,
-  refError,
+  remoteRequiredError,
 } from "./internal.js";
 import type {
   BookIndex,
   BookIndexNode,
   ParsedRef,
   RefAddressType,
-  RefDataError,
-  RefDataErrorCode,
   RefError,
+  RefLocalDataCode,
 } from "./types.js";
 
 interface ParsedAddress {
@@ -25,7 +25,7 @@ interface ParsedAddress {
 // identity so parsing the full title catalog remains interactive.
 const catalogValidationCache = new WeakMap<
   object,
-  RefDataErrorCode | undefined
+  RefLocalDataCode | undefined
 >();
 
 function hasBookIndexShape(value: unknown): value is BookIndex {
@@ -47,7 +47,7 @@ function isBookIndexNode(value: unknown): value is BookIndexNode {
   );
 }
 
-function validateCatalog(index: BookIndex): RefDataErrorCode | undefined {
+function validateCatalog(index: BookIndex): RefLocalDataCode | undefined {
   if (catalogValidationCache.has(index)) {
     return catalogValidationCache.get(index);
   }
@@ -83,18 +83,18 @@ function validateCatalog(index: BookIndex): RefDataErrorCode | undefined {
 export function dafToInt(daf: string): number | RefError {
   const match = /^(\d+)([ab])$/.exec(daf);
   if (!match) {
-    return refError(daf, "invalid-daf");
+    return inputError(daf, "invalid-daf");
   }
 
   const page = Number(match[1]);
   if (!Number.isSafeInteger(page) || page < 1) {
-    return refError(daf, "invalid-daf");
+    return inputError(daf, "invalid-daf");
   }
 
   const position = (page - 1) * 2 + (match[2] === "b" ? 1 : 0);
   return Number.isSafeInteger(position)
     ? position
-    : refError(daf, "invalid-daf");
+    : inputError(daf, "invalid-daf");
 }
 
 function labelToPosition(
@@ -105,23 +105,23 @@ function labelToPosition(
   if (addressType === "talmud") {
     const position = dafToInt(label);
     if (typeof position !== "number") {
-      return refError(input, "invalid-daf");
+      return inputError(input, "invalid-daf");
     }
 
     const oneBasedPosition = position + 1;
     return Number.isSafeInteger(oneBasedPosition)
       ? oneBasedPosition
-      : refError(input, "invalid-daf");
+      : inputError(input, "invalid-daf");
   }
 
   if (!/^\d+$/.test(label)) {
-    return refError(input, "malformed-sections");
+    return inputError(input, "malformed-sections");
   }
 
   const position = Number(label);
   return Number.isSafeInteger(position) && position > 0
     ? position
-    : refError(input, "malformed-sections");
+    : inputError(input, "malformed-sections");
 }
 
 /** Formats one-based coordinates for a configured address system. */
@@ -148,16 +148,16 @@ function parseAddress(
   }
 
   if (/^[.:]|[.:]$|[.:]\s*[.:]/.test(value)) {
-    return refError(input, "malformed-sections");
+    return inputError(input, "malformed-sections");
   }
 
   const rawLabels = value.split(/[.:\s]+/);
   if (rawLabels.some((label) => label.length === 0)) {
-    return refError(input, "malformed-sections");
+    return inputError(input, "malformed-sections");
   }
 
   if (rawLabels.length > addressTypes.length) {
-    return refError(input, "unsupported-structure");
+    return remoteRequiredError(input, "unsupported-local-grammar");
   }
 
   const labels: string[] = [];
@@ -181,7 +181,7 @@ function validateNode(
   node: BookIndexNode,
   index: BookIndex,
   input: string,
-): RefDataError | undefined {
+): RefError | undefined {
   if (
     node.key.length === 0 ||
     node.title.length === 0 ||
@@ -190,17 +190,17 @@ function validateNode(
     node.nodePath.at(-1) !== node.key ||
     node.addressTypes.length !== node.sectionNames.length
   ) {
-    return dataError(input, "inconsistent-data");
+    return localDataError(input, "inconsistent-data");
   }
 
   for (const key of node.nodePath) {
     if (!Object.hasOwn(index.nodes, key)) {
-      return dataError(input, "missing-hierarchy");
+      return localDataError(input, "missing-hierarchy");
     }
 
     const ancestor = index.nodes[key];
     if (!isBookIndexNode(ancestor) || ancestor.key !== key) {
-      return dataError(input, "inconsistent-data");
+      return localDataError(input, "inconsistent-data");
     }
   }
 
@@ -214,12 +214,12 @@ function normalizeInput(input: string): string | RefError {
   try {
     decoded = decodeURIComponent(input);
   } catch {
-    return refError(input, "malformed-reference");
+    return inputError(input, "malformed-reference");
   }
 
   const normalized = decoded.replaceAll("_", " ").trim().replace(/\s+/g, " ");
   if (normalized.length === 0) {
-    return refError(input, "malformed-reference");
+    return inputError(input, "malformed-reference");
   }
 
   return `${normalized[0]!.toUpperCase()}${normalized.slice(1)}`;
@@ -230,12 +230,12 @@ function parseSheet(input: string, normalized: string): ParsedRef | RefError {
   // reference grammar, not sheet loading or rendering.
   const match = /^Sheet(?:\s+|[.:])(\d+)$/.exec(normalized);
   if (!match) {
-    return refError(input, "malformed-sections");
+    return inputError(input, "malformed-sections");
   }
 
   const position = Number(match[1]);
   if (!Number.isSafeInteger(position) || position < 1) {
-    return refError(input, "malformed-sections");
+    return inputError(input, "malformed-sections");
   }
 
   return {
@@ -288,7 +288,7 @@ function parseRange(
   // levels come from the start ref (Genesis 1:1-3 => Genesis 1:1-1:3).
   const parts = value.split("-");
   if (parts.length > 2) {
-    return refError(input, "invalid-range");
+    return inputError(input, "invalid-range");
   }
 
   const start = parseAddress(parts[0]!.trim(), addressTypes, input);
@@ -313,7 +313,7 @@ function parseRange(
     endLabelCount === 0 ||
     endLabelCount > start.labels.length
   ) {
-    return refError(input, "invalid-range");
+    return inputError(input, "invalid-range");
   }
 
   const prefixLength = start.labels.length - endLabelCount;
@@ -333,7 +333,7 @@ function parseRange(
   ];
 
   if (comparePositions(start.positions, toSectionPositions) > 0) {
-    return refError(input, "invalid-range");
+    return inputError(input, "invalid-range");
   }
 
   return {
@@ -350,10 +350,7 @@ function parseRange(
  * Unlike Sefaria web, this function reads no process-global catalog and makes
  * no network request. Invalid input and missing catalog data remain distinct.
  */
-export function parseRef(
-  ref: string,
-  index: BookIndex,
-): ParsedRef | RefError | RefDataError {
+export function parseRef(ref: string, index: BookIndex): ParsedRef | RefError {
   const normalized = normalizeInput(ref);
   if (typeof normalized !== "string") {
     return normalized;
@@ -364,26 +361,26 @@ export function parseRef(
   }
 
   if (!hasBookIndexShape(index)) {
-    return dataError(ref, "inconsistent-data");
+    return localDataError(ref, "inconsistent-data");
   }
 
   const catalogError = validateCatalog(index);
   if (catalogError) {
-    return dataError(ref, catalogError);
+    return localDataError(ref, catalogError);
   }
 
   const match = findAlias(normalized, index);
   if (!match) {
-    return refError(ref, "unknown-book");
+    return localDataError(ref, "title-not-loaded");
   }
 
   if (!Object.hasOwn(index.nodes, match.nodeKey)) {
-    return dataError(ref, "missing-book-metadata");
+    return localDataError(ref, "missing-book-metadata");
   }
   const node = index.nodes[match.nodeKey];
 
   if (!isBookIndexNode(node) || node.key !== match.nodeKey) {
-    return dataError(ref, "inconsistent-data");
+    return localDataError(ref, "inconsistent-data");
   }
 
   const nodeError = validateNode(node, index, ref);
@@ -394,7 +391,7 @@ export function parseRef(
   const suffix = normalized.slice(match.alias.length);
   const address = suffix.length === 0 ? "" : suffix.slice(1);
   if (suffix.length > 0 && address.length === 0) {
-    return refError(ref, "malformed-sections");
+    return inputError(ref, "malformed-sections");
   }
 
   const range = parseRange(address, node.addressTypes, ref);
