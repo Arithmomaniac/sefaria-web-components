@@ -210,7 +210,8 @@ split.map(humanRef);
 ```
 
 A cross-parent terminal range needs Sefaria shape data. The pure package returns
-`remote-required/remote-shape-required` rather than guessing.
+`remote-required/remote-shape-required` rather than guessing. After #12, the
+planned client API will provide complete expansion:
 
 ```ts
 (await client.expandRef("Genesis 1:31-2:3")).map(humanRef);
@@ -224,19 +225,19 @@ The planned client operation resolves the ref and fetches cached
 
 Operations return errors as values for expected failures.
 
-| `RefError.kind`   | Meaning                                                     | Typical caller action                             |
-| ----------------- | ----------------------------------------------------------- | ------------------------------------------------- |
-| `invalid-input`   | The syntax is definitely malformed                          | Ask the user to change the ref                    |
-| `local-data`      | The selected `BookIndex` lacks or contains invalid metadata | Fetch or repair the selected snapshot             |
-| `remote-required` | The ref needs grammar or shape outside the local capability | Use `client.resolveRef()` or `client.expandRef()` |
+| `RefError.kind`   | Meaning                                                     | Typical caller action                                        |
+| ----------------- | ----------------------------------------------------------- | ------------------------------------------------------------ |
+| `invalid-input`   | The syntax is definitely malformed                          | Ask the user to change the ref                               |
+| `local-data`      | The selected `BookIndex` lacks or contains invalid metadata | Fetch or repair the selected snapshot                        |
+| `remote-required` | The ref needs grammar or shape outside the local capability | After #12, use `client.resolveRef()` or `client.expandRef()` |
 
 No operation makes a network request or silently changes from local to remote
 behavior.
 
 ## Fetch a selected `BookIndex`
 
-Ordinary online consumers do not construct `BookIndex` manually. The planned
-client API makes provisioning explicit:
+The current branch requires callers to supply `BookIndex`. The planned #12
+client API will make provisioning explicit:
 
 ```ts
 const genesis = await client.getBookIndex("Genesis");

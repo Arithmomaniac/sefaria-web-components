@@ -141,21 +141,21 @@ Reference handling has explicit local and remote paths.
 
 - `@sefaria/ref` parses and formats synchronously from caller-supplied immutable
   selected index data. Its higher-level operations consume `ParsedRef`.
-- `@sefaria/client.resolveRef()` asks Sefaria's public API for authoritative
-  remote resolution.
-- `@sefaria/client.getBookIndex*()` explicitly fetches selected
+- The planned #12 `@sefaria/client.resolveRef()` asks Sefaria's public API for
+  authoritative remote resolution.
+- The planned client `getBookIndex*()` methods explicitly fetch selected
   `/api/v2/index/{title}` schema metadata for local parsing.
-- `@sefaria/client.expandRef()` explicitly fetches cached `/api/shape/{title}`
-  data for complete cross-parent expansion.
+- The planned client `expandRef()` explicitly fetches cached
+  `/api/shape/{title}` data for complete cross-parent expansion.
 - Text fetching remains a separate `/api/v3/texts/{ref}` operation.
 - Local parsing never performs a hidden network fallback.
 - Remote resolution does not require local parsing to succeed first.
 - Both paths produce the same semantic parsed-reference contract, even when raw
   server fields use different coordinate representations.
 
-Consumers choose the path that matches their needs. Offline and deterministic
-consumers use the local package. Consumers that need grammar outside the local
-subset use explicit remote resolution.
+Offline and deterministic consumers can use the implemented local package. After
+#12, consumers that need grammar outside the local subset will use explicit
+remote resolution.
 
 The MCP App is one self-contained HTML resource. A Python package can serve the
 resource without the TypeScript checkout.

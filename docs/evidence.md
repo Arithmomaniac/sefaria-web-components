@@ -178,8 +178,8 @@ The headless specification makes this format loss explicit.
 The current front-end text cache grows for the lifetime of the page. It has no
 eviction and no expiry.
 
-The front end also combines concurrent requests for the same URL. The new client
-keeps this useful behavior and adds a bounded default cache.
+The front end also combines concurrent requests for the same URL. The planned
+#12 client contract keeps this useful behavior and adds a bounded default cache.
 
 ## Web and mobile footnote results
 

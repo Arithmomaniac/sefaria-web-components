@@ -172,6 +172,9 @@ Complete cross-parent expansion belongs to `client.expandRef`, backed by
 
 ## `@sefaria/client`
 
+> **Implementation status:** This section defines the planned #12 contract. The
+> current client package does not yet implement these methods.
+
 ### Responsibility
 
 The package wraps the public Sefaria API. It returns normalized data and
