@@ -1,3 +1,5 @@
+> Created/edited by GitHub Copilot with human review/feedback by avilevin.
+
 # Evidence
 
 This document records source observations that support the design and
@@ -39,22 +41,29 @@ Sefaria behavior.
 The Sefaria web client is the primary implementation source for local reference
 helpers. The mobile client is the second implementation source.
 
-The web parser uses the process-global `booksDict` at
-`static/js/sefaria/sefaria.js:35-110`. Its formatter uses parsed title data at
-`sefaria.js:115-160`.
+The
+[web parser](https://github.com/Sefaria/Sefaria-Project/blob/c33ee503163a85a07bb0688456c4059cdaa3f7ed/static/js/sefaria/sefaria.js#L35-L110)
+uses the process-global `booksDict`. Its
+[formatter](https://github.com/Sefaria/Sefaria-Project/blob/c33ee503163a85a07bb0688456c4059cdaa3f7ed/static/js/sefaria/sefaria.js#L115-L160)
+uses parsed title data.
 
 The web URL form separates the title and address with a period. For example, it
 produces `Genesis.1.1`, not `Genesis_1.1`.
 
-The mobile client finds the longest known title at
-`Sefaria-Mobile/sefaria.js:126-135`. Its `refToUrl` helper is at
-`sefaria.js:143-156`.
+The mobile client
+[finds the longest known title](https://github.com/Sefaria/Sefaria-Mobile/blob/925420dcf7dd00a16f8dc4c4191284792fc3f9fa/sefaria.js#L126-L135).
+Its
+[`refToUrl` helper](https://github.com/Sefaria/Sefaria-Mobile/blob/925420dcf7dd00a16f8dc4c4191284792fc3f9fa/sefaria.js#L143-L156)
+documents its behavior.
 
 The mobile source states that complex URLs can differ from web URLs. It also
 states that this difference prevents a shared cache key.
 
-The web and mobile `dafToInt` helpers use zero-based array positions. Both
-return `2` for `2a`.
+The
+[web](https://github.com/Sefaria/Sefaria-Project/blob/c33ee503163a85a07bb0688456c4059cdaa3f7ed/static/js/sefaria/hebrew.js#L240-L264)
+and
+[mobile](https://github.com/Sefaria/Sefaria-Mobile/blob/925420dcf7dd00a16f8dc4c4191284792fc3f9fa/sefaria.js#L1706-L1722)
+`dafToInt` helpers use zero-based array positions. Both return `2` for `2a`.
 
 The helpers also return `0` for `1a`. Although Babylonian tractates usually
 begin on `2a`, other Talmud-addressed works, including Rif and Tikkunei Zohar,
@@ -66,19 +75,26 @@ positions. The live `/api/ref/Shabbat%202a%3A1` response reports position `3`.
 These values are different coordinate systems. The reference package preserves
 both meanings with different fields.
 
-The web `refContains` implementation at `sefaria.js:243-275` contains an
-apparent self-comparison error. The project does not port that condition.
+The web
+[`refContains` implementation](https://github.com/Sefaria/Sefaria-Project/blob/c33ee503163a85a07bb0688456c4059cdaa3f7ed/static/js/sefaria/sefaria.js#L243-L275)
+contains an apparent self-comparison error. The project does not port that
+condition.
 
-The Python `Ref.contains` implementation also uses schema ancestry and text
-extent. The portable package implements bounded structural containment instead.
+The Python
+[`Ref.contains` implementation](https://github.com/Sefaria/Sefaria-Project/blob/c33ee503163a85a07bb0688456c4059cdaa3f7ed/sefaria/model/text.py#L4273-L4314)
+also uses schema ancestry and text extent. The portable package implements
+bounded structural containment instead.
 
-The web `splitRangingRef` function is at `sefaria.js:315-346`. It uses cached
-text for complete spanning expansion.
+The web
+[`splitRangingRef` function](https://github.com/Sefaria/Sefaria-Project/blob/c33ee503163a85a07bb0688456c4059cdaa3f7ed/static/js/sefaria/sefaria.js#L315-L346)
+uses cached text for complete spanning expansion.
 
 If cached text is absent, the web function returns only the first non-spanning
 part. The portable package returns a missing-data result instead.
 
-The live reference endpoints expose different data:
+The
+[documented public endpoints](https://github.com/Sefaria/Sefaria-Project/blob/c33ee503163a85a07bb0688456c4059cdaa3f7ed/docs/decisions/documented_endpoints.md)
+expose different data:
 
 | Endpoint                      | Observed role                                  |
 | ----------------------------- | ---------------------------------------------- |

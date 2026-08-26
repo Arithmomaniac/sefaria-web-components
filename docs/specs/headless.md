@@ -1,3 +1,5 @@
+> Created/edited by GitHub Copilot with human review/feedback by avilevin.
+
 # Headless API and data
 
 This specification defines the packages that work without the component library.
@@ -19,74 +21,15 @@ package makes network requests.
 ### Responsibility
 
 The package parses, formats, compares, and splits Sefaria references without
-network access.
+network access or process-global state.
 
-The caller supplies an immutable `BookIndex`. Some range operations also need an
-immutable `RangeTopology`.
+The caller supplies immutable title and schema data as a `BookIndex`. A
+cross-parent terminal range also requires complete `RangeTopology`.
 
-```ts
-type RefAddressType = "integer" | "talmud";
-
-interface BookIndexNode {
-  readonly key: string;
-  readonly title: string;
-  readonly indexTitle: string;
-  readonly nodePath: readonly string[];
-  readonly addressTypes: readonly RefAddressType[];
-  readonly sectionNames: readonly string[];
-}
-
-interface BookIndex {
-  readonly aliases: Readonly<Record<string, string>>;
-  readonly nodes: Readonly<Record<string, BookIndexNode>>;
-}
-
-interface RangeTopologyEntry {
-  readonly ref: string;
-  readonly positions: readonly number[];
-}
-
-interface RangeTopology {
-  readonly nodeKey: string;
-  readonly depth: number;
-  readonly coverageStart: readonly number[];
-  readonly coverageEnd: readonly number[];
-  readonly refs: readonly RangeTopologyEntry[];
-}
-
-interface ParsedRef {
-  readonly book: string;
-  readonly index: string;
-  readonly nodeKey: string;
-  readonly nodePath: readonly string[];
-  readonly addressTypes: readonly RefAddressType[];
-  readonly sections: readonly string[];
-  readonly toSections: readonly string[];
-  readonly sectionPositions: readonly number[];
-  readonly toSectionPositions: readonly number[];
-}
-```
-
-`BookIndex.aliases` maps each accepted title to a node key. An alias can
-identify a known title before its node metadata is loaded.
-
-`BookIndex.nodes` contains flattened schema nodes. Each node has a stable key
-and its root-to-leaf path.
-
-Each canonical node title must also appear in `BookIndex.aliases` and map to
-that node.
-
-The client package will adapt public index responses into this shape. The
-reference package does not parse raw schema trees.
-
-`RangeTopology` describes a complete ordered range for one node and depth. Its
-entries contain only refs that exist.
-
-Schema metadata and range topology remain separate. They have different sources
-and completeness rules.
-
-`ParsedRef.sections` and `toSections` contain display labels such as `2a`. The
-position arrays contain one-based comparison coordinates.
+The [package guide](../../packages/ref/README.md) defines Sefaria Index and
+schema-node vocabulary, explains the flattened data model, and provides diagrams
+and examples. Exported TypeScript declarations are the canonical field-level API
+reference.
 
 ```ts
 parseRef(ref: string, index: BookIndex): ParsedRef | RefError | RefDataError
@@ -113,12 +56,9 @@ dafToInt(daf: string): number | RefError
 `normRef` returns a URL form such as `Genesis.1.1`. `humanRef` returns a display
 form such as `Genesis 1:1`.
 
-`dafToInt` matches the zero-based web and mobile helper. Therefore,
-`dafToInt("1a")` returns `0`, `dafToInt("2a")` returns `2`, and `dafToInt("2b")`
-returns `3`.
-
-Parsed refs use one-based comparison coordinates. A parsed `2a` label therefore
-has position `3`, which matches the server reference response.
+`ParsedRef` preserves display labels and separate one-based comparison
+coordinates. `dafToInt` retains the zero-based web/mobile contract: `1a` returns
+`0`, `2a` returns `2`, and `2b` returns `3`.
 
 ### Supported grammar
 
@@ -140,51 +80,12 @@ and rendering remain outside this project's scope.
 
 ### Errors
 
-Expected invalid user input returns a `RefError`. Missing or inconsistent caller
-data returns a `RefDataError`.
+Expected invalid input returns `RefError`. Missing or inconsistent metadata
+returns `RefDataError`.
 
-```ts
-type RefErrorCode =
-  | "unknown-book"
-  | "malformed-reference"
-  | "malformed-sections"
-  | "unsupported-structure"
-  | "invalid-range"
-  | "range-too-large"
-  | "invalid-daf";
-
-interface RefError {
-  type: "invalid-ref";
-  code: RefErrorCode;
-  input: string;
-}
-
-type RefDataErrorCode =
-  | "missing-book-metadata"
-  | "missing-hierarchy"
-  | "missing-range-topology"
-  | "inconsistent-data";
-
-interface RefDataError {
-  type: "ref-data";
-  code: RefDataErrorCode;
-  input: string;
-}
-```
-
-No function throws for invalid user input. The package does not return `false`,
-an empty list, or a partial result for missing data.
-
-### Formatting
-
-`makeRef` accepts a validated `ParsedRef`. It derives the canonical URL form
-without global data.
-
-`normRef` and `humanRef` use `BookIndex` for alias-aware parsing. They do not
-perform syntax-only fallback conversion.
-
-Canonical URL output follows the pinned web and server form. An underscore
-separates words inside a title, and a period starts the address.
+No function throws for expected invalid input. No operation returns a
+success-shaped fallback, empty list, or partial range when required data is
+missing.
 
 ### Containment and sections
 
@@ -197,26 +98,25 @@ hierarchy. Sibling nodes and unrelated books do not contain one another.
 Missing node ancestry returns `missing-hierarchy`. The function does not claim
 topology-based equality between a section and its complete segment range.
 
-`sectionRef` removes one address level from both endpoints. A section-level
-input remains unchanged.
-
-For example, `sectionRef("Genesis 1:31-2:3", index)` returns `Genesis 1-2`.
+`sectionRef` uses schema depth to remove the terminal address level. A
+section-level input remains unchanged. For example, `Genesis 1:31-2:3` becomes
+`Genesis 1-2`.
 
 ### Compatibility with Sefaria clients
 
-Ordinary canonical refs, URL formatting, human formatting, and same-parent
-ranges follow Sefaria web behavior.
+Ordinary canonical refs, URL and human formatting, and same-parent ranges follow
+Sefaria Web behavior.
 
 The portable contract intentionally differs in these cases:
 
-- An alias resolves to the canonical title supplied by `BookIndex`. Sefaria web
+- An alias resolves to the canonical title supplied by `BookIndex`. Sefaria Web
   can preserve the matched alias.
-- Invalid normalization returns a typed error. Sefaria web can return a fallback
+- Invalid normalization returns a typed error. Sefaria Web can return a fallback
   string with spaces replaced by underscores.
 - A non-ranging ref passed to `splitRangingRef` returns its canonical human
-  form. Sefaria web returns the original input.
+  form. Sefaria Web returns the original input.
 - A spanning range without complete topology returns `missing-range-topology`.
-  Sefaria web can silently return only its first non-spanning part.
+  Sefaria Web can silently return only its first non-spanning part.
 - Daf range expansion preserves every amud in order.
 - Containment is structural. The package does not claim Python's database-backed
   equality between a section and its complete segment range.
@@ -226,7 +126,7 @@ The portable contract intentionally differs in these cases:
   expansion limit return typed errors rather than best-effort results.
 
 These differences favor explicit failure over plausible incomplete output. The
-remote `client.resolveRef` operation is the later authoritative path for valid
+future remote `client.resolveRef` operation is the authoritative path for valid
 Sefaria grammar outside the local subset.
 
 ### Range splitting
@@ -245,11 +145,9 @@ An arithmetic expansion contains at most 10,000 refs. A larger range returns
 | Cross-parent terminal range | `Genesis 1:31-2:3`              | Existing terminal refs from complete topology |
 | Sparse deep range           | Commentary with empty positions | Existing terminal refs from complete topology |
 
-Cross-parent terminal ranges require a complete `RangeTopology`. Missing or
-incomplete topology returns `missing-range-topology`.
-
-The function returns all refs or an error. It does not copy the web fallback
-that returns only the first non-spanning part.
+Cross-parent terminal ranges require complete `RangeTopology`. Missing coverage
+returns `missing-range-topology`; inconsistent topology returns
+`inconsistent-data`.
 
 ### Required cases
 
