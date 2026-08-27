@@ -29,6 +29,7 @@
     "@eslint/js": "^10.0.1",
     "@types/node": "^26.2.0",
     "@vitest/browser-playwright": "^4.1.10",
+    "ajv": "^8.20.0",
     "eslint": "^10.0.1",
     "playwright": "^1.62.1",
     "prettier": "^3.9.6",

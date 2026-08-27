@@ -197,7 +197,7 @@ client.getText(ref: string, options?: {
     | "wrap_all_entities";
 }): Promise<TextResponse>
 
-client.getVersions(ref: string): Promise<VersionMetadata[]>
+client.getVersions(ref: string): Promise<Version[]>
 client.getLinks(ref: string): Promise<LinkRef[]>
 client.resolveRef(ref: string): Promise<ParsedRef>
 client.getBookIndex(indexTitle: string): Promise<BookIndex>
@@ -324,55 +324,93 @@ and the final failure.
 
 ```ts
 interface Segment {
-  ref: string;
-  text: string;
-  lang: string;
-  direction: "ltr" | "rtl";
-  versionTitle: string;
+  readonly ref: string;
+  readonly text: string;
+  readonly lang: string;
+  readonly direction: "ltr" | "rtl";
+  readonly versionTitle: string;
 }
 
 interface Version {
-  versionTitle: string;
-  language: string;
-  actualLanguage?: string;
-  languageFamilyName?: string;
-  direction: "ltr" | "rtl";
-  isSource?: boolean;
-  isPrimary?: boolean;
-  license?: string;
-  versionSource?: string;
-  versionUrl?: string;
-  versionNotes?: string;
-  digitizedBySefaria?: boolean;
-  shortVersionTitle?: string;
-  formatAsPoetry?: boolean;
-  hasManuallyWrappedRefs?: boolean;
+  readonly versionTitle: string;
+  readonly language: string;
+  readonly actualLanguage?: string;
+  readonly languageFamilyName?: string;
+  readonly direction: "ltr" | "rtl";
+  readonly isSource?: boolean;
+  readonly isPrimary?: boolean;
+  readonly license?: string;
+  readonly versionSource?: string;
+  readonly versionUrl?: string;
+  readonly versionNotes?: string;
+  readonly digitizedBySefaria?: boolean;
+  readonly shortVersionTitle?: string;
+  readonly formatAsPoetry?: boolean;
+  readonly hasManuallyWrappedRefs?: boolean;
 }
 
 interface LinkRef {
-  ref: string;
-  heRef?: string;
-  category?: string;
-  commentator?: string;
-  order?: number;
-  sourceHasEn?: boolean;
+  readonly ref: string;
+  readonly heRef?: string;
+  readonly category?: string;
+  readonly commentator?: string;
+  readonly order?: number;
+  readonly sourceHasEn?: boolean;
 }
 
 interface TextResponse {
-  ref: string;
-  heRef?: string;
-  sections: string[];
-  toSections: string[];
-  sectionRef?: string;
-  next?: string;
-  prev?: string;
-  isSpanning: boolean;
-  versions: Version[];
+  readonly ref: string;
+  readonly heRef?: string;
+  readonly sections: readonly string[];
+  readonly toSections: readonly string[];
+  readonly sectionRef?: string;
+  readonly next?: string;
+  readonly prev?: string;
+  readonly isSpanning: boolean;
+  readonly versions: readonly Version[];
+  readonly segments: readonly Segment[];
 }
 ```
 
-Raw generated types can contain more fields. Public normalized types stay small
-and stable.
+Each `Segment` contains one concrete reference and one version's text. A
+response with two versions for one reference therefore contains two segments.
+Every segment's `versionTitle` and `lang` must identify exactly one entry in
+`TextResponse.versions`, and its direction must match that version. Duplicate
+version identities and disagreements between duplicated segment and version
+fields return `invalid-field`.
+
+`TextResponse.segments` preserves candidate order; the model does not sort,
+deduplicate, parse references, infer missing versions, or flatten
+endpoint-specific text trees.
+
+Raw generated types can contain more fields. They remain at the client boundary.
+The client adapts `/api/v3/texts` strings and nested arrays into public-shaped
+candidates with concrete segment refs before calling the model normalizer.
+
+### Normalization and errors
+
+The package exports pure normalizers for every public model:
+
+```ts
+normalizeSegment(value: unknown): ModelResult<Segment>
+normalizeVersion(value: unknown): ModelResult<Version>
+normalizeLinkRef(value: unknown): ModelResult<LinkRef>
+normalizeTextResponse(value: unknown): ModelResult<TextResponse>
+normalizeSourceCardData(value: unknown): ModelResult<SourceCardData>
+```
+
+`ModelResult<T>` is `T | ModelError`. `ModelError` has `type: "model-error"`, a
+`code` of `missing-required-field` or `invalid-field`, and a `path` of string
+and number components identifying the rejected field.
+
+Normalizers copy known fields and ignore unknown fields. A missing optional
+field remains absent. A present field with an invalid value returns a typed
+error. Normalizers do not fetch, render, parse references, or interpret HTTP
+status.
+
+A structurally valid text response may contain no segments or only one language.
+The client owns the distinction between a missing text, partial language
+availability, and a successful empty endpoint representation.
 
 ### Source-card data
 
@@ -380,28 +418,28 @@ and stable.
 
 ```ts
 interface SourceCardTextBlock {
-  content: string;
-  language: string;
-  direction: "ltr" | "rtl";
-  versionTitle: string;
-  shortVersionTitle?: string;
-  license?: string;
-  versionSource?: string;
-  versionUrl?: string;
-  versionNotes?: string;
-  digitizedBySefaria?: boolean;
+  readonly content: string;
+  readonly language: string;
+  readonly direction: "ltr" | "rtl";
+  readonly versionTitle: string;
+  readonly shortVersionTitle?: string;
+  readonly license?: string;
+  readonly versionSource?: string;
+  readonly versionUrl?: string;
+  readonly versionNotes?: string;
+  readonly digitizedBySefaria?: boolean;
 }
 
 interface SourceCardSegment {
-  ref: string;
-  source?: SourceCardTextBlock;
-  translations: SourceCardTextBlock[];
+  readonly ref: string;
+  readonly source?: SourceCardTextBlock;
+  readonly translations: readonly SourceCardTextBlock[];
 }
 
 interface SourceCardData {
-  ref: string;
-  heRef?: string;
-  segments: SourceCardSegment[];
+  readonly ref: string;
+  readonly heRef?: string;
+  readonly segments: readonly SourceCardSegment[];
 }
 ```
 
@@ -450,7 +488,9 @@ components do not have an attribution-suppression option.
 - Direction comes from version data.
 - Unknown raw fields do not corrupt known fields.
 - Invalid required fields produce a typed error.
-- The TypeScript guard and JSON Schema accept the same contract.
+- Text responses preserve renderable text through concrete segment/version
+  entries.
+- The TypeScript guard and JSON Schema accept the same JSON-compatible contract.
 
 ## Vocalization
 

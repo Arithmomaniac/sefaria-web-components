@@ -173,6 +173,24 @@ footnote user control. That request path cannot receive footnotes.
 
 The headless specification makes this format loss explicit.
 
+## Model text shape
+
+Targeted live `/api/v3/texts` probes on 2026-08-27 showed that text content
+lives under each item in `versions`.
+[`Genesis 1:1`](https://www.sefaria.org/api/v3/texts/Genesis%201%3A1) returned a
+string,
+[`Genesis 1:1-3`](https://www.sefaria.org/api/v3/texts/Genesis%201%3A1-3)
+returned an array, and
+[`Genesis 1:31-2:2`](https://www.sefaria.org/api/v3/texts/Genesis%201%3A31-2%3A2)
+returned nested arrays for the spanning range.
+
+The previous `TextResponse` contract retained version metadata but omitted both
+`versions[].text` and a normalized segment collection. A client could therefore
+satisfy the type while discarding every fetched text value. The corrected public
+model carries concrete ref/version text entries in `TextResponse.segments`; the
+client remains responsible for converting endpoint-specific nested arrays into
+those entries.
+
 ## Current front-end cache
 
 The current front-end text cache grows for the lifetime of the page. It has no

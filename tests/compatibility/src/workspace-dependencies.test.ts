@@ -27,6 +27,7 @@ test("composes the lower-layer workspace contracts", () => {
     toSections: ["2a", "1"],
     isSpanning: false,
     versions: [],
+    segments: [],
   } satisfies TextResponse;
   const vocalization = { paseq: "after-space" } satisfies VocalizationOptions;
 
