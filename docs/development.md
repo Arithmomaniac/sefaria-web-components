@@ -1,3 +1,5 @@
+> Created/edited by GitHub Copilot with human review/feedback by avilevin.
+
 # Development
 
 This guide gives the setup, build, and local-run commands.
@@ -92,6 +94,14 @@ The command runs:
 - Python wheel package-data checks
 
 Run the command from a clean checkout before a pull request.
+
+## Review changes
+
+Use the [review guide](review.md) to select the correct manual and automated
+checks.
+
+Use normal review for ordinary changes. Use an escalated review only for the
+risks that the guide lists.
 
 ## Run focused checks
 
