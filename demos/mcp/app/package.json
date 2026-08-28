@@ -4,10 +4,7 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "@modelcontextprotocol/ext-apps": "^1.7.5",
-    "@sefaria/components": "workspace:*",
-    "@sefaria/model": "workspace:*",
-    "lit": "^3.3.3"
+    "@modelcontextprotocol/ext-apps": "^1.7.5"
   },
   "scripts": {
     "build": "vite build",

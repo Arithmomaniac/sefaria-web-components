@@ -5,7 +5,6 @@
   "type": "module",
   "exports": "./src/index.ts",
   "dependencies": {
-    "@sefaria/model": "workspace:*",
     "lit": "^3.3.3"
   },
   "scripts": {

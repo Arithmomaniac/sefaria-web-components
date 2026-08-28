@@ -74,34 +74,14 @@ importers:
       '@modelcontextprotocol/ext-apps':
         specifier: ^1.7.5
         version: 1.7.5(@modelcontextprotocol/sdk@1.30.0(zod@4.4.3))(zod@4.4.3)
-      '@sefaria/components':
-        specifier: workspace:*
-        version: link:../../../packages/components
-      '@sefaria/model':
-        specifier: workspace:*
-        version: link:../../../packages/model
-      lit:
-        specifier: ^3.3.3
-        version: 3.3.3
 
-  packages/client:
-    dependencies:
-      '@sefaria/model':
-        specifier: workspace:*
-        version: link:../model
+  packages/client: {}
 
   packages/components:
     dependencies:
-      '@sefaria/model':
-        specifier: workspace:*
-        version: link:../model
       lit:
         specifier: ^3.3.3
         version: 3.3.3
-
-  packages/model: {}
-
-  packages/ref: {}
 
   packages/text-transform: {}
 
@@ -110,12 +90,6 @@ importers:
       '@sefaria/client':
         specifier: workspace:*
         version: link:../../packages/client
-      '@sefaria/model':
-        specifier: workspace:*
-        version: link:../../packages/model
-      '@sefaria/ref':
-        specifier: workspace:*
-        version: link:../../packages/ref
       '@sefaria/text-transform':
         specifier: workspace:*
         version: link:../../packages/text-transform
