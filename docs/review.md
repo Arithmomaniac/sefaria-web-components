@@ -61,6 +61,9 @@ Review the initial corrections for:
 - [ ] The client has no request coalescing.
 - [ ] The client has no component-specific method.
 - [ ] Documented HTTP errors remain typed error payloads.
+- [ ] Every JSON success and error response passes its generated validator.
+- [ ] An undocumented status rejects as a contract mismatch.
+- [ ] A contract mismatch includes the operation, status, structured paths, and original response metadata.
 - [ ] Network failures remain rejected Fetch API operations.
 - [ ] Aborts preserve abort semantics.
 - [ ] No failure becomes a success-shaped object.
@@ -71,7 +74,7 @@ Review the initial corrections for:
 - [ ] Invalid JSON stops before component projection.
 - [ ] Every validation error includes a structured JSON path.
 - [ ] A test contains more than one invalid nested field.
-- [ ] Trusted typed client responses do not receive mandatory duplicate validation.
+- [ ] Client response validation and external-boundary validation use the same generated schemas.
 - [ ] HTML sanitization remains separate from JSON schema validation.
 
 ## Component factories

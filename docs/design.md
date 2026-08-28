@@ -109,7 +109,11 @@ The client exposes generated operation contracts from the corrected schema. It d
 
 Documented HTTP failures remain typed error payloads from `openapi-fetch`. Network failures and aborts preserve Fetch API rejection behavior.
 
-Runtime validation is available for unknown inputs. Trusted typed client responses do not receive duplicate validation by default.
+The client validates every JSON response against the generated schema for its operation and status.
+
+A contract mismatch rejects the operation with the operation identifier, response status, structured JSON paths, and original `Response` metadata.
+
+Unknown inputs from MCP or another external boundary receive validation before component projection.
 
 ## Component boundary
 
@@ -150,7 +154,8 @@ MCP `structuredContent` carries a corrected API payload. The App validates the p
 | Generated output | A repository check fails when regeneration changes a committed file |
 | Documented HTTP error | The client returns the generated typed error payload and response metadata |
 | Network or abort failure | The client preserves the rejected Fetch API operation |
-| Unknown JSON | Validation reports structured paths before projection |
+| Response contract mismatch | The client rejects with the operation, status, structured paths, and response metadata |
+| External unknown JSON | Validation reports structured paths before projection |
 | Missing requested content | The component factory returns its component-specific partial or empty state |
 | Pure projection | The same payload and deterministic inputs produce the same view model |
 | Composite projection | Child pure factories receive captured data and make no request |

@@ -61,9 +61,13 @@ Preserve `openapi-fetch` and Fetch API semantics. Documented HTTP errors remain 
 
 Do not convert a network failure or abort into a success-shaped object.
 
-Validate unknown JSON at MCP, server, fixture, stored-data, or user-input boundaries. Do not validate every trusted typed client result by default.
+Validate every JSON response from `@sefaria/client`.
+
+Validate unknown JSON again when it enters through MCP, a server, a fixture, stored data, or user input.
 
 Report structured JSON paths before projection.
+
+Do not add an OpenAPI correction before source review or a runtime contract failure identifies a mismatch.
 
 ## Keep elements request-free
 

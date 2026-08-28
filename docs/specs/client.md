@@ -153,13 +153,15 @@ Unknown or incomplete upstream fields can remain optional. The overlay adds requ
 
 The package publishes language-neutral JSON Schema artifacts for corrected public schemas. Non-TypeScript consumers validate unknown payloads with these artifacts.
 
-The package also publishes TypeScript runtime validators generated from the same corrected schemas. These validators protect MCP, server, fixture, stored-data, and user-input boundaries.
+The package also publishes TypeScript runtime validators generated from the same corrected schemas.
 
 A validation failure reports one or more structured paths. Each entry identifies the failing JSON path, expected contract, and actual value category.
 
-Invalid unknown JSON must not reach a component projection factory.
+The public client validates every JSON response against the schema for its operation and status. This validation applies to documented success and error responses.
 
-Trusted values returned through the typed client do not receive duplicate runtime validation by default. A caller can validate them when its boundary is not trusted.
+A response mismatch rejects the client operation. The error includes the operation identifier, response status, structured JSON paths, and original `Response` metadata.
+
+Unknown JSON from MCP, a server, a fixture, stored data, or user input also requires validation before component projection.
 
 ## Thin client
 
@@ -190,14 +192,17 @@ The client preserves `openapi-fetch` and Fetch API semantics:
 | --- | --- |
 | Documented success status | Generated typed success payload and `Response` metadata |
 | Documented HTTP error status | Generated typed error payload and `Response` metadata |
-| Undocumented HTTP status | Runtime follows `response.ok`. Generated types do not promise a documented payload for that status |
+| Undocumented HTTP status | Rejected contract mismatch because no generated schema covers the status |
 | Network failure | Rejected operation from `fetch` |
 | Abort | Rejected operation with the original abort semantics |
-| Invalid unknown JSON at an explicit validation boundary | Structured validation failure before projection |
+| Invalid JSON response | Rejected contract mismatch with operation, status, paths, and `Response` metadata |
+| Invalid external JSON | Structured validation failure before projection |
 
 The client must not catch a network or abort failure and return an HTTP-style success object.
 
 The client must not turn missing requested content into a transport error when the API returned a valid success payload. The owning component factory decides its partial or empty state.
+
+Runtime validation detects contract mismatches. A mismatch does not change the schema automatically. Source review and recorded evidence must precede an overlay correction.
 
 ## Test contract
 
@@ -212,6 +217,9 @@ Focused tests must cover:
 - stale generated-output detection
 - all Core operation types
 - documented HTTP error payloads
+- validation of every JSON success and error response
+- contract mismatch errors with operation, status, paths, and response metadata
+- undocumented status rejection
 - network rejection and abort behavior
 - configurable base URL and injectable `fetch`
 - validation paths for malformed unknown JSON
@@ -230,6 +238,7 @@ Each corrected Core schema must pass fixtures derived from the original handler,
 - the corrected artifact covers all Core operations
 - generated output is current
 - public validators report structured paths
+- every JSON response passes runtime validation or rejects with a structured contract mismatch
 - the thin client preserves success, HTTP error, network, and abort semantics
 - no generalized model facade, default cache, retry, coalescing, or component method exists
 - `pnpm check` detects stale artifacts and passes from a clean checkout

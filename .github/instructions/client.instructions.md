@@ -18,11 +18,14 @@ applyTo: "packages/client/**,docs/specs/client.md"
 - Fail the repository check when any generated output is stale.
 - Publish corrected generated `paths`, `components`, and operation types directly.
 - Publish language-neutral corrected JSON Schemas and TypeScript runtime validators for unknown JSON boundaries.
-- Do not require duplicate validation for trusted typed client responses.
+- Validate every JSON response from the public client.
+- Reject a contract mismatch with the operation, status, and structured JSON paths.
+- Preserve the original `Response` metadata on a contract mismatch.
 - Keep the public client as a thin `openapi-fetch` wrapper.
 - Accept a configurable base URL and injectable `fetch`.
 - Preserve documented HTTP error payloads and Fetch API network or abort failures.
 - Do not add a generalized facade, normalized model, default cache, retry, coalescing, or component method.
 - Cover the six Core endpoints from `docs/specs/client.md`.
+- Add a correction only after source review or runtime validation identifies a mismatch.
 - Use fixed commit-pinned or dated fixtures for contract tests.
 - Test corrected schemas against the original Sefaria implementation and upstream endpoint tests.
