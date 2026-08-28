@@ -13,15 +13,18 @@ Mark every unimplemented contract as planned. Do not describe an unimplemented c
 Use this order:
 
 1. Treat the repository specifications as intended behavior.
-2. Use pinned Sefaria source and the pinned OpenAPI input as implementation evidence.
-3. Use deployed fixtures when source does not show runtime payload behavior.
-4. Treat the corrected OpenAPI artifact as transport-payload authority.
-5. Treat each component view model as rendering-data authority.
-6. Use downstream consumers as evidence of need, not behavior authority.
+2. Inspect the original Sefaria route, handler, response builder, and tests at the pinned commit before an OpenAPI correction.
+3. Use the pinned OpenAPI input as the documented-contract evidence.
+4. Use deployed fixtures when source does not show runtime payload behavior.
+5. Treat the corrected OpenAPI artifact as transport-payload authority.
+6. Treat each component view model as rendering-data authority.
+7. Use downstream consumers as evidence of need, not behavior authority.
 
 If evidence conflicts with a specification, record the observation in `docs/evidence.md`. Then change the owning specification or reviewed overlay before production code.
 
 Use complete commit SHAs in upstream source links. Refetch mutable sources before you rely on them.
+
+Do not infer an OpenAPI correction from one response sample. Record the pinned route, handler, response builder, upstream tests, and deployed fixture for that correction.
 
 ## State high-risk changes before implementation
 
@@ -103,6 +106,8 @@ Test pure and async factory equivalence with a captured payload.
 Test exact request counts. Include the ten-child, one-request composite case.
 
 Test stale generated output and every overlay old-state assertion.
+
+Test each corrected schema against the pinned Sefaria implementation and its upstream tests.
 
 Use realistic Sefaria payload sizes for synchronous code. Add a limit to work that can expand with payload size.
 

@@ -30,6 +30,33 @@ The Sefaria web and mobile repositories are the primary evidence for current ren
 
 Consumer projects show integration needs and independent use. They do not define Sefaria behavior.
 
+## Core endpoint implementation map
+
+The Core API source audit uses Sefaria commit [`1f7d0844ca6a9eddc8e48168962aacb09de75bd6`](https://github.com/Sefaria/Sefaria-Project/tree/1f7d0844ca6a9eddc8e48168962aacb09de75bd6).
+
+| Endpoint | Route | Handler and response builder | Upstream tests |
+| --- | --- | --- | --- |
+| `GET /api/v3/texts/{tref}` | [`sefaria/urls_shared.py:86`](https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/sefaria/urls_shared.py#L86) | [`api/views.py:28-88`](https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/api/views.py#L28-L88), [`sefaria/model/text_request_adapter.py:15-235`](https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/sefaria/model/text_request_adapter.py#L15-L235) | [`api/tests.py:13-227`](https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/api/tests.py#L13-L227) |
+| `GET /api/texts/versions/{index}` | [`sefaria/urls_shared.py:74`](https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/sefaria/urls_shared.py#L74) | [`reader/views.py:2615-2622`](https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/reader/views.py#L2615-L2622), [`sefaria/model/text.py:4649-4671`](https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/sefaria/model/text.py#L4649-L4671) | [`api-tests/test_texts.py:52-56`](https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/api-tests/test_texts.py#L52-L56) |
+| `GET /api/ref/{tref}` | [`sefaria/urls_shared.py:135`](https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/sefaria/urls_shared.py#L135) | [`api/views.py:91-176`](https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/api/views.py#L91-L176) | [`api/tests.py:230-380`](https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/api/tests.py#L230-L380) |
+| `GET /api/v2/index/{title}` | [`sefaria/urls_shared.py:92`](https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/sefaria/urls_shared.py#L92) | [`reader/views.py:2061-2131`](https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/reader/views.py#L2061-L2131), [`sefaria/model/text.py:260-321`](https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/sefaria/model/text.py#L260-L321) | [`api-tests/test_endpoints.py:14-19`](https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/api-tests/test_endpoints.py#L14-L19) |
+| `GET /api/shape/{title}` | [`sefaria/urls_shared.py:104`](https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/sefaria/urls_shared.py#L104) | [`reader/views.py:2204-2304`](https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/reader/views.py#L2204-L2304) | [`api-tests/test_endpoints.py:56-58`](https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/api-tests/test_endpoints.py#L56-L58) |
+| `GET /api/links/{tref}` | [`sefaria/urls_shared.py:95`](https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/sefaria/urls_shared.py#L95) | [`reader/views.py:2344-2391`](https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/reader/views.py#L2344-L2391), [`sefaria/client/wrapper.py:164-327`](https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/sefaria/client/wrapper.py#L164-L327) | [`api-tests/test_endpoints.py:22-26`](https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/api-tests/test_endpoints.py#L22-L26) |
+
+The source audit establishes these constraints before overlay work:
+
+- The v3 text response builder starts with `versions`, `missings`, `available_langs`, and `available_versions`. The handler removes `missings` and `available_langs` and adds `warnings`.
+- The v3 text handler returns 404 for an invalid or empty reference. It returns 400 for an invalid `return_format` or an adapter failure.
+- V3 text success fields include unconditional reference fields and conditional spanning, index, node, source, and linker fields. Required lists must follow the handler branches.
+- The versions route names its parameter `tref`, and the tests pass `Genesis 1:1`. The OpenAPI path calls the same parameter `index`.
+- The versions endpoint calls `Ref.version_list()`. A successful response is a list of version metadata. Book-level requests can add `firstSectionRef`.
+- The ref endpoint returns HTTP 200 with `{ "is_ref": false }` for expected parse failures. Successful fields depend on the node type and reference depth.
+- The index endpoint delegates to `Index.contents()`. Query parameters can add content counts and related topics.
+- The shape endpoint returns a list for a text, complex text, corpus, or category. Each shape record uses lower-case `section`, `length`, `chapters`, and `book`, plus `heTitle`, `title`, and `heBook`.
+- The links endpoint defaults to `with_text=1`. A successful response is a list. Text and version fields can be strings, arrays, or null because merged and missing versions use different branches.
+
+These source facts constrain the overlay. Deployed fixtures must still cover representative data-dependent branches.
+
 ## Linker HTML trust
 
 `linker.v3/popup.js` builds its shell with `innerHTML` at `popup.js:238`. It writes API text through `innerHTML` at `popup.js:313-319`.

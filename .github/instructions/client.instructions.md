@@ -7,6 +7,9 @@ applyTo: "packages/client/**,docs/specs/client.md"
 
 - Pin the upstream OpenAPI input to a complete Sefaria commit SHA.
 - Commit a checksum for the exact upstream input bytes.
+- Inspect the original route, handler, response builder, and tests at the pinned Sefaria commit before each correction.
+- Record commit-pinned source links and a deployed fixture for each correction.
+- Do not use one live response as the only correction authority.
 - Keep ordinary generation offline from committed inputs.
 - Make refresh an explicit network operation with an explicit commit.
 - Make every overlay mutation assert its old value or expected absence at an exact JSON Pointer.
@@ -22,3 +25,4 @@ applyTo: "packages/client/**,docs/specs/client.md"
 - Do not add a generalized facade, normalized model, default cache, retry, coalescing, or component method.
 - Cover the six Core endpoints from `docs/specs/client.md`.
 - Use fixed commit-pinned or dated fixtures for contract tests.
+- Test corrected schemas against the original Sefaria implementation and upstream endpoint tests.

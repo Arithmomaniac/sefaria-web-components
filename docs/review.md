@@ -15,6 +15,10 @@ This guide defines review gates for the planned architecture.
 ## OpenAPI pin and overlay
 
 - [ ] The upstream OpenAPI input comes from an explicit Sefaria commit.
+- [ ] Each correction identifies the original Sefaria route, handler, response builder, and upstream tests at that commit.
+- [ ] Each source link contains the complete commit SHA.
+- [ ] A deployed fixture supplements source evidence when runtime data changes the shape.
+- [ ] One live response is not the only correction authority.
 - [ ] The committed SHA-256 matches the upstream input bytes.
 - [ ] Ordinary generation uses no network.
 - [ ] Refresh requires an explicit commit and produces a reviewable diff.
@@ -24,6 +28,7 @@ This guide defines review gates for the planned architecture.
 - [ ] The error reports expected and actual state.
 - [ ] The overlay contains no environment, time, or network dependency.
 - [ ] Each correction has evidence and a focused test.
+- [ ] Each corrected schema matches the original handler branches and conditional fields.
 
 Review the initial corrections for:
 

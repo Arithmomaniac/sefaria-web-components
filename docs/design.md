@@ -20,13 +20,15 @@ The connections panel and recursive connected reading remain outside Core. Their
 
 ## Source authority
 
-The repository specifications define intended behavior. The [pinned Sefaria OpenAPI document](https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/docs/openAPI.json), pinned Sefaria source, and deployed fixtures provide evidence.
+The repository specifications define intended behavior. The [pinned Sefaria OpenAPI document](https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/docs/openAPI.json), original endpoint implementation, upstream tests, and deployed fixtures provide evidence.
 
 The corrected OpenAPI artifact is the machine-readable authority for transport payloads. Generated declarations are the field-level reference for those payloads.
 
 Each component view model is the authority for that component's rendered data state. Elements do not reinterpret transport payloads.
 
 If evidence conflicts with a specification, record the observation in [evidence.md](evidence.md). Then change the owning specification or its reviewed overlay before production code.
+
+Each OpenAPI correction starts with the original Sefaria route, handler, response builder, and endpoint tests at the pinned commit. A deployed fixture confirms runtime behavior when the source permits more than one shape.
 
 ## Requirements
 

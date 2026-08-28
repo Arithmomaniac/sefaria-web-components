@@ -26,6 +26,16 @@ The committed corrected OpenAPI artifact is authoritative for transport payloads
 
 This specification defines correction policy and client behavior. [Evidence](../evidence.md) records upstream and deployed observations.
 
+Before each correction, inspect these sources at the pinned commit:
+
+1. The route declaration.
+2. The endpoint handler.
+3. The response builder or serializer.
+4. The upstream endpoint tests.
+5. A deployed fixture when data or configuration can change the response shape.
+
+One deployed response is not sufficient correction evidence. The correction record links to the pinned implementation and states each conditional field or response variant.
+
 ## Core operations
 
 Core generation and contract checks cover these operations:
@@ -84,6 +94,8 @@ Every mutating correction must include:
 - the expected old value, or an explicit expected absence
 - the corrected value, or an explicit removal
 - a short reason tied to evidence
+- commit-pinned links to the route, handler, response builder, and upstream tests
+- the deployed fixture name and capture date when runtime data affects the shape
 
 The overlay applies corrections in a stable order. It must not read the network, current time, environment-specific data, or generated output.
 
@@ -105,12 +117,15 @@ The initial overlay corrects these known problems from the pinned document:
 
 | JSON area | Upstream problem | Corrected contract |
 | --- | --- | --- |
+| `/paths/~1api~1texts~1versions~1{index}` | The documented parameter says index, but the route and handler accept a reference | The corrected path parameter is `tref` and uses the reference input contract |
 | `/paths/~1api~1texts~1versions~1{index}/get/responses/200/content` | The response uses `VersionJSON` as the media-type key | The response uses `application/json` and the version-array schema |
 | `/components/schemas/v3AvailableVersionsTextJson` | The available-version schema does not produce a useful public contract | The schema exposes the reviewed available-version fields |
-| Core success schemas | Required fields are incomplete | Required lists match fields that deployed Core payloads always supply |
+| `/api/v3/texts/{tref}` responses | The document omits handler branches for parse errors, missing text, invalid formats, adapter errors, warnings, and conditional fields | The response map and schemas match the 200, 400, and 404 handler branches |
 | `/components/schemas/v3TextVersionsJSON/properties/text` | The text schema does not express all dynamic nesting | The schema supports recursive string and array nesting used by Core text results |
-| Core response maps | Error responses are sparse | Documented error statuses use typed error payload schemas where evidence supports them |
-| `/components/schemas/ShapeJSON` | Property names and `required` names use inconsistent casing | Property and required names use the deployed lower-case shape |
+| `/api/ref/{tref}` responses | Expected parse failures return HTTP 200 with `is_ref: false`, and success fields depend on node type and depth | The corrected response union and conditional schemas follow `RefView` |
+| `/api/v2/index/{title}` response | Content-count and related-topic parameters add conditional fields | The corrected operation records each query parameter and conditional response field |
+| `/api/shape/{title}` response | The document models one object with inconsistent casing | The corrected response is a list of lower-case shape records, plus the observed error shape |
+| `/api/links/{tref}` response | Text and version fields do not express merged, missing, and spanning variants | The corrected list item schema permits the source-backed string, array, and null variants and records the 400 branch |
 
 The overlay must state each concrete field correction. This table does not replace the overlay diff.
 
@@ -202,6 +217,8 @@ Focused tests must cover:
 - validation paths for malformed unknown JSON
 
 Fixtures must record their source commit or deployed capture date. Mutable live responses cannot be the only test oracle.
+
+Each corrected Core schema must pass fixtures derived from the original handler, response builder, and upstream endpoint tests.
 
 ## Completion criteria
 
