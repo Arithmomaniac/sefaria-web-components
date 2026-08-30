@@ -14,10 +14,10 @@ applyTo: "packages/client/**,docs/specs/client.md"
 - Make refresh an explicit network operation with an explicit commit.
 - Make every overlay mutation assert its old value or expected absence at an exact JSON Pointer.
 - Stop at the first stale assertion and report its path, expected state, and actual state.
-- Generate the corrected OpenAPI artifact before TypeScript contracts, corrected public schemas, or runtime validators.
+- Generate the temporary corrected Core document before TypeScript contracts, Zod schemas, or runtime validators.
 - Fail the repository check when any generated output is stale.
 - Publish corrected generated `paths`, `components`, and operation types directly.
-- Publish language-neutral corrected JSON Schemas and TypeScript runtime validators for unknown JSON boundaries.
+- Publish generated Zod schemas and TypeScript runtime validators for unknown JSON boundaries.
 - Validate every JSON response from the public client.
 - Reject a contract mismatch with the operation, status, and structured JSON paths.
 - Preserve the original `Response` metadata on a contract mismatch.

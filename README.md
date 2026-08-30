@@ -33,7 +33,7 @@ The specifications are normative. `docs/evidence.md` records observations and so
 
 | Path | Responsibility |
 | --- | --- |
-| `packages/client` | OpenAPI artifacts, generated contracts, public schemas, validators, and thin `openapi-fetch` client |
+| `packages/client` | Pinned OpenAPI input, guarded overlay, generated contracts, Zod schemas, validators, and thin generated client |
 | `packages/text-transform` | Pure sanitization, vocalization, and footnote operations |
 | `packages/components` | Non-DOM component factories and request-free Lit elements |
 | `tests/compatibility` | Focused compatibility evidence for retained pure behavior |

@@ -20,8 +20,6 @@ import {
 
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const refreshTargets = [
-  "openapi/corrected-core.json",
-  "openapi/response-schemas.json",
   "src/generated",
   "openapi/upstream.json",
   "openapi/source.json",
@@ -172,13 +170,8 @@ export async function refreshOpenApi(
     url,
     sha256: sha256(upstreamBytes),
   };
-  const { overlay, findings } = await loadOverlayInputs(root);
-  const artifacts = await generateArtifacts(
-    source,
-    upstreamBytes,
-    overlay,
-    findings,
-  );
+  const { overlay } = await loadOverlayInputs(root);
+  const artifacts = await generateArtifacts(source, upstreamBytes, overlay);
 
   const stagedRoot = await mkdtemp(
     resolve(dirname(root), ".sefaria-client-refresh-stage-"),

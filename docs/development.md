@@ -32,7 +32,7 @@ TypeScript emits reusable ES modules. Vite builds the browser demonstrations and
 
 | Path | Planned responsibility |
 | --- | --- |
-| `packages/client` | Pinned OpenAPI input, formal overlay and preconditions, corrected artifact, generated contracts, public schemas, validators, and named SDK functions |
+| `packages/client` | Pinned OpenAPI input, formal guarded overlay, generated contracts, Zod schemas, validators, and named SDK functions |
 | `packages/text-transform` | Pure sanitization, vocalization, and footnotes |
 | `packages/components` | Non-DOM component factories and request-free Lit elements |
 | `tests/compatibility` | Pinned compatibility evidence for retained pure behavior |
@@ -110,9 +110,9 @@ The refresh operation requires a complete Sefaria commit SHA. It can access the 
 pnpm openapi:refresh --commit 1f7d0844ca6a9eddc8e48168962aacb09de75bd6
 ```
 
-The operation downloads only the OpenAPI document from that commit. It validates the formal overlay preconditions before updating the committed pin, upstream input, SHA-256, corrected Core document, and generated output.
+The operation downloads only the OpenAPI document from that commit. It validates the formal overlay guards before updating the committed pin, upstream input, SHA-256, and generated TypeScript.
 
-It then applies the local overlay and regenerates the corrected document, TypeScript contracts, and runtime validators.
+It then applies the local overlay, creates the corrected document in temporary storage, and regenerates the TypeScript contracts and runtime validators.
 
 ### Offline generation
 
@@ -120,11 +120,11 @@ It then applies the local overlay and regenerates the corrected document, TypeSc
 pnpm openapi:generate
 ```
 
-The operation validates the checksum and sidecar preconditions, applies `openapi/overlay.yaml` through `openapi-format` 1.33.6, extracts the six Core GET operations and recursive references, writes the corrected Core document, and runs `@hey-api/openapi-ts` 0.99.0.
+The operation validates the checksum and co-located overlay guards, applies `openapi/overlay.yaml` through `openapi-format` 1.33.6, extracts the six Core GET operations and recursive references into temporary storage, and runs `@hey-api/openapi-ts` 0.99.0.
 
 The generator configures a deterministic Zod object resolver for every retained `additionalProperties: false` schema. It also maps the explicitly typed OpenAPI 3.0 null-only branches to `z.null()` and applies the `minProperties: 1` warning-record correction that Hey API 0.99 does not emit correctly.
 
-Refresh writes every new file into a sibling staging directory. Publication moves existing outputs to a rollback directory, replaces corrected artifacts and the generated directory, then publishes `upstream.json` and `source.json` last. Any replacement failure restores every prior output.
+Refresh writes every new file into a sibling staging directory. Publication moves existing outputs to a rollback directory, replaces the generated TypeScript directory, then publishes `upstream.json` and `source.json` last. Any replacement failure restores every prior output.
 
 It must not access Sefaria, GitHub, the current time, or environment-specific data.
 
@@ -155,14 +155,13 @@ The developer must review the new upstream document. Do not change an assertion 
 - the upstream OpenAPI input
 - the complete commit pin
 - the SHA-256
-- the formal Overlay 1.1 document and its findings/preconditions sidecar
-- the corrected OpenAPI document
+- the formal Overlay 1.1 document with co-located old-state guards
 - generated named SDK functions and TypeScript operation declarations
-- generated Zod schemas, status-aware response metadata, public validators, and portable response JSON Schemas
+- generated Zod schemas, status-aware response metadata, and public validators
 
-Generated TypeScript files live under `packages/client/src/generated`. Generated and corrected files identify their source pin and generation command.
+Generated TypeScript files live under `packages/client/src/generated` and identify their source pin and generation command. The corrected Core OpenAPI document exists only in temporary generation storage.
 
-Do not edit generated declarations or the corrected artifact by hand.
+Do not edit generated declarations by hand.
 
 ## Run the component lab
 
@@ -188,7 +187,7 @@ The planned integration will also stage:
 
 - the built HTML
 - the corrected API payload fixture
-- the public corrected JSON Schema for the staged API payload
+- the generated TypeScript validator used by the App for the staged API payload
 
 An MCP host can use this current configuration:
 

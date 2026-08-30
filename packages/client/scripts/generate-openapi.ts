@@ -38,7 +38,22 @@ export interface OverlayAction {
   readonly copy?: string;
   readonly description?: string;
   readonly "x-action-id": string;
-  readonly "x-finding-id": string;
+  readonly "x-correction-id": string;
+}
+
+export type ExpectedState =
+  | { readonly absent: true }
+  | { readonly value: JsonValue }
+  | { readonly sha256: string };
+
+export interface OverlayPrecondition {
+  readonly target: string;
+  readonly expected: ExpectedState;
+}
+
+export interface OverlayGuard {
+  readonly id: string;
+  readonly preconditions: readonly OverlayPrecondition[];
 }
 
 export interface OverlayDocument {
@@ -49,44 +64,8 @@ export interface OverlayDocument {
     readonly description?: string;
   };
   readonly extends: "./upstream.json";
+  readonly "x-sefaria-guards": readonly OverlayGuard[];
   readonly actions: readonly OverlayAction[];
-}
-
-export type ExpectedState =
-  | { readonly absent: true }
-  | { readonly value: JsonValue }
-  | { readonly sha256: string };
-
-export interface FindingPrecondition {
-  readonly target: string;
-  readonly expected: ExpectedState;
-}
-
-export interface Finding {
-  readonly id: string;
-  readonly summary: string;
-  readonly actions: readonly string[];
-  readonly evidence: {
-    readonly route: string;
-    readonly handler: string;
-    readonly responseBuilder: string;
-    readonly tests: string;
-  };
-  readonly audit?: {
-    readonly findingId: string;
-    readonly artifacts: readonly string[];
-  };
-  readonly fixture?: {
-    readonly path?: string;
-    readonly capturedAt: string;
-    readonly source: string | readonly string[];
-  };
-  readonly preconditions: readonly FindingPrecondition[];
-}
-
-export interface FindingsDocument {
-  readonly version: 1;
-  readonly findings: readonly Finding[];
 }
 
 export interface ResponseContractMetadata {
@@ -170,10 +149,6 @@ const heyApiTransientFiles = new Set([
   "client.gen.ts",
   ...heyApiCommittedFiles,
 ]);
-const fixedGeneratedOutputs = [
-  "openapi/corrected-core.json",
-  "openapi/response-schemas.json",
-] as const;
 const httpMethods = new Set([
   "delete",
   "get",
@@ -308,37 +283,7 @@ export function validateOpenApi30NullSemantics(document: JsonObject): void {
   visit(document, "");
 }
 
-function validateEvidence(finding: Finding): void {
-  assertString(finding.evidence.route, `${finding.id} route evidence`);
-  assertString(finding.evidence.handler, `${finding.id} handler evidence`);
-  assertString(
-    finding.evidence.responseBuilder,
-    `${finding.id} response-builder evidence`,
-  );
-  assertString(finding.evidence.tests, `${finding.id} test evidence`);
-  if (finding.audit !== undefined) {
-    assertString(finding.audit.findingId, `${finding.id} audit finding ID`);
-    if (
-      !Array.isArray(finding.audit.artifacts) ||
-      finding.audit.artifacts.length === 0
-    ) {
-      throw new Error(`${finding.id} audit artifacts must be non-empty.`);
-    }
-    for (const artifact of finding.audit.artifacts) {
-      assertString(artifact, `${finding.id} audit artifact`);
-      if (/^(?:[A-Za-z]:[\\/]|[\\/])/.test(artifact)) {
-        throw new Error(
-          `${finding.id} audit artifact must not use an absolute path: ${artifact}.`,
-        );
-      }
-    }
-  }
-}
-
-export function validateOverlayDocuments(
-  overlay: OverlayDocument,
-  findings: FindingsDocument,
-): void {
+export function validateOverlayDocument(overlay: OverlayDocument): void {
   if (overlay.overlay !== "1.1.0") {
     throw new Error(
       `Unsupported OpenAPI Overlay version: ${String(overlay.overlay)}.`,
@@ -356,16 +301,17 @@ export function validateOverlayDocuments(
   if (!Array.isArray(overlay.actions) || overlay.actions.length === 0) {
     throw new Error("OpenAPI Overlay actions must be a non-empty array.");
   }
-  if (findings.version !== 1 || !Array.isArray(findings.findings)) {
-    throw new Error(
-      "OpenAPI findings must use version 1 and contain findings.",
-    );
+  if (
+    !Array.isArray(overlay["x-sefaria-guards"]) ||
+    overlay["x-sefaria-guards"].length === 0
+  ) {
+    throw new Error("OpenAPI Overlay must define x-sefaria-guards.");
   }
 
   const actionsById = new Map<string, OverlayAction>();
   for (const action of overlay.actions) {
     assertString(action["x-action-id"], "Overlay x-action-id");
-    assertString(action["x-finding-id"], "Overlay x-finding-id");
+    assertString(action["x-correction-id"], "Overlay x-correction-id");
     assertString(
       action.target,
       `Overlay action ${action["x-action-id"]} target`,
@@ -401,68 +347,38 @@ export function validateOverlayDocuments(
     actionsById.set(action["x-action-id"], action);
   }
 
-  const findingsById = new Map<string, Finding>();
-  const assignedActions = new Set<string>();
-  for (const finding of findings.findings) {
-    assertString(finding.id, "Finding ID");
-    assertString(finding.summary, `Finding ${finding.id} summary`);
-    validateEvidence(finding);
-    if (findingsById.has(finding.id)) {
-      throw new Error(`Duplicate OpenAPI finding ID: ${finding.id}.`);
-    }
-    findingsById.set(finding.id, finding);
-    if (!Array.isArray(finding.actions) || finding.actions.length === 0) {
-      throw new Error(`Finding ${finding.id} must reference overlay actions.`);
+  const guardsById = new Map<string, OverlayGuard>();
+  for (const guard of overlay["x-sefaria-guards"]) {
+    assertString(guard.id, "Overlay guard ID");
+    if (guardsById.has(guard.id)) {
+      throw new Error(`Duplicate OpenAPI guard ID: ${guard.id}.`);
     }
     if (
-      !Array.isArray(finding.preconditions) ||
-      finding.preconditions.length === 0
+      !Array.isArray(guard.preconditions) ||
+      guard.preconditions.length === 0
     ) {
-      throw new Error(`Finding ${finding.id} must define preconditions.`);
+      throw new Error(`Overlay guard ${guard.id} must define preconditions.`);
     }
-    for (const actionId of finding.actions) {
-      const action = actionsById.get(actionId);
-      if (action === undefined) {
-        throw new Error(
-          `Finding ${finding.id} references missing overlay action ${actionId}.`,
-        );
-      }
-      if (action["x-finding-id"] !== finding.id) {
-        throw new Error(
-          `Overlay action ${actionId} references ${action["x-finding-id"]}, not ${finding.id}.`,
-        );
-      }
-      if (assignedActions.has(actionId)) {
-        throw new Error(
-          `Overlay action ${actionId} is assigned more than once.`,
-        );
-      }
-      assignedActions.add(actionId);
-    }
+    guardsById.set(guard.id, guard);
   }
 
   for (const action of overlay.actions) {
-    if (!findingsById.has(action["x-finding-id"])) {
+    if (!guardsById.has(action["x-correction-id"])) {
       throw new Error(
-        `Overlay action ${action["x-action-id"]} references missing finding ${action["x-finding-id"]}.`,
-      );
-    }
-    if (!assignedActions.has(action["x-action-id"])) {
-      throw new Error(
-        `Overlay action ${action["x-action-id"]} is not listed by its finding.`,
+        `Overlay action ${action["x-action-id"]} references missing guard ${action["x-correction-id"]}.`,
       );
     }
   }
 }
 
 function preconditionMismatch(
-  findingId: string,
+  correctionId: string,
   target: string,
   expected: string,
   actual: unknown,
 ): never {
   throw new Error(
-    `OpenAPI precondition mismatch for ${findingId} at ${target}\nexpected: ${expected}\nactual: ${displayValue(
+    `OpenAPI precondition mismatch for ${correctionId} at ${target}\nexpected: ${expected}\nactual: ${displayValue(
       actual,
     )}`,
   );
@@ -470,10 +386,10 @@ function preconditionMismatch(
 
 export function validatePreconditions(
   document: JsonObject,
-  findings: FindingsDocument,
+  guards: readonly OverlayGuard[],
 ): void {
-  for (const finding of findings.findings) {
-    for (const precondition of finding.preconditions) {
+  for (const guard of guards) {
+    for (const precondition of guard.preconditions) {
       const values = openapiFormat.resolveJsonPathValue(
         document,
         precondition.target,
@@ -481,7 +397,7 @@ export function validatePreconditions(
       if ("absent" in precondition.expected) {
         if (values.length !== 0) {
           preconditionMismatch(
-            finding.id,
+            guard.id,
             precondition.target,
             "absent",
             values.length === 1 ? values[0] : values,
@@ -491,7 +407,7 @@ export function validatePreconditions(
       }
       if (values.length !== 1) {
         preconditionMismatch(
-          finding.id,
+          guard.id,
           precondition.target,
           "exactly one matching value",
           values,
@@ -504,7 +420,7 @@ export function validatePreconditions(
           stableCompactJson(precondition.expected.value)
         ) {
           preconditionMismatch(
-            finding.id,
+            guard.id,
             precondition.target,
             displayValue(precondition.expected.value),
             actual,
@@ -514,7 +430,7 @@ export function validatePreconditions(
         const actualSha256 = sha256(stableCompactJson(actual as JsonValue));
         if (actualSha256 !== precondition.expected.sha256) {
           preconditionMismatch(
-            finding.id,
+            guard.id,
             precondition.target,
             `SHA-256 ${precondition.expected.sha256}`,
             actual,
@@ -749,13 +665,11 @@ function componentValidatorExport(schema: unknown): string {
   return `z${component}`;
 }
 
-function collectResponseContracts(document: JsonObject): {
-  readonly metadata: readonly ResponseContractMetadata[];
-  readonly schemas: ReadonlyMap<string, JsonValue>;
-} {
+function collectResponseContracts(
+  document: JsonObject,
+): readonly ResponseContractMetadata[] {
   assertRecord(document.paths, "Corrected Core paths");
   const metadata: ResponseContractMetadata[] = [];
-  const schemas = new Map<string, JsonValue>();
 
   for (const expected of CORE_OPERATIONS) {
     const pathItem = document.paths[expected.path];
@@ -823,82 +737,10 @@ function collectResponseContracts(document: JsonObject): {
         validatorExport,
         validatorName,
       });
-      schemas.set(
-        `${expected.functionName}__${status}`,
-        cloneJson(mediaValue.schema as JsonValue),
-      );
     }
   }
 
-  return { metadata, schemas };
-}
-
-function convertOpenApiSchema(value: JsonValue): JsonValue {
-  if (Array.isArray(value)) {
-    return value.map(convertOpenApiSchema);
-  }
-  if (!isRecord(value)) {
-    return value;
-  }
-
-  const converted: JsonObject = {};
-  for (const [key, child] of Object.entries(value)) {
-    if (key !== "nullable") {
-      converted[key] = convertOpenApiSchema(child as JsonValue);
-    }
-  }
-  if (value.nullable !== true) {
-    return converted;
-  }
-  if (typeof converted.type === "string") {
-    converted.type = [converted.type, "null"];
-    return converted;
-  }
-  return {
-    anyOf: [converted, { type: "null" }],
-  };
-}
-
-function buildPortableResponseSchemas(
-  document: JsonObject,
-  source: OpenApiSource,
-  contracts: {
-    readonly metadata: readonly ResponseContractMetadata[];
-    readonly schemas: ReadonlyMap<string, JsonValue>;
-  },
-): JsonObject {
-  const components = isRecord(document.components)
-    ? convertOpenApiSchema(document.components as JsonObject)
-    : {};
-  const responses: JsonObject = {};
-  for (const [id, schema] of contracts.schemas) {
-    responses[id] = convertOpenApiSchema(schema);
-  }
-  return {
-    $schema: "https://json-schema.org/draft/2020-12/schema",
-    $id: "https://sefaria-web-components.invalid/openapi/core-response-schemas.json",
-    title: "Sefaria Core response schemas",
-    description:
-      "Generated portable response schemas for the six @sefaria/client Core GET operations.",
-    "x-generated-by": "pnpm openapi:generate",
-    "x-sefaria-source": {
-      repository: source.repository,
-      commit: source.commit,
-      path: source.path,
-      sha256: source.sha256,
-    },
-    components,
-    $defs: {
-      responses,
-    },
-    "x-sefaria-responses": contracts.metadata.map((entry) => ({
-      ...entry,
-      contentTypes: [...entry.contentTypes],
-      schemaRef: `#/$defs/responses/${encodePointerSegment(
-        `${entry.functionName}__${entry.status}`,
-      )}`,
-    })),
-  };
+  return metadata;
 }
 
 function buildResponseContractsModule(
@@ -1355,16 +1197,15 @@ export async function generateArtifacts(
   source: OpenApiSource,
   upstreamBytes: Uint8Array | string,
   overlay: OverlayDocument,
-  findings: FindingsDocument,
 ): Promise<ReadonlyMap<string, string>> {
   verifyChecksum(source, upstreamBytes);
-  validateOverlayDocuments(overlay, findings);
+  validateOverlayDocument(overlay);
   const upstreamText =
     typeof upstreamBytes === "string"
       ? upstreamBytes
       : new TextDecoder().decode(upstreamBytes);
   const upstream = JSON.parse(upstreamText) as JsonObject;
-  validatePreconditions(upstream, findings);
+  validatePreconditions(upstream, overlay["x-sefaria-guards"]);
   const corrected = await applyFormalOverlay(upstream, overlay);
   const core = withGenerationMetadata(extractCoreDocument(corrected), source);
   validateOpenApi30NullSemantics(core);
@@ -1374,17 +1215,7 @@ export async function generateArtifacts(
     "json",
   );
   const contracts = collectResponseContracts(core);
-  const artifacts = new Map<string, string>([
-    ["openapi/corrected-core.json", correctedCore],
-    [
-      "openapi/response-schemas.json",
-      await formatGeneratedFile(
-        JSON.stringify(buildPortableResponseSchemas(core, source, contracts)),
-        "openapi/response-schemas.json",
-        "json",
-      ),
-    ],
-  ]);
+  const artifacts = new Map<string, string>();
 
   for (const [path, contents] of await generateHeyApiArtifacts(
     correctedCore,
@@ -1395,7 +1226,7 @@ export async function generateArtifacts(
   artifacts.set(
     `${generatedDirectory}/response-contracts.gen.ts`,
     await formatGeneratedFile(
-      buildResponseContractsModule(contracts.metadata, source),
+      buildResponseContractsModule(contracts, source),
       `${generatedDirectory}/response-contracts.gen.ts`,
       "typescript",
     ),
@@ -1403,7 +1234,7 @@ export async function generateArtifacts(
   artifacts.set(
     `${generatedDirectory}/response-validators.gen.ts`,
     await formatGeneratedFile(
-      buildResponseValidatorsModule(contracts.metadata, source),
+      buildResponseValidatorsModule(contracts, source),
       `${generatedDirectory}/response-validators.gen.ts`,
       "typescript",
     ),
@@ -1441,26 +1272,19 @@ async function parseYamlFile<T>(path: string, description: string): Promise<T> {
 
 export async function loadOverlayInputs(root = packageRoot): Promise<{
   readonly overlay: OverlayDocument;
-  readonly findings: FindingsDocument;
 }> {
-  const [overlay, findings] = await Promise.all([
-    parseYamlFile<OverlayDocument>(
+  return {
+    overlay: await parseYamlFile<OverlayDocument>(
       resolve(root, "openapi/overlay.yaml"),
       "OpenAPI Overlay",
     ),
-    parseYamlFile<FindingsDocument>(
-      resolve(root, "openapi/findings.yaml"),
-      "OpenAPI findings",
-    ),
-  ]);
-  return { overlay, findings };
+  };
 }
 
 export async function loadCommittedInputs(root = packageRoot): Promise<{
   readonly source: OpenApiSource;
   readonly upstreamBytes: Uint8Array;
   readonly overlay: OverlayDocument;
-  readonly findings: FindingsDocument;
 }> {
   const [sourceText, upstreamBytes, overlayInputs] = await Promise.all([
     readFile(resolve(root, "openapi/source.json"), "utf8"),
@@ -1474,31 +1298,10 @@ export async function loadCommittedInputs(root = packageRoot): Promise<{
   };
 }
 
-async function readFileIfPresent(path: string): Promise<string | undefined> {
-  try {
-    return await readFile(path, "utf8");
-  } catch (error) {
-    if (
-      isRecord(error) &&
-      "code" in error &&
-      (error as { readonly code?: unknown }).code === "ENOENT"
-    ) {
-      return undefined;
-    }
-    throw error;
-  }
-}
-
 export async function readCommittedArtifacts(
   root = packageRoot,
 ): Promise<ReadonlyMap<string, string>> {
   const artifacts = new Map<string, string>();
-  for (const path of fixedGeneratedOutputs) {
-    const contents = await readFileIfPresent(resolve(root, path));
-    if (contents !== undefined) {
-      artifacts.set(path, contents);
-    }
-  }
   const generatedRoot = resolve(root, generatedDirectory);
   try {
     for (const path of await listFiles(generatedRoot)) {
@@ -1545,7 +1348,6 @@ export async function generateCommittedArtifacts(
     inputs.source,
     inputs.upstreamBytes,
     inputs.overlay,
-    inputs.findings,
   );
   await writeArtifacts(artifacts, root);
 }
@@ -1558,7 +1360,6 @@ export async function checkCommittedArtifacts(
     inputs.source,
     inputs.upstreamBytes,
     inputs.overlay,
-    inputs.findings,
   );
   const committed = await readCommittedArtifacts(root);
   return findStaleArtifacts(generated, committed);
@@ -1566,5 +1367,15 @@ export async function checkCommittedArtifacts(
 
 const invokedPath = process.argv[1] ? resolve(process.argv[1]) : undefined;
 if (invokedPath === fileURLToPath(import.meta.url)) {
-  await generateCommittedArtifacts();
+  if (process.argv.includes("--check")) {
+    const stale = await checkCommittedArtifacts();
+    if (stale.length > 0) {
+      console.error(
+        `Generated OpenAPI artifacts are stale:\n${stale.join("\n")}`,
+      );
+      process.exitCode = 1;
+    }
+  } else {
+    await generateCommittedArtifacts();
+  }
 }

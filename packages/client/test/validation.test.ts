@@ -4,6 +4,12 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import {
+  applyFormalOverlay,
+  extractCoreDocument,
+  loadCommittedInputs,
+  type JsonObject,
+} from "../scripts/generate-openapi.js";
+import {
   validateGetIndexV2200,
   validateGetLinks200,
   validateGetLinks400,
@@ -33,10 +39,13 @@ async function readFixture(name: string): Promise<unknown> {
 
 describe("public generated response validators", () => {
   it("validates every corrected shape response example", async () => {
-    const core = JSON.parse(
-      await readFile(
-        resolve(fixtureRoot, "../../openapi/corrected-core.json"),
-        "utf8",
+    const inputs = await loadCommittedInputs();
+    const core = extractCoreDocument(
+      await applyFormalOverlay(
+        JSON.parse(
+          new TextDecoder().decode(inputs.upstreamBytes),
+        ) as JsonObject,
+        inputs.overlay,
       ),
     ) as {
       paths: {

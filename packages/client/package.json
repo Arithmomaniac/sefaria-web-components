@@ -8,15 +8,13 @@
     "./client": "./src/client.ts",
     "./contracts": "./src/generated/contracts.gen.ts",
     "./errors": "./src/contract-error.ts",
-    "./openapi": "./openapi/corrected-core.json",
     "./schemas": "./src/generated/zod.gen.ts",
-    "./response-schemas": "./openapi/response-schemas.json",
     "./validation": "./src/validation.ts",
     "./validators": "./src/generated/response-validators.gen.ts"
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
-    "openapi:check": "tsx scripts/check-openapi.ts",
+    "openapi:check": "tsx scripts/generate-openapi.ts --check",
     "openapi:generate": "tsx scripts/generate-openapi.ts",
     "openapi:refresh": "tsx scripts/refresh-openapi.ts",
     "typecheck": "tsc -p tsconfig.json"

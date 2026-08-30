@@ -26,9 +26,7 @@ import {
   validateOpenApi30NullSemantics,
   validatePreconditions,
   verifyChecksum,
-  type FindingsDocument,
   type JsonObject,
-  type JsonValue,
   type OpenApiSource,
   type OverlayDocument,
 } from "../scripts/generate-openapi.js";
@@ -54,8 +52,8 @@ const { resolveJsonPath } = require("openapi-format") as {
 let source: OpenApiSource;
 let upstream: Uint8Array;
 let overlay: OverlayDocument;
-let findings: FindingsDocument;
 let artifacts: ReadonlyMap<string, string>;
+let core: JsonObject;
 
 function mutateGuardedTarget(document: JsonObject, target: string): void {
   const nodes = resolveJsonPath(document, target);
@@ -103,8 +101,6 @@ async function snapshotRefreshOutputs(
   const targets = [
     "openapi/source.json",
     "openapi/upstream.json",
-    "openapi/corrected-core.json",
-    "openapi/response-schemas.json",
     "src/generated",
   ];
 
@@ -145,8 +141,13 @@ beforeAll(async () => {
   source = inputs.source;
   upstream = inputs.upstreamBytes;
   overlay = inputs.overlay;
-  findings = inputs.findings;
-  artifacts = await generateArtifacts(source, upstream, overlay, findings);
+  artifacts = await generateArtifacts(source, upstream, overlay);
+  core = extractCoreDocument(
+    await applyFormalOverlay(
+      JSON.parse(new TextDecoder().decode(upstream)) as JsonObject,
+      overlay,
+    ),
+  );
 });
 
 describe("OpenAPI generation", () => {
@@ -156,16 +157,16 @@ describe("OpenAPI generation", () => {
     ).toThrow(/checksum mismatch/);
   });
 
-  it("rejects a mutation at every guarded sidecar target", () => {
-    for (const finding of findings.findings) {
-      for (const precondition of finding.preconditions) {
+  it("rejects a mutation at every co-located overlay guard", () => {
+    for (const guard of overlay["x-sefaria-guards"]) {
+      for (const precondition of guard.preconditions) {
         const document = JSON.parse(
           new TextDecoder().decode(upstream),
         ) as JsonObject;
         mutateGuardedTarget(document, precondition.target);
         expect(
-          () => validatePreconditions(document, findings),
-          `${finding.id}: ${precondition.target}`,
+          () => validatePreconditions(document, overlay["x-sefaria-guards"]),
+          `${guard.id}: ${precondition.target}`,
         ).toThrow();
       }
     }
@@ -213,22 +214,33 @@ describe("OpenAPI generation", () => {
       overlay: "1.1.0",
       info: { title: "test", version: "1" },
       extends: "./upstream.json",
+      "x-sefaria-guards": [
+        {
+          id: "test",
+          preconditions: [
+            {
+              target: "$.target",
+              expected: { value: { nested: true } },
+            },
+          ],
+        },
+      ],
       actions: [
         {
           "x-action-id": "update",
-          "x-finding-id": "test",
+          "x-correction-id": "test",
           target: "$.target",
           update: { added: true },
         },
         {
           "x-action-id": "copy",
-          "x-finding-id": "test",
+          "x-correction-id": "test",
           target: "$.target",
           copy: "$.source",
         },
         {
           "x-action-id": "remove",
-          "x-finding-id": "test",
+          "x-correction-id": "test",
           target: "$.obsolete",
           remove: true,
         },
@@ -345,10 +357,13 @@ describe("OpenAPI generation", () => {
     const fetchSpy = vi
       .spyOn(globalThis, "fetch")
       .mockRejectedValue(new Error("network disabled"));
-    const first = await generateArtifacts(source, upstream, overlay, findings);
-    const second = await generateArtifacts(source, upstream, overlay, findings);
+    const first = await generateArtifacts(source, upstream, overlay);
+    const second = await generateArtifacts(source, upstream, overlay);
 
     expect([...first]).toEqual([...second]);
+    expect(
+      [...first.keys()].every((path) => path.startsWith("src/generated/")),
+    ).toBe(true);
     expect(fetchSpy).not.toHaveBeenCalled();
     expect(first.get("src/generated/sdk.gen.ts")).toContain(
       "export const getTextVersions",
@@ -537,9 +552,7 @@ describe("OpenAPI generation", () => {
 
 describe("reviewed Core corrections", () => {
   function correctedCore(): JsonObject {
-    return JSON.parse(
-      artifacts.get("openapi/corrected-core.json") as string,
-    ) as JsonObject;
+    return core;
   }
 
   it("renames the versions route parameter and JSON content type", () => {
@@ -602,23 +615,6 @@ describe("reviewed Core corrections", () => {
     expect(artifacts.get("src/generated/types.gen.ts")).toContain(
       "string | Array<CoreV3TextValue> | null",
     );
-    const portable = JSON.parse(
-      artifacts.get("openapi/response-schemas.json") as string,
-    ) as JsonObject;
-    const portableTextValue = (
-      ((portable.components as JsonObject).schemas as JsonObject)
-        .CoreV3TextValue as JsonObject
-    ).oneOf as JsonObject[];
-    expect(
-      portableTextValue.find(
-        (branch) =>
-          Array.isArray(branch.type) &&
-          (branch.type as JsonValue[]).includes("null"),
-      ),
-    ).toMatchObject({
-      type: ["string", "null"],
-      enum: [null],
-    });
     expect(artifacts.get("src/generated/zod.gen.ts")).toContain(
       "versionTitle: z.string()",
     );
@@ -727,7 +723,8 @@ describe("reviewed Core corrections", () => {
   });
 
   it("models link, sheet-link, nullable text, and whole-book error variants", () => {
-    const text = artifacts.get("openapi/corrected-core.json") as string;
+    const corrected = correctedCore();
+    const text = JSON.stringify(corrected);
     expect(text).toContain('"CoreLinkResponse"');
     expect(text).toContain('"CoreSheetLinkObject"');
     expect(text).toContain('"CoreStringArrayOrNull"');
@@ -737,8 +734,9 @@ describe("reviewed Core corrections", () => {
     expect(text).toContain('"en"');
     expect(text).toContain('"he"');
     expect(text).toContain('"400"');
-    const core = correctedCore();
-    const links = (core.paths as JsonObject)["/api/links/{tref}"] as JsonObject;
+    const links = (corrected.paths as JsonObject)[
+      "/api/links/{tref}"
+    ] as JsonObject;
     expect(
       ((links.get as JsonObject).parameters as JsonObject[])[2] as JsonObject,
     ).toMatchObject({

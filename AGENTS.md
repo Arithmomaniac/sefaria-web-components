@@ -16,7 +16,7 @@ Use this order:
 2. Inspect the original Sefaria route, handler, response builder, and tests at the pinned commit before an OpenAPI correction.
 3. Use the pinned OpenAPI input as the documented-contract evidence.
 4. Use deployed fixtures when source does not show runtime payload behavior.
-5. Treat the corrected OpenAPI artifact as transport-payload authority.
+5. Treat the pinned OpenAPI input plus guarded overlay as transport-payload authority.
 6. Treat each component view model as rendering-data authority.
 7. Use downstream consumers as evidence of need, not behavior authority.
 
@@ -39,7 +39,7 @@ High-risk changes include public API contracts, OpenAPI corrections, generated o
 
 ## Keep one owner for each concern
 
-- `@sefaria/client` owns the pinned OpenAPI input, checksum, overlay, corrected artifact, generated contracts, public corrected schemas, validators, and thin client.
+- `@sefaria/client` owns the pinned OpenAPI input, checksum, guarded overlay, generated contracts, Zod schemas, validators, and thin client.
 - `@sefaria/text-transform` owns pure sanitization, vocalization, and footnote operations.
 - Non-DOM `@sefaria/components` subpaths own component request types, view models, pure factories, and async factories.
 - Component elements own layout, interaction, accessibility, theming, and DOM rendering.
@@ -57,7 +57,7 @@ Consume corrected generated API contracts directly.
 
 Keep the public client thin. Do not add a generalized facade, default cache, retries, request coalescing, or component-specific methods.
 
-Preserve `openapi-fetch` and Fetch API semantics. Documented HTTP errors remain typed error payloads.
+Preserve generated-client and Fetch API semantics. Documented HTTP errors remain typed error payloads.
 
 Do not convert a network failure or abort into a success-shaped object.
 
