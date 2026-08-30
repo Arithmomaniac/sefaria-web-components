@@ -11,6 +11,7 @@ out/
 *.tsbuildinfo
 demos/mcp/fixture-server/src/sefaria_mcp_fixture/static/
 demos/mcp/fixture-server/uv.lock
+packages/.sefaria-client-refresh-*/
 
 # Test and coverage output
 coverage/

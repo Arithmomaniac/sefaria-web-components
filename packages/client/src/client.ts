@@ -1,8 +1,9 @@
 import {
   createClient,
-  type Client,
   type Config,
-} from "./generated/client/index.js";
+  type RequestOptions,
+  type RequestResult,
+} from "@hey-api/client-fetch";
 
 import { validateResponse } from "./validation.js";
 
@@ -11,7 +12,26 @@ export interface SefariaClientOptions {
   readonly fetch?: typeof fetch;
 }
 
-export type SefariaClient = Client;
+const sefariaClientBrand: unique symbol = Symbol("SefariaClient");
+const sefariaClients = new WeakSet<object>();
+
+type SefariaGetOptions<ThrowOnError extends boolean> = Omit<
+  RequestOptions<"fields", ThrowOnError>,
+  "method" | "responseStyle"
+> & {
+  readonly responseStyle?: "fields";
+};
+
+export interface SefariaClient {
+  readonly [sefariaClientBrand]: true;
+  readonly get: <
+    TData = unknown,
+    TError = unknown,
+    ThrowOnError extends boolean = false,
+  >(
+    options: SefariaGetOptions<ThrowOnError>,
+  ) => RequestResult<TData, TError, ThrowOnError, "fields">;
+}
 
 export function createSefariaClient(
   options: SefariaClientOptions = {},
@@ -40,5 +60,19 @@ export function createSefariaClient(
     }
     return error;
   });
+  const facade: SefariaClient = {
+    [sefariaClientBrand]: true,
+    get: client.get,
+  };
+  sefariaClients.add(facade);
+  return Object.freeze(facade);
+}
+
+export function requireSefariaClient(client: SefariaClient): SefariaClient {
+  if (!sefariaClients.has(client)) {
+    throw new TypeError(
+      "Generated Sefaria SDK functions require createSefariaClient().",
+    );
+  }
   return client;
 }

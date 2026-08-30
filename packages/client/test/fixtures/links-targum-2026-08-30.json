@@ -1,0 +1,22 @@
+[
+  {
+    "_id": "532b2685fbfba27c35eebe65",
+    "index_title": "Targum Jonathan on Genesis",
+    "category": "Targum",
+    "type": "targum",
+    "ref": "Targum Jonathan on Genesis 1:1",
+    "anchorRef": "Genesis 1:1",
+    "anchorRefExpanded": ["Genesis 1:1"],
+    "sourceRef": "Targum Jonathan on Genesis 1:1",
+    "sourceHeRef": "תרגום יונתן על בראשית א׳:א׳",
+    "anchorVerse": 1,
+    "sourceHasEn": true,
+    "compDate": [150, 250],
+    "commentaryNum": 1.0001,
+    "collectiveTitle": {
+      "en": "Targum Jonathan on Genesis",
+      "he": "תרגום יונתן על בראשית"
+    },
+    "heTitle": "תרגום יונתן על בראשית"
+  }
+]

@@ -3,5 +3,40 @@
     "source": "https://www.sefaria.org/api/v3/texts/Genesis%201:31-2:2?version=primary",
     "capturedAt": "2026-08-29",
     "reduction": "Retains deployed metadata and the observed two-level recursive text shape; text strings and optional collections are minimized for a stable focused fixture."
+  },
+  "versions-nullable-2026-08-30.json": {
+    "source": "https://www.sefaria.org/api/texts/versions/Rashi%20on%20Genesis",
+    "capturedAt": "2026-08-30",
+    "reduction": "Retains one deployed version record with a null versionSource; other version records are omitted."
+  },
+  "versions-error-2026-08-30.json": {
+    "source": "https://www.sefaria.org/api/texts/versions/__missing_generated_client_probe__",
+    "capturedAt": "2026-08-30",
+    "reduction": "Unmodified deployed HTTP 200 error payload."
+  },
+  "shape-genesis-2026-08-30.json": {
+    "source": "https://www.sefaria.org/api/shape/Genesis",
+    "capturedAt": "2026-08-30",
+    "reduction": "Unmodified deployed simple shape payload."
+  },
+  "shape-error-2026-08-30.json": {
+    "source": "https://www.sefaria.org/api/shape/Torah",
+    "capturedAt": "2026-08-30",
+    "reduction": "Unmodified deployed HTTP 200 error payload."
+  },
+  "links-error-2026-08-30.json": {
+    "source": "https://www.sefaria.org/api/links/__missing_generated_client_probe__",
+    "capturedAt": "2026-08-30",
+    "reduction": "Unmodified deployed HTTP 200 error payload."
+  },
+  "links-targum-2026-08-30.json": {
+    "source": "https://www.sefaria.org/api/links/Genesis%201%3A1?with_text=0&with_sheet_links=0&category=Targum",
+    "capturedAt": "2026-08-30",
+    "reduction": "Retains the first deployed Targum link record; other link records are omitted."
+  },
+  "ref-sheet-2026-08-30.json": {
+    "source": "https://www.sefaria.org/api/ref/Sheet%20643492",
+    "capturedAt": "2026-08-30",
+    "reduction": "Unmodified deployed SheetNode payload with conditional navigation fields."
   }
 }

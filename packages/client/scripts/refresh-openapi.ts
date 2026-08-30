@@ -31,6 +31,7 @@ type RenamePath = (oldPath: string, newPath: string) => Promise<void>;
 
 export interface RefreshPublishOptions {
   readonly renamePath?: RenamePath;
+  readonly restorePath?: RenamePath;
 }
 
 interface PublicationState {
@@ -67,10 +68,12 @@ export async function publishStagedRefresh(
   options: RefreshPublishOptions = {},
 ): Promise<void> {
   const renamePath = options.renamePath ?? rename;
+  const restorePath = options.restorePath ?? rename;
   const backupRoot = await mkdtemp(
     resolve(dirname(root), ".sefaria-client-refresh-backup-"),
   );
   const states: PublicationState[] = [];
+  let preserveBackup = false;
 
   try {
     for (const relativePath of refreshTargets) {
@@ -108,22 +111,25 @@ export async function publishStagedRefresh(
           await rm(state.target, { recursive: true, force: true });
         }
         if (state.originalMoved && (await pathExists(state.backup))) {
-          await rename(state.backup, state.target);
+          await restorePath(state.backup, state.target);
         }
       } catch (rollbackError) {
         rollbackErrors.push(rollbackError);
       }
     }
     if (rollbackErrors.length > 0) {
+      preserveBackup = true;
       throw new AggregateError(
         [publicationError, ...rollbackErrors],
-        "OpenAPI refresh publication and rollback both failed.",
+        `OpenAPI refresh publication and rollback both failed. Recovery files remain at ${backupRoot}.`,
         { cause: publicationError },
       );
     }
     throw publicationError;
   } finally {
-    await rm(backupRoot, { recursive: true, force: true });
+    if (!preserveBackup) {
+      await rm(backupRoot, { recursive: true, force: true });
+    }
   }
 }
 

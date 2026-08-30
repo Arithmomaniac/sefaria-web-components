@@ -3,12 +3,11 @@
 // Do not edit.
 
 import type {
-  Client,
-  ClientMeta,
   Options as Options2,
   RequestResult,
   TDataShape,
-} from "./client/index.js";
+} from "@hey-api/client-fetch";
+
 import type {
   GetIndexV2Data,
   GetIndexV2Responses,
@@ -35,22 +34,26 @@ import {
   zGetVersionsResponse,
 } from "./zod.gen.js";
 
+import { requireSefariaClient, type SefariaClient } from "../client.js";
+
 export type Options<
   TData extends TDataShape = TDataShape,
   ThrowOnError extends boolean = boolean,
-  TResponse = unknown,
-> = Options2<TData, ThrowOnError, TResponse> & {
+> = Omit<
+  Options2<TData, ThrowOnError>,
+  "parseAs" | "responseStyle" | "responseTransformer" | "responseValidator"
+> & {
   /**
    * You can provide a client instance returned by `createClient()` instead of
    * individual options. This might be also useful if you want to implement a
    * custom client.
    */
-  client: Client;
+  client: SefariaClient;
   /**
    * You can pass arbitrary values through the `meta` object. This can be
    * used to access values that aren't defined as part of the SDK function.
    */
-  meta?: keyof ClientMeta extends never ? Record<string, unknown> : ClientMeta;
+  meta?: Record<string, unknown>;
 };
 
 /**
@@ -61,11 +64,18 @@ export type Options<
 export const getV3Texts = <ThrowOnError extends boolean = false>(
   options: Options<GetV3TextsData, ThrowOnError>,
 ): RequestResult<GetV3TextsResponses, GetV3TextsErrors, ThrowOnError> =>
-  options.client.get<GetV3TextsResponses, GetV3TextsErrors, ThrowOnError>({
+  requireSefariaClient(options.client).get<
+    GetV3TextsResponses,
+    GetV3TextsErrors,
+    ThrowOnError
+  >({
+    ...options,
+    parseAs: "json",
+    responseStyle: "fields",
+    responseTransformer: async (data) => data,
     responseValidator: async (data) =>
       await zGetV3TextsResponse.parseAsync(data),
     url: "/api/v3/texts/{tref}",
-    ...options,
   });
 
 /**
@@ -78,11 +88,18 @@ export const getV3Texts = <ThrowOnError extends boolean = false>(
 export const getTextVersions = <ThrowOnError extends boolean = false>(
   options: Options<GetVersionsData, ThrowOnError>,
 ): RequestResult<GetVersionsResponses, unknown, ThrowOnError> =>
-  options.client.get<GetVersionsResponses, unknown, ThrowOnError>({
+  requireSefariaClient(options.client).get<
+    GetVersionsResponses,
+    unknown,
+    ThrowOnError
+  >({
+    ...options,
+    parseAs: "json",
+    responseStyle: "fields",
+    responseTransformer: async (data) => data,
     responseValidator: async (data) =>
       await zGetVersionsResponse.parseAsync(data),
     url: "/api/texts/versions/{tref}",
-    ...options,
   });
 
 /**
@@ -100,15 +117,22 @@ export const getTextVersions = <ThrowOnError extends boolean = false>(
  *
  * If the node has a default child (a child node that represents the primary content), the response includes a `default_child_node` object with the child's `node_type`, `node_index`, and optionally `depth`, `address_types` and `sectionNames` (for JaggedArrayNode children) or `lexicon_name` (for DictionaryNode parents).
  *
- * All types include `navigation_refs` with `shortest_path_to_root` (array of ancestor refs from immediate parent to book level) and `first_available_section_ref`. Segment-level refs also get `prev_segment_ref`/`next_segment_ref`, and section-level refs get `prev_section_ref`/`next_section_ref`.
+ * Navigation fields depend on node type and reference depth. `navigation_refs.shortest_path_to_root` is always present. Non-`SheetNode` responses also include `first_available_section_ref`. Segment-level refs include `prev_segment_ref` and `next_segment_ref`; section-level refs include `prev_section_ref` and `next_section_ref`. Refs with a node depth that are neither ranges nor segment-level include `first_subref` and `last_subref`. `SheetNode` responses omit `first_available_section_ref` and previous/next navigation, but can include `first_subref` and `last_subref`.
  */
 export const getRef = <ThrowOnError extends boolean = false>(
   options: Options<GetRefData, ThrowOnError>,
 ): RequestResult<GetRefResponses, GetRefErrors, ThrowOnError> =>
-  options.client.get<GetRefResponses, GetRefErrors, ThrowOnError>({
+  requireSefariaClient(options.client).get<
+    GetRefResponses,
+    GetRefErrors,
+    ThrowOnError
+  >({
+    ...options,
+    parseAs: "json",
+    responseStyle: "fields",
+    responseTransformer: async (data) => data,
     responseValidator: async (data) => await zGetRefResponse.parseAsync(data),
     url: "/api/ref/{tref}",
-    ...options,
   });
 
 /**
@@ -119,11 +143,18 @@ export const getRef = <ThrowOnError extends boolean = false>(
 export const getIndexV2 = <ThrowOnError extends boolean = false>(
   options: Options<GetIndexV2Data, ThrowOnError>,
 ): RequestResult<GetIndexV2Responses, unknown, ThrowOnError> =>
-  options.client.get<GetIndexV2Responses, unknown, ThrowOnError>({
+  requireSefariaClient(options.client).get<
+    GetIndexV2Responses,
+    unknown,
+    ThrowOnError
+  >({
+    ...options,
+    parseAs: "json",
+    responseStyle: "fields",
+    responseTransformer: async (data) => data,
     responseValidator: async (data) =>
       await zGetIndexV2Response.parseAsync(data),
     url: "/api/v2/index/{title}",
-    ...options,
   });
 
 /**
@@ -134,10 +165,17 @@ export const getIndexV2 = <ThrowOnError extends boolean = false>(
 export const getShape = <ThrowOnError extends boolean = false>(
   options: Options<GetShapeData, ThrowOnError>,
 ): RequestResult<GetShapeResponses, unknown, ThrowOnError> =>
-  options.client.get<GetShapeResponses, unknown, ThrowOnError>({
+  requireSefariaClient(options.client).get<
+    GetShapeResponses,
+    unknown,
+    ThrowOnError
+  >({
+    ...options,
+    parseAs: "json",
+    responseStyle: "fields",
+    responseTransformer: async (data) => data,
     responseValidator: async (data) => await zGetShapeResponse.parseAsync(data),
     url: "/api/shape/{title}",
-    ...options,
   });
 
 /**
@@ -148,8 +186,15 @@ export const getShape = <ThrowOnError extends boolean = false>(
 export const getLinks = <ThrowOnError extends boolean = false>(
   options: Options<GetLinksData, ThrowOnError>,
 ): RequestResult<GetLinksResponses, GetLinksErrors, ThrowOnError> =>
-  options.client.get<GetLinksResponses, GetLinksErrors, ThrowOnError>({
+  requireSefariaClient(options.client).get<
+    GetLinksResponses,
+    GetLinksErrors,
+    ThrowOnError
+  >({
+    ...options,
+    parseAs: "json",
+    responseStyle: "fields",
+    responseTransformer: async (data) => data,
     responseValidator: async (data) => await zGetLinksResponse.parseAsync(data),
     url: "/api/links/{tref}",
-    ...options,
   });

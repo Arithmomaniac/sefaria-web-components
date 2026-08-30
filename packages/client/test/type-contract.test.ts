@@ -1,3 +1,5 @@
+import { createClient } from "@hey-api/client-fetch";
+import type { z } from "zod";
 import { describe, expect, expectTypeOf, it } from "vitest";
 
 import {
@@ -10,6 +12,11 @@ import {
   getV3Texts,
   type CoreErrorResponse,
   type CoreLinkResponse,
+  type CoreShapeChapter,
+  type CoreShapeCollapsedRecord,
+  type CoreShapeLeafRecord,
+  type CoreStringArrayOrNull,
+  type CoreV3TextValue,
   type GetLinksErrors,
   type GetLinksData,
   type GetLinksResponses,
@@ -19,6 +26,11 @@ import {
   type GetVersionsData,
   type GetVersionsResponses,
   type VersionJson,
+  type zCoreShapeChapter,
+  type zCoreShapeCollapsedRecord,
+  type zCoreShapeLeafRecord,
+  type zCoreStringArrayOrNull,
+  type zCoreV3TextValue,
 } from "../src/index.js";
 
 describe("generated request and response contracts", () => {
@@ -35,6 +47,7 @@ describe("generated request and response contracts", () => {
 
   it("uses tref and typed query arguments", () => {
     const client = createSefariaClient();
+    const unsafeClient = createClient();
     const compileRequests = () => {
       void getTextVersions({
         client,
@@ -83,6 +96,37 @@ describe("generated request and response contracts", () => {
           index: "Genesis",
         },
       });
+      void getRef({
+        // @ts-expect-error SDK functions require the validated branded client.
+        client: unsafeClient,
+        path: { tref: "Genesis 1:1" },
+      });
+      void getRef({
+        client,
+        path: { tref: "Genesis 1:1" },
+        // @ts-expect-error Generated return types require fields response style.
+        responseStyle: "data",
+      });
+      void getRef({
+        client,
+        path: { tref: "Genesis 1:1" },
+        // @ts-expect-error Callers cannot replace generated response validators.
+        responseValidator: (value: unknown) => value,
+      });
+      void getRef({
+        client,
+        path: { tref: "Genesis 1:1" },
+        // @ts-expect-error SDK functions always parse documented JSON.
+        parseAs: "text",
+      });
+      void getRef({
+        client,
+        path: { tref: "Genesis 1:1" },
+        // @ts-expect-error SDK functions return validated contract values.
+        responseTransformer: async (value: unknown) => value,
+      });
+      // @ts-expect-error The public client does not expose mutable configuration.
+      client.setConfig({ responseStyle: "data" });
     };
     expect(compileRequests).toBeTypeOf("function");
     expectTypeOf<GetVersionsData>().toMatchTypeOf<{
@@ -109,5 +153,23 @@ describe("generated request and response contracts", () => {
       error: string;
       ref: string;
     }>();
+  });
+
+  it("preserves recursive public schema inference", () => {
+    expectTypeOf<
+      z.infer<typeof zCoreStringArrayOrNull>
+    >().toEqualTypeOf<CoreStringArrayOrNull>();
+    expectTypeOf<
+      z.infer<typeof zCoreV3TextValue>
+    >().toEqualTypeOf<CoreV3TextValue>();
+    expectTypeOf<
+      z.infer<typeof zCoreShapeChapter>
+    >().toEqualTypeOf<CoreShapeChapter>();
+    expectTypeOf<
+      z.infer<typeof zCoreShapeLeafRecord>
+    >().toEqualTypeOf<CoreShapeLeafRecord>();
+    expectTypeOf<
+      z.infer<typeof zCoreShapeCollapsedRecord>
+    >().toEqualTypeOf<CoreShapeCollapsedRecord>();
   });
 });

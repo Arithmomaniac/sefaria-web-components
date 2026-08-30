@@ -64,7 +64,14 @@ The source audit establishes these constraints before overlay work:
 - Essay links expose `displayedText` as an object with required `en` and `he` strings. Live Genesis 1:1 links on August 30, 2026 contained this branch.
 - A live invalid links reference on August 30, 2026 returned HTTP 200 with a JSON `error` object.
 
+Two documentation corrections also use the local Sefaria API audit as supporting evidence while retaining the pinned Sefaria implementation as authority:
+
+- `Sefaria-API-audit/findings.yaml` finding `OAS-SCHEMA-009`, `Sefaria-API-audit/evidence/shape-matrix.md`, and `Sefaria-API-audit/proposed/openAPI.corrected.json` support wrapping both shape examples in the array root returned by the endpoint.
+- `Sefaria-API-audit/findings.yaml` finding `OAS-DOC-001` and `Sefaria-API-audit/evidence/shape-matrix.md` support documenting the `SheetNode` navigation exception and the conditional `first_subref` and `last_subref` fields.
+
 These source facts constrain the overlay. Deployed fixtures must still cover representative data-dependent branches.
+
+The dated captures under `packages/client/test/fixtures` preserve the deployed v3 spanning-text, nullable version metadata, versions error, simple shape, shape error, Targum link, links error, and Sheet reference branches. `packages/client/test/fixtures/manifest.json` records the exact request URL and any reduction for each capture.
 
 ## Linker HTML trust
 

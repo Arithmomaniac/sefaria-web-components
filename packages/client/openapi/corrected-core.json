@@ -1221,7 +1221,7 @@
           }
         },
         "summary": "Ref",
-        "description": "Validates a text reference (`tref`) and returns structured metadata about it.\n\nThe response varies based on the `node_type` of the referenced text:\n\n- **JaggedArrayNode**: Standard text nodes (e.g. biblical chapters/verses, Talmud pages). Returns `depth`, `address_types`, `section_names`, and positional indexes/labels.\n- **SchemaNode**: Nodes with named children (e.g. a commentary with an introduction and main text). Returns `children` list.\n- **DictionaryEntryNode**: Individual dictionary entries. Returns `lexicon_name` and `headword`, plus the JaggedArrayNode fields.\n- **DictionaryNode**: Dictionary root nodes. Returns `lexicon_name`.\n- **SheetNode**: User-created source sheets. Returns `sheet_id`.\n\nIf the node has a default child (a child node that represents the primary content), the response includes a `default_child_node` object with the child's `node_type`, `node_index`, and optionally `depth`, `address_types` and `sectionNames` (for JaggedArrayNode children) or `lexicon_name` (for DictionaryNode parents).\n\nAll types include `navigation_refs` with `shortest_path_to_root` (array of ancestor refs from immediate parent to book level) and `first_available_section_ref`. Segment-level refs also get `prev_segment_ref`/`next_segment_ref`, and section-level refs get `prev_section_ref`/`next_section_ref`."
+        "description": "Validates a text reference (`tref`) and returns structured metadata about it.\n\nThe response varies based on the `node_type` of the referenced text:\n\n- **JaggedArrayNode**: Standard text nodes (e.g. biblical chapters/verses, Talmud pages). Returns `depth`, `address_types`, `section_names`, and positional indexes/labels.\n- **SchemaNode**: Nodes with named children (e.g. a commentary with an introduction and main text). Returns `children` list.\n- **DictionaryEntryNode**: Individual dictionary entries. Returns `lexicon_name` and `headword`, plus the JaggedArrayNode fields.\n- **DictionaryNode**: Dictionary root nodes. Returns `lexicon_name`.\n- **SheetNode**: User-created source sheets. Returns `sheet_id`.\n\nIf the node has a default child (a child node that represents the primary content), the response includes a `default_child_node` object with the child's `node_type`, `node_index`, and optionally `depth`, `address_types` and `sectionNames` (for JaggedArrayNode children) or `lexicon_name` (for DictionaryNode parents).\n\nNavigation fields depend on node type and reference depth. `navigation_refs.shortest_path_to_root` is always present. Non-`SheetNode` responses also include `first_available_section_ref`. Segment-level refs include `prev_segment_ref` and `next_segment_ref`; section-level refs include `prev_section_ref` and `next_section_ref`. Refs with a node depth that are neither ranges nor segment-level include `first_subref` and `last_subref`. `SheetNode` responses omit `first_available_section_ref` and previous/next navigation, but can include `first_subref` and `last_subref`."
       },
       "parameters": [
         {
@@ -1951,372 +1951,376 @@
                 "schema": { "$ref": "#/components/schemas/CoreShapeResponse" },
                 "examples": {
                   "Complex Text": {
-                    "value": {
-                      "isComplex": true,
-                      "section": "Haggadah",
-                      "length": 38,
-                      "chapters": [
-                        {
-                          "section": "Haggadah",
-                          "heTitle": "הגדה של פסח, קדש",
-                          "title": "Pesach Haggadah, Kadesh",
-                          "length": 1,
-                          "chapters": 13,
-                          "book": "Pesach Haggadah",
-                          "heBook": "הגדה של פסח"
-                        },
-                        {
-                          "section": "Haggadah",
-                          "heTitle": "הגדה של פסח, ורחץ",
-                          "title": "Pesach Haggadah, Urchatz",
-                          "length": 1,
-                          "chapters": 2,
-                          "book": "Pesach Haggadah",
-                          "heBook": "הגדה של פסח"
-                        },
-                        {
-                          "section": "Haggadah",
-                          "heTitle": "הגדה של פסח, כרפס",
-                          "title": "Pesach Haggadah, Karpas",
-                          "length": 1,
-                          "chapters": 3,
-                          "book": "Pesach Haggadah",
-                          "heBook": "הגדה של פסח"
-                        },
-                        {
-                          "section": "Haggadah",
-                          "heTitle": "הגדה של פסח, יחץ",
-                          "title": "Pesach Haggadah, Yachatz",
-                          "length": 1,
-                          "chapters": 2,
-                          "book": "Pesach Haggadah",
-                          "heBook": "הגדה של פסח"
-                        },
-                        {
-                          "section": "Haggadah",
-                          "heTitle": "הגדה של פסח, מגיד, הא לחמא עניא",
-                          "title": "Pesach Haggadah, Magid, Ha Lachma Anya",
-                          "length": 1,
-                          "chapters": 3,
-                          "book": "Pesach Haggadah",
-                          "heBook": "הגדה של פסח"
-                        },
-                        {
-                          "section": "Haggadah",
-                          "heTitle": "הגדה של פסח, מגיד, מה נשתנה",
-                          "title": "Pesach Haggadah, Magid, Four Questions",
-                          "length": 1,
-                          "chapters": 2,
-                          "book": "Pesach Haggadah",
-                          "heBook": "הגדה של פסח"
-                        },
-                        {
-                          "section": "Haggadah",
-                          "heTitle": "הגדה של פסח, מגיד, עבדים היינו",
-                          "title": "Pesach Haggadah, Magid, We Were Slaves in Egypt",
-                          "length": 1,
-                          "chapters": 2,
-                          "book": "Pesach Haggadah",
-                          "heBook": "הגדה של פסח"
-                        },
-                        {
-                          "section": "Haggadah",
-                          "heTitle": "הגדה של פסח, מגיד, מעשה שהיה בבני ברק",
-                          "title": "Pesach Haggadah, Magid, Story of the Five Rabbis",
-                          "length": 1,
-                          "chapters": 2,
-                          "book": "Pesach Haggadah",
-                          "heBook": "הגדה של פסח"
-                        },
-                        {
-                          "section": "Haggadah",
-                          "heTitle": "הגדה של פסח, מגיד, כנגד ארבעה בנים",
-                          "title": "Pesach Haggadah, Magid, The Four Sons",
-                          "length": 1,
-                          "chapters": 5,
-                          "book": "Pesach Haggadah",
-                          "heBook": "הגדה של פסח"
-                        },
-                        {
-                          "section": "Haggadah",
-                          "heTitle": "הגדה של פסח, מגיד, יכול מראש חודש",
-                          "title": "Pesach Haggadah, Magid, Yechol Me'rosh Chodesh",
-                          "length": 1,
-                          "chapters": 1,
-                          "book": "Pesach Haggadah",
-                          "heBook": "הגדה של פסח"
-                        },
-                        {
-                          "section": "Haggadah",
-                          "heTitle": "הגדה של פסח, מגיד, מתחילה עובדי עבודה זרה היו אבותינו",
-                          "title": "Pesach Haggadah, Magid, In the Beginning Our Fathers Were Idol Worshipers",
-                          "length": 1,
-                          "chapters": 5,
-                          "book": "Pesach Haggadah",
-                          "heBook": "הגדה של פסח"
-                        },
-                        {
-                          "section": "Haggadah",
-                          "heTitle": "הגדה של פסח, מגיד, ארמי אבד אבי",
-                          "title": "Pesach Haggadah, Magid, First Fruits Declaration",
-                          "length": 1,
-                          "chapters": 24,
-                          "book": "Pesach Haggadah",
-                          "heBook": "הגדה של פסח"
-                        },
-                        {
-                          "section": "Haggadah",
-                          "heTitle": "הגדה של פסח, מגיד, עשר המכות",
-                          "title": "Pesach Haggadah, Magid, The Ten Plagues",
-                          "length": 1,
-                          "chapters": 20,
-                          "book": "Pesach Haggadah",
-                          "heBook": "הגדה של פסח"
-                        },
-                        {
-                          "section": "Haggadah",
-                          "heTitle": "הגדה של פסח, מגיד, דיינו",
-                          "title": "Pesach Haggadah, Magid, Dayenu",
-                          "length": 1,
-                          "chapters": 16,
-                          "book": "Pesach Haggadah",
-                          "heBook": "הגדה של פסח"
-                        },
-                        {
-                          "section": "Haggadah",
-                          "heTitle": "הגדה של פסח, מגיד, פסח מצה ומרור",
-                          "title": "Pesach Haggadah, Magid, Rabban Gamliel's Three Things",
-                          "length": 1,
-                          "chapters": 7,
-                          "book": "Pesach Haggadah",
-                          "heBook": "הגדה של פסח"
-                        },
-                        {
-                          "section": "Haggadah",
-                          "heTitle": "הגדה של פסח, מגיד, חצי הלל",
-                          "title": "Pesach Haggadah, Magid, First Half of Hallel",
-                          "length": 1,
-                          "chapters": 4,
-                          "book": "Pesach Haggadah",
-                          "heBook": "הגדה של פסח"
-                        },
-                        {
-                          "section": "Haggadah",
-                          "heTitle": "הגדה של פסח, מגיד, כוס שניה",
-                          "title": "Pesach Haggadah, Magid, Second Cup of Wine",
-                          "length": 1,
-                          "chapters": 4,
-                          "book": "Pesach Haggadah",
-                          "heBook": "הגדה של פסח"
-                        },
-                        {
-                          "section": "Haggadah",
-                          "heTitle": "הגדה של פסח, רחצה",
-                          "title": "Pesach Haggadah, Rachtzah",
-                          "length": 1,
-                          "chapters": 3,
-                          "book": "Pesach Haggadah",
-                          "heBook": "הגדה של פסח"
-                        },
-                        {
-                          "section": "Haggadah",
-                          "heTitle": "הגדה של פסח, מוציא מצה",
-                          "title": "Pesach Haggadah, Motzi Matzah",
-                          "length": 1,
-                          "chapters": 4,
-                          "book": "Pesach Haggadah",
-                          "heBook": "הגדה של פסח"
-                        },
-                        {
-                          "section": "Haggadah",
-                          "heTitle": "הגדה של פסח, מרור",
-                          "title": "Pesach Haggadah, Maror",
-                          "length": 1,
-                          "chapters": 3,
-                          "book": "Pesach Haggadah",
-                          "heBook": "הגדה של פסח"
-                        },
-                        {
-                          "section": "Haggadah",
-                          "heTitle": "הגדה של פסח, כורך",
-                          "title": "Pesach Haggadah, Korech",
-                          "length": 1,
-                          "chapters": 4,
-                          "book": "Pesach Haggadah",
-                          "heBook": "הגדה של פסח"
-                        },
-                        {
-                          "section": "Haggadah",
-                          "heTitle": "הגדה של פסח, שולחן עורך",
-                          "title": "Pesach Haggadah, Shulchan Orech",
-                          "length": 1,
-                          "chapters": 2,
-                          "book": "Pesach Haggadah",
-                          "heBook": "הגדה של פסח"
-                        },
-                        {
-                          "section": "Haggadah",
-                          "heTitle": "הגדה של פסח, צפון",
-                          "title": "Pesach Haggadah, Tzafun",
-                          "length": 1,
-                          "chapters": 3,
-                          "book": "Pesach Haggadah",
-                          "heBook": "הגדה של פסח"
-                        },
-                        {
-                          "section": "Haggadah",
-                          "heTitle": "הגדה של פסח, ברך, ברכת המזון",
-                          "title": "Pesach Haggadah, Barech, Birkat Hamazon",
-                          "length": 1,
-                          "chapters": 23,
-                          "book": "Pesach Haggadah",
-                          "heBook": "הגדה של פסח"
-                        },
-                        {
-                          "section": "Haggadah",
-                          "heTitle": "הגדה של פסח, ברך, כוס שלישית",
-                          "title": "Pesach Haggadah, Barech, Third Cup of Wine",
-                          "length": 1,
-                          "chapters": 2,
-                          "book": "Pesach Haggadah",
-                          "heBook": "הגדה של פסח"
-                        },
-                        {
-                          "section": "Haggadah",
-                          "heTitle": "הגדה של פסח, ברך, שפוך חמתך",
-                          "title": "Pesach Haggadah, Barech, Pour Out Thy Wrath",
-                          "length": 1,
-                          "chapters": 2,
-                          "book": "Pesach Haggadah",
-                          "heBook": "הגדה של פסח"
-                        },
-                        {
-                          "section": "Haggadah",
-                          "heTitle": "הגדה של פסח, הלל, מסיימים את ההלל",
-                          "title": "Pesach Haggadah, Hallel, Second Half of Hallel",
-                          "length": 1,
-                          "chapters": 10,
-                          "book": "Pesach Haggadah",
-                          "heBook": "הגדה של פסח"
-                        },
-                        {
-                          "section": "Haggadah",
-                          "heTitle": "הגדה של פסח, הלל, מזמורי הודיה",
-                          "title": "Pesach Haggadah, Hallel, Songs of Praise and Thanks",
-                          "length": 1,
-                          "chapters": 6,
-                          "book": "Pesach Haggadah",
-                          "heBook": "הגדה של פסח"
-                        },
-                        {
-                          "section": "Haggadah",
-                          "heTitle": "הגדה של פסח, הלל, כוס רביעית",
-                          "title": "Pesach Haggadah, Hallel, Fourth Cup of Wine",
-                          "length": 1,
-                          "chapters": 4,
-                          "book": "Pesach Haggadah",
-                          "heBook": "הגדה של פסח"
-                        },
-                        {
-                          "section": "Haggadah",
-                          "heTitle": "הגדה של פסח, נרצה, חסל סידור פסח",
-                          "title": "Pesach Haggadah, Nirtzah, Chasal Siddur Pesach",
-                          "length": 1,
-                          "chapters": 2,
-                          "book": "Pesach Haggadah",
-                          "heBook": "הגדה של פסח"
-                        },
-                        {
-                          "section": "Haggadah",
-                          "heTitle": "הגדה של פסח, נרצה, לשנה הבאה",
-                          "title": "Pesach Haggadah, Nirtzah, L'Shana HaBaa",
-                          "length": 1,
-                          "chapters": 1,
-                          "book": "Pesach Haggadah",
-                          "heBook": "הגדה של פסח"
-                        },
-                        {
-                          "section": "Haggadah",
-                          "heTitle": "הגדה של פסח, נרצה, ויהי בחצי הלילה",
-                          "title": "Pesach Haggadah, Nirtzah, And It Happened at Midnight",
-                          "length": 1,
-                          "chapters": 11,
-                          "book": "Pesach Haggadah",
-                          "heBook": "הגדה של פסח"
-                        },
-                        {
-                          "section": "Haggadah",
-                          "heTitle": "הגדה של פסח, נרצה, זבח פסח",
-                          "title": "Pesach Haggadah, Nirtzah, Zevach Pesach",
-                          "length": 1,
-                          "chapters": 8,
-                          "book": "Pesach Haggadah",
-                          "heBook": "הגדה של פסח"
-                        },
-                        {
-                          "section": "Haggadah",
-                          "heTitle": "הגדה של פסח, נרצה, אדיר במלוכה",
-                          "title": "Pesach Haggadah, Nirtzah, Ki Lo Na'e",
-                          "length": 1,
-                          "chapters": 9,
-                          "book": "Pesach Haggadah",
-                          "heBook": "הגדה של פסח"
-                        },
-                        {
-                          "section": "Haggadah",
-                          "heTitle": "הגדה של פסח, נרצה, אדיר הוא",
-                          "title": "Pesach Haggadah, Nirtzah, Adir Hu",
-                          "length": 1,
-                          "chapters": 8,
-                          "book": "Pesach Haggadah",
-                          "heBook": "הגדה של פסח"
-                        },
-                        {
-                          "section": "Haggadah",
-                          "heTitle": "הגדה של פסח, נרצה, ספירת העומר",
-                          "title": "Pesach Haggadah, Nirtzah, Sefirat HaOmer",
-                          "length": 1,
-                          "chapters": 2,
-                          "book": "Pesach Haggadah",
-                          "heBook": "הגדה של פסח"
-                        },
-                        {
-                          "section": "Haggadah",
-                          "heTitle": "הגדה של פסח, נרצה, אחד מי יודע",
-                          "title": "Pesach Haggadah, Nirtzah, Echad Mi Yodea",
-                          "length": 1,
-                          "chapters": 1,
-                          "book": "Pesach Haggadah",
-                          "heBook": "הגדה של פסח"
-                        },
-                        {
-                          "section": "Haggadah",
-                          "heTitle": "הגדה של פסח, נרצה, חד גדיא",
-                          "title": "Pesach Haggadah, Nirtzah, Chad Gadya",
-                          "length": 1,
-                          "chapters": 10,
-                          "book": "Pesach Haggadah",
-                          "heBook": "הגדה של פסח"
-                        }
-                      ],
-                      "book": "Pesach Haggadah",
-                      "heBook": "הגדה של פסח"
-                    }
+                    "value": [
+                      {
+                        "isComplex": true,
+                        "section": "Haggadah",
+                        "length": 38,
+                        "chapters": [
+                          {
+                            "section": "Haggadah",
+                            "heTitle": "הגדה של פסח, קדש",
+                            "title": "Pesach Haggadah, Kadesh",
+                            "length": 1,
+                            "chapters": 13,
+                            "book": "Pesach Haggadah",
+                            "heBook": "הגדה של פסח"
+                          },
+                          {
+                            "section": "Haggadah",
+                            "heTitle": "הגדה של פסח, ורחץ",
+                            "title": "Pesach Haggadah, Urchatz",
+                            "length": 1,
+                            "chapters": 2,
+                            "book": "Pesach Haggadah",
+                            "heBook": "הגדה של פסח"
+                          },
+                          {
+                            "section": "Haggadah",
+                            "heTitle": "הגדה של פסח, כרפס",
+                            "title": "Pesach Haggadah, Karpas",
+                            "length": 1,
+                            "chapters": 3,
+                            "book": "Pesach Haggadah",
+                            "heBook": "הגדה של פסח"
+                          },
+                          {
+                            "section": "Haggadah",
+                            "heTitle": "הגדה של פסח, יחץ",
+                            "title": "Pesach Haggadah, Yachatz",
+                            "length": 1,
+                            "chapters": 2,
+                            "book": "Pesach Haggadah",
+                            "heBook": "הגדה של פסח"
+                          },
+                          {
+                            "section": "Haggadah",
+                            "heTitle": "הגדה של פסח, מגיד, הא לחמא עניא",
+                            "title": "Pesach Haggadah, Magid, Ha Lachma Anya",
+                            "length": 1,
+                            "chapters": 3,
+                            "book": "Pesach Haggadah",
+                            "heBook": "הגדה של פסח"
+                          },
+                          {
+                            "section": "Haggadah",
+                            "heTitle": "הגדה של פסח, מגיד, מה נשתנה",
+                            "title": "Pesach Haggadah, Magid, Four Questions",
+                            "length": 1,
+                            "chapters": 2,
+                            "book": "Pesach Haggadah",
+                            "heBook": "הגדה של פסח"
+                          },
+                          {
+                            "section": "Haggadah",
+                            "heTitle": "הגדה של פסח, מגיד, עבדים היינו",
+                            "title": "Pesach Haggadah, Magid, We Were Slaves in Egypt",
+                            "length": 1,
+                            "chapters": 2,
+                            "book": "Pesach Haggadah",
+                            "heBook": "הגדה של פסח"
+                          },
+                          {
+                            "section": "Haggadah",
+                            "heTitle": "הגדה של פסח, מגיד, מעשה שהיה בבני ברק",
+                            "title": "Pesach Haggadah, Magid, Story of the Five Rabbis",
+                            "length": 1,
+                            "chapters": 2,
+                            "book": "Pesach Haggadah",
+                            "heBook": "הגדה של פסח"
+                          },
+                          {
+                            "section": "Haggadah",
+                            "heTitle": "הגדה של פסח, מגיד, כנגד ארבעה בנים",
+                            "title": "Pesach Haggadah, Magid, The Four Sons",
+                            "length": 1,
+                            "chapters": 5,
+                            "book": "Pesach Haggadah",
+                            "heBook": "הגדה של פסח"
+                          },
+                          {
+                            "section": "Haggadah",
+                            "heTitle": "הגדה של פסח, מגיד, יכול מראש חודש",
+                            "title": "Pesach Haggadah, Magid, Yechol Me'rosh Chodesh",
+                            "length": 1,
+                            "chapters": 1,
+                            "book": "Pesach Haggadah",
+                            "heBook": "הגדה של פסח"
+                          },
+                          {
+                            "section": "Haggadah",
+                            "heTitle": "הגדה של פסח, מגיד, מתחילה עובדי עבודה זרה היו אבותינו",
+                            "title": "Pesach Haggadah, Magid, In the Beginning Our Fathers Were Idol Worshipers",
+                            "length": 1,
+                            "chapters": 5,
+                            "book": "Pesach Haggadah",
+                            "heBook": "הגדה של פסח"
+                          },
+                          {
+                            "section": "Haggadah",
+                            "heTitle": "הגדה של פסח, מגיד, ארמי אבד אבי",
+                            "title": "Pesach Haggadah, Magid, First Fruits Declaration",
+                            "length": 1,
+                            "chapters": 24,
+                            "book": "Pesach Haggadah",
+                            "heBook": "הגדה של פסח"
+                          },
+                          {
+                            "section": "Haggadah",
+                            "heTitle": "הגדה של פסח, מגיד, עשר המכות",
+                            "title": "Pesach Haggadah, Magid, The Ten Plagues",
+                            "length": 1,
+                            "chapters": 20,
+                            "book": "Pesach Haggadah",
+                            "heBook": "הגדה של פסח"
+                          },
+                          {
+                            "section": "Haggadah",
+                            "heTitle": "הגדה של פסח, מגיד, דיינו",
+                            "title": "Pesach Haggadah, Magid, Dayenu",
+                            "length": 1,
+                            "chapters": 16,
+                            "book": "Pesach Haggadah",
+                            "heBook": "הגדה של פסח"
+                          },
+                          {
+                            "section": "Haggadah",
+                            "heTitle": "הגדה של פסח, מגיד, פסח מצה ומרור",
+                            "title": "Pesach Haggadah, Magid, Rabban Gamliel's Three Things",
+                            "length": 1,
+                            "chapters": 7,
+                            "book": "Pesach Haggadah",
+                            "heBook": "הגדה של פסח"
+                          },
+                          {
+                            "section": "Haggadah",
+                            "heTitle": "הגדה של פסח, מגיד, חצי הלל",
+                            "title": "Pesach Haggadah, Magid, First Half of Hallel",
+                            "length": 1,
+                            "chapters": 4,
+                            "book": "Pesach Haggadah",
+                            "heBook": "הגדה של פסח"
+                          },
+                          {
+                            "section": "Haggadah",
+                            "heTitle": "הגדה של פסח, מגיד, כוס שניה",
+                            "title": "Pesach Haggadah, Magid, Second Cup of Wine",
+                            "length": 1,
+                            "chapters": 4,
+                            "book": "Pesach Haggadah",
+                            "heBook": "הגדה של פסח"
+                          },
+                          {
+                            "section": "Haggadah",
+                            "heTitle": "הגדה של פסח, רחצה",
+                            "title": "Pesach Haggadah, Rachtzah",
+                            "length": 1,
+                            "chapters": 3,
+                            "book": "Pesach Haggadah",
+                            "heBook": "הגדה של פסח"
+                          },
+                          {
+                            "section": "Haggadah",
+                            "heTitle": "הגדה של פסח, מוציא מצה",
+                            "title": "Pesach Haggadah, Motzi Matzah",
+                            "length": 1,
+                            "chapters": 4,
+                            "book": "Pesach Haggadah",
+                            "heBook": "הגדה של פסח"
+                          },
+                          {
+                            "section": "Haggadah",
+                            "heTitle": "הגדה של פסח, מרור",
+                            "title": "Pesach Haggadah, Maror",
+                            "length": 1,
+                            "chapters": 3,
+                            "book": "Pesach Haggadah",
+                            "heBook": "הגדה של פסח"
+                          },
+                          {
+                            "section": "Haggadah",
+                            "heTitle": "הגדה של פסח, כורך",
+                            "title": "Pesach Haggadah, Korech",
+                            "length": 1,
+                            "chapters": 4,
+                            "book": "Pesach Haggadah",
+                            "heBook": "הגדה של פסח"
+                          },
+                          {
+                            "section": "Haggadah",
+                            "heTitle": "הגדה של פסח, שולחן עורך",
+                            "title": "Pesach Haggadah, Shulchan Orech",
+                            "length": 1,
+                            "chapters": 2,
+                            "book": "Pesach Haggadah",
+                            "heBook": "הגדה של פסח"
+                          },
+                          {
+                            "section": "Haggadah",
+                            "heTitle": "הגדה של פסח, צפון",
+                            "title": "Pesach Haggadah, Tzafun",
+                            "length": 1,
+                            "chapters": 3,
+                            "book": "Pesach Haggadah",
+                            "heBook": "הגדה של פסח"
+                          },
+                          {
+                            "section": "Haggadah",
+                            "heTitle": "הגדה של פסח, ברך, ברכת המזון",
+                            "title": "Pesach Haggadah, Barech, Birkat Hamazon",
+                            "length": 1,
+                            "chapters": 23,
+                            "book": "Pesach Haggadah",
+                            "heBook": "הגדה של פסח"
+                          },
+                          {
+                            "section": "Haggadah",
+                            "heTitle": "הגדה של פסח, ברך, כוס שלישית",
+                            "title": "Pesach Haggadah, Barech, Third Cup of Wine",
+                            "length": 1,
+                            "chapters": 2,
+                            "book": "Pesach Haggadah",
+                            "heBook": "הגדה של פסח"
+                          },
+                          {
+                            "section": "Haggadah",
+                            "heTitle": "הגדה של פסח, ברך, שפוך חמתך",
+                            "title": "Pesach Haggadah, Barech, Pour Out Thy Wrath",
+                            "length": 1,
+                            "chapters": 2,
+                            "book": "Pesach Haggadah",
+                            "heBook": "הגדה של פסח"
+                          },
+                          {
+                            "section": "Haggadah",
+                            "heTitle": "הגדה של פסח, הלל, מסיימים את ההלל",
+                            "title": "Pesach Haggadah, Hallel, Second Half of Hallel",
+                            "length": 1,
+                            "chapters": 10,
+                            "book": "Pesach Haggadah",
+                            "heBook": "הגדה של פסח"
+                          },
+                          {
+                            "section": "Haggadah",
+                            "heTitle": "הגדה של פסח, הלל, מזמורי הודיה",
+                            "title": "Pesach Haggadah, Hallel, Songs of Praise and Thanks",
+                            "length": 1,
+                            "chapters": 6,
+                            "book": "Pesach Haggadah",
+                            "heBook": "הגדה של פסח"
+                          },
+                          {
+                            "section": "Haggadah",
+                            "heTitle": "הגדה של פסח, הלל, כוס רביעית",
+                            "title": "Pesach Haggadah, Hallel, Fourth Cup of Wine",
+                            "length": 1,
+                            "chapters": 4,
+                            "book": "Pesach Haggadah",
+                            "heBook": "הגדה של פסח"
+                          },
+                          {
+                            "section": "Haggadah",
+                            "heTitle": "הגדה של פסח, נרצה, חסל סידור פסח",
+                            "title": "Pesach Haggadah, Nirtzah, Chasal Siddur Pesach",
+                            "length": 1,
+                            "chapters": 2,
+                            "book": "Pesach Haggadah",
+                            "heBook": "הגדה של פסח"
+                          },
+                          {
+                            "section": "Haggadah",
+                            "heTitle": "הגדה של פסח, נרצה, לשנה הבאה",
+                            "title": "Pesach Haggadah, Nirtzah, L'Shana HaBaa",
+                            "length": 1,
+                            "chapters": 1,
+                            "book": "Pesach Haggadah",
+                            "heBook": "הגדה של פסח"
+                          },
+                          {
+                            "section": "Haggadah",
+                            "heTitle": "הגדה של פסח, נרצה, ויהי בחצי הלילה",
+                            "title": "Pesach Haggadah, Nirtzah, And It Happened at Midnight",
+                            "length": 1,
+                            "chapters": 11,
+                            "book": "Pesach Haggadah",
+                            "heBook": "הגדה של פסח"
+                          },
+                          {
+                            "section": "Haggadah",
+                            "heTitle": "הגדה של פסח, נרצה, זבח פסח",
+                            "title": "Pesach Haggadah, Nirtzah, Zevach Pesach",
+                            "length": 1,
+                            "chapters": 8,
+                            "book": "Pesach Haggadah",
+                            "heBook": "הגדה של פסח"
+                          },
+                          {
+                            "section": "Haggadah",
+                            "heTitle": "הגדה של פסח, נרצה, אדיר במלוכה",
+                            "title": "Pesach Haggadah, Nirtzah, Ki Lo Na'e",
+                            "length": 1,
+                            "chapters": 9,
+                            "book": "Pesach Haggadah",
+                            "heBook": "הגדה של פסח"
+                          },
+                          {
+                            "section": "Haggadah",
+                            "heTitle": "הגדה של פסח, נרצה, אדיר הוא",
+                            "title": "Pesach Haggadah, Nirtzah, Adir Hu",
+                            "length": 1,
+                            "chapters": 8,
+                            "book": "Pesach Haggadah",
+                            "heBook": "הגדה של פסח"
+                          },
+                          {
+                            "section": "Haggadah",
+                            "heTitle": "הגדה של פסח, נרצה, ספירת העומר",
+                            "title": "Pesach Haggadah, Nirtzah, Sefirat HaOmer",
+                            "length": 1,
+                            "chapters": 2,
+                            "book": "Pesach Haggadah",
+                            "heBook": "הגדה של פסח"
+                          },
+                          {
+                            "section": "Haggadah",
+                            "heTitle": "הגדה של פסח, נרצה, אחד מי יודע",
+                            "title": "Pesach Haggadah, Nirtzah, Echad Mi Yodea",
+                            "length": 1,
+                            "chapters": 1,
+                            "book": "Pesach Haggadah",
+                            "heBook": "הגדה של פסח"
+                          },
+                          {
+                            "section": "Haggadah",
+                            "heTitle": "הגדה של פסח, נרצה, חד גדיא",
+                            "title": "Pesach Haggadah, Nirtzah, Chad Gadya",
+                            "length": 1,
+                            "chapters": 10,
+                            "book": "Pesach Haggadah",
+                            "heBook": "הגדה של פסח"
+                          }
+                        ],
+                        "book": "Pesach Haggadah",
+                        "heBook": "הגדה של פסח"
+                      }
+                    ]
                   },
                   "Simple Text": {
-                    "value": {
-                      "section": "Torah",
-                      "heTitle": "שמות",
-                      "title": "Exodus",
-                      "length": 40,
-                      "chapters": [
-                        22, 25, 22, 31, 23, 30, 29, 28, 35, 29, 10, 51, 22, 31,
-                        27, 36, 16, 27, 25, 23, 37, 30, 33, 18, 40, 37, 21, 43,
-                        46, 38, 18, 35, 23, 35, 35, 38, 29, 31, 43, 38
-                      ],
-                      "book": "Exodus",
-                      "heBook": "שמות"
-                    }
+                    "value": [
+                      {
+                        "section": "Torah",
+                        "heTitle": "שמות",
+                        "title": "Exodus",
+                        "length": 40,
+                        "chapters": [
+                          22, 25, 22, 31, 23, 30, 29, 28, 35, 29, 10, 51, 22,
+                          31, 27, 36, 16, 27, 25, 23, 37, 30, 33, 18, 40, 37,
+                          21, 43, 46, 38, 18, 35, 23, 35, 35, 38, 29, 31, 43, 38
+                        ],
+                        "book": "Exodus",
+                        "heBook": "שמות"
+                      }
+                    ]
                   }
                 }
               }

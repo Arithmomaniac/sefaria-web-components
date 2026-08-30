@@ -4,6 +4,14 @@
 
 import * as z from "zod";
 
+import type {
+  CoreShapeChapter,
+  CoreShapeCollapsedRecord,
+  CoreShapeLeafRecord,
+  CoreStringArrayOrNull,
+  CoreV3TextValue,
+} from "./types.gen.js";
+
 export const zCoreErrorResponse = z.object({
   error: z.string(),
 });
@@ -79,20 +87,16 @@ export const zCoreSheetLinkObject = z.object({
 /**
  * A string, null, or recursively nested list of the same values.
  */
-export const zCoreStringArrayOrNull = z.union([
-  z.string(),
-  z.array(z.lazy((): any => zCoreStringArrayOrNull)),
-  z.null(),
-]);
+export const zCoreStringArrayOrNull: z.ZodType<CoreStringArrayOrNull> = z.lazy(
+  () => z.union([z.string(), z.array(zCoreStringArrayOrNull), z.null()]),
+);
 
 /**
  * A nullable text segment or recursively nested text segments.
  */
-export const zCoreV3TextValue = z.union([
-  z.string(),
-  z.array(z.lazy((): any => zCoreV3TextValue)),
-  z.null(),
-]);
+export const zCoreV3TextValue: z.ZodType<CoreV3TextValue> = z.lazy(() =>
+  z.union([z.string(), z.array(zCoreV3TextValue), z.null()]),
+);
 
 export const zCoreV3WarningDetail = z.object({
   warning_code: z.int(),
@@ -302,31 +306,38 @@ export const zCoreV3TextsResponse = z.object({
 /**
  * A segment count, nested shape list, or collapsed complex-text leaf record.
  */
-export const zCoreShapeChapter = z.union([
-  z.int(),
-  z.array(z.lazy((): any => zCoreShapeChapter)),
-  z.lazy((): any => zCoreShapeLeafRecord),
-]);
+export const zCoreShapeChapter: z.ZodType<CoreShapeChapter> = z.lazy(() =>
+  z.union([z.int(), z.array(zCoreShapeChapter), zCoreShapeLeafRecord]),
+);
 
-export const zCoreShapeCollapsedRecord = z.object({
-  isComplex: z.literal(true),
-  section: z.string(),
-  length: z.int(),
-  chapters: z.array(z.lazy((): any => zCoreShapeLeafRecord)),
-  book: z.string(),
-  heBook: z.string(),
-});
+export const zCoreShapeCollapsedRecord: z.ZodType<CoreShapeCollapsedRecord> =
+  z.lazy(() =>
+    z.object({
+      isComplex: z.literal(true),
+      section: z.string(),
+      length: z.int(),
+      chapters: z.array(zCoreShapeLeafRecord),
+      book: z.string(),
+      heBook: z.string(),
+    }),
+  );
 
-export const zCoreShapeLeafRecord = z.object({
-  section: z.string(),
-  heTitle: z.string(),
-  title: z.string(),
-  length: z.int(),
-  chapters: zCoreShapeChapter,
-  book: z.string(),
-  heBook: z.string(),
-  isComplex: z.boolean().optional(),
-});
+export const zCoreShapeLeafRecord: z.ZodType<CoreShapeLeafRecord> = z.lazy(() =>
+  z
+    .object({
+      section: z.string(),
+      heTitle: z.string(),
+      title: z.string(),
+      length: z.int(),
+      chapters: zCoreShapeChapter,
+      book: z.string(),
+      heBook: z.string(),
+      isComplex: z.boolean().optional(),
+    })
+    .transform(({ isComplex, ...value }): CoreShapeLeafRecord =>
+      isComplex === undefined ? value : { ...value, isComplex },
+    ),
+);
 
 export const zCoreShapeRecord = z.union([
   zCoreShapeLeafRecord,

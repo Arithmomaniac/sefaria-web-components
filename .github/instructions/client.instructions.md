@@ -21,7 +21,7 @@ applyTo: "packages/client/**,docs/specs/client.md"
 - Validate every JSON response from the public client.
 - Reject a contract mismatch with the operation, status, and structured JSON paths.
 - Preserve the original `Response` metadata on a contract mismatch.
-- Keep the public client as a thin `openapi-fetch` wrapper.
+- Keep the public client as a thin configured `@hey-api/client-fetch` capability used by the generated SDK.
 - Accept a configurable base URL and injectable `fetch`.
 - Preserve documented HTTP error payloads and Fetch API network or abort failures.
 - Do not add a generalized facade, normalized model, default cache, retry, coalescing, or component method.

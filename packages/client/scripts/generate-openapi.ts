@@ -72,6 +72,10 @@ export interface Finding {
     readonly responseBuilder: string;
     readonly tests: string;
   };
+  readonly audit?: {
+    readonly findingId: string;
+    readonly artifacts: readonly string[];
+  };
   readonly fixture?: {
     readonly path?: string;
     readonly capturedAt: string;
@@ -157,6 +161,15 @@ const require = createRequire(import.meta.url);
 const openapiFormat = require("openapi-format") as OpenApiFormatModule;
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const generatedDirectory = "src/generated";
+const heyApiCommittedFiles = new Set([
+  "sdk.gen.ts",
+  "types.gen.ts",
+  "zod.gen.ts",
+]);
+const heyApiTransientFiles = new Set([
+  "client.gen.ts",
+  ...heyApiCommittedFiles,
+]);
 const fixedGeneratedOutputs = [
   "openapi/corrected-core.json",
   "openapi/response-schemas.json",
@@ -303,6 +316,23 @@ function validateEvidence(finding: Finding): void {
     `${finding.id} response-builder evidence`,
   );
   assertString(finding.evidence.tests, `${finding.id} test evidence`);
+  if (finding.audit !== undefined) {
+    assertString(finding.audit.findingId, `${finding.id} audit finding ID`);
+    if (
+      !Array.isArray(finding.audit.artifacts) ||
+      finding.audit.artifacts.length === 0
+    ) {
+      throw new Error(`${finding.id} audit artifacts must be non-empty.`);
+    }
+    for (const artifact of finding.audit.artifacts) {
+      assertString(artifact, `${finding.id} audit artifact`);
+      if (/^(?:[A-Za-z]:[\\/]|[\\/])/.test(artifact)) {
+        throw new Error(
+          `${finding.id} audit artifact must not use an absolute path: ${artifact}.`,
+        );
+      }
+    }
+  }
 }
 
 export function validateOverlayDocuments(
@@ -973,8 +1003,22 @@ function replaceGeneratedFragment(
 }
 
 function patchGeneratedZod(source: string): string {
-  const stringArrayOrNull = replaceGeneratedFragment(
+  const typedImports = replaceGeneratedFragment(
     source,
+    `import * as z from "zod";`,
+    `import * as z from "zod";
+
+import type {
+  CoreShapeChapter,
+  CoreShapeCollapsedRecord,
+  CoreShapeLeafRecord,
+  CoreStringArrayOrNull,
+  CoreV3TextValue,
+} from "./types.gen.js";`,
+    "recursive contract type imports",
+  );
+  const stringArrayOrNull = replaceGeneratedFragment(
+    typedImports,
     `export const zCoreStringArrayOrNull = z
   .union([
     z.string(),
@@ -982,11 +1026,10 @@ function patchGeneratedZod(source: string): string {
     z.unknown(),
   ])
   .nullable();`,
-    `export const zCoreStringArrayOrNull = z.union([
-  z.string(),
-  z.array(z.lazy((): any => zCoreStringArrayOrNull)),
-  z.null(),
-]);`,
+    `export const zCoreStringArrayOrNull: z.ZodType<CoreStringArrayOrNull> =
+  z.lazy(() =>
+    z.union([z.string(), z.array(zCoreStringArrayOrNull), z.null()]),
+  );`,
     "CoreStringArrayOrNull explicit null branch",
   );
   const v3TextValue = replaceGeneratedFragment(
@@ -998,14 +1041,12 @@ function patchGeneratedZod(source: string): string {
     z.unknown(),
   ])
   .nullable();`,
-    `export const zCoreV3TextValue = z.union([
-  z.string(),
-  z.array(z.lazy((): any => zCoreV3TextValue)),
-  z.null(),
-]);`,
+    `export const zCoreV3TextValue: z.ZodType<CoreV3TextValue> = z.lazy(() =>
+  z.union([z.string(), z.array(zCoreV3TextValue), z.null()]),
+);`,
     "CoreV3TextValue explicit null branch",
   );
-  return replaceGeneratedFragment(
+  const warning = replaceGeneratedFragment(
     v3TextValue,
     "export const zCoreV3Warning = z.record(z.string(), zCoreV3WarningDetail);",
     `export const zCoreV3Warning = z
@@ -1015,6 +1056,134 @@ function patchGeneratedZod(source: string): string {
   });`,
     "v3 warning minProperties",
   );
+  const shapeChapter = replaceGeneratedFragment(
+    warning,
+    `export const zCoreShapeChapter = z.union([
+  z.int(),
+  z.array(z.lazy((): any => zCoreShapeChapter)),
+  z.lazy((): any => zCoreShapeLeafRecord),
+]);`,
+    `export const zCoreShapeChapter: z.ZodType<CoreShapeChapter> = z.lazy(() =>
+  z.union([z.int(), z.array(zCoreShapeChapter), zCoreShapeLeafRecord]),
+);`,
+    "CoreShapeChapter recursive type",
+  );
+  const collapsedShape = replaceGeneratedFragment(
+    shapeChapter,
+    `export const zCoreShapeCollapsedRecord = z.object({
+  isComplex: z.literal(true),
+  section: z.string(),
+  length: z.int(),
+  chapters: z.array(z.lazy((): any => zCoreShapeLeafRecord)),
+  book: z.string(),
+  heBook: z.string(),
+});`,
+    `export const zCoreShapeCollapsedRecord: z.ZodType<CoreShapeCollapsedRecord> =
+  z.lazy(() =>
+    z.object({
+      isComplex: z.literal(true),
+      section: z.string(),
+      length: z.int(),
+      chapters: z.array(zCoreShapeLeafRecord),
+      book: z.string(),
+      heBook: z.string(),
+    }),
+  );`,
+    "CoreShapeCollapsedRecord recursive type",
+  );
+  return replaceGeneratedFragment(
+    collapsedShape,
+    `export const zCoreShapeLeafRecord = z.object({
+  section: z.string(),
+  heTitle: z.string(),
+  title: z.string(),
+  length: z.int(),
+  chapters: zCoreShapeChapter,
+  book: z.string(),
+  heBook: z.string(),
+  isComplex: z.boolean().optional(),
+});`,
+    `export const zCoreShapeLeafRecord: z.ZodType<CoreShapeLeafRecord> = z.lazy(
+  () =>
+    z
+      .object({
+        section: z.string(),
+        heTitle: z.string(),
+        title: z.string(),
+        length: z.int(),
+        chapters: zCoreShapeChapter,
+        book: z.string(),
+        heBook: z.string(),
+        isComplex: z.boolean().optional(),
+      })
+      .transform(({ isComplex, ...value }): CoreShapeLeafRecord =>
+        isComplex === undefined ? value : { ...value, isComplex },
+      ),
+);`,
+    "CoreShapeLeafRecord recursive type",
+  );
+}
+
+function patchGeneratedSdk(source: string): string {
+  const withoutClientMeta = replaceGeneratedFragment(
+    source,
+    `  Client,
+  ClientMeta,
+  Options as Options2,`,
+    `  Options as Options2,`,
+    "external fetch client metadata import",
+  );
+  const compatibleOptions = replaceGeneratedFragment(
+    withoutClientMeta,
+    `export type Options<
+  TData extends TDataShape = TDataShape,
+  ThrowOnError extends boolean = boolean,
+  TResponse = unknown,
+> = Options2<TData, ThrowOnError, TResponse> & {`,
+    `import {
+  requireSefariaClient,
+  type SefariaClient,
+} from "../client.js";
+
+export type Options<
+  TData extends TDataShape = TDataShape,
+  ThrowOnError extends boolean = boolean,
+> = Omit<
+  Options2<TData, ThrowOnError>,
+  "parseAs" | "responseStyle" | "responseTransformer" | "responseValidator"
+> & {`,
+    "external fetch client options generics",
+  );
+  const typedClient = replaceGeneratedFragment(
+    compatibleOptions,
+    "  client: Client;",
+    "  client: SefariaClient;",
+    "validated client option",
+  );
+  const metadata = replaceGeneratedFragment(
+    typedClient,
+    "  meta?: keyof ClientMeta extends never ? Record<string, unknown> : ClientMeta;",
+    "  meta?: Record<string, unknown>;",
+    "external fetch client metadata option",
+  );
+  const patched = metadata.replace(
+    /options\.client\.get<([\s\S]*?)>\(\{\n {4}responseValidator: ([\s\S]*?),\n {4}url: ("[^"]+"),\n {4}\.\.\.options,\n {2}\}\);/g,
+    `requireSefariaClient(options.client).get<$1>({
+    ...options,
+    parseAs: "json",
+    responseStyle: "fields",
+    responseTransformer: async (data) => data,
+    responseValidator: $2,
+    url: $3,
+  });`,
+  );
+  if (
+    patched === metadata ||
+    patched.match(/requireSefariaClient\(/g)?.length !== CORE_OPERATIONS.length
+  ) {
+    throw new Error("Could not secure every generated SDK client call.");
+  }
+  return patched;
 }
 
 async function listFiles(root: string): Promise<readonly string[]> {
@@ -1065,6 +1234,7 @@ async function generateHeyApiArtifacts(
       output: {
         path: outputPath,
         clean: true,
+        entryFile: false,
         fileName: { suffix: ".gen" },
         header: generatedHeader(source).split("\n"),
         module: { extension: ".js" },
@@ -1074,7 +1244,7 @@ async function generateHeyApiArtifacts(
       plugins: [
         {
           name: "@hey-api/client-fetch",
-          bundle: true,
+          bundle: false,
         },
         {
           name: "@hey-api/typescript",
@@ -1112,23 +1282,41 @@ async function generateHeyApiArtifacts(
       ],
     });
 
+    const generatedPaths = await listFiles(outputPath);
+    const generatedRelativePaths = generatedPaths.map((path) =>
+      relative(outputPath, path).replaceAll("\\", "/"),
+    );
+    const unexpectedGeneratedFiles = generatedRelativePaths.filter(
+      (path) => !heyApiTransientFiles.has(path),
+    );
+    if (unexpectedGeneratedFiles.length > 0) {
+      throw new Error(
+        `Hey API emitted unexpected files: ${unexpectedGeneratedFiles.join(", ")}.`,
+      );
+    }
+    for (const expected of heyApiCommittedFiles) {
+      if (!generatedRelativePaths.includes(expected)) {
+        throw new Error(`Hey API did not generate ${expected}.`);
+      }
+    }
+
     const artifacts = new Map<string, string>();
-    for (const path of await listFiles(outputPath)) {
+    for (const path of generatedPaths) {
       const outputRelativePath = relative(outputPath, path).replaceAll(
         "\\",
         "/",
       );
-      let contents = await readFile(path, "utf8");
-      if (
-        outputRelativePath.endsWith(".ts") &&
-        (outputRelativePath.startsWith("client/") ||
-          outputRelativePath.startsWith("core/"))
-      ) {
-        contents = `// @ts-nocheck -- bundled @hey-api/client-fetch is not exactOptionalPropertyTypes-clean.\n${contents}`;
+      if (!heyApiCommittedFiles.has(outputRelativePath)) {
+        continue;
       }
+      let contents = await readFile(path, "utf8");
       const generatedPath = `${generatedDirectory}/${outputRelativePath}`;
       if (outputRelativePath === "zod.gen.ts") {
         contents = patchGeneratedZod(
+          await formatGeneratedFile(contents, generatedPath, "typescript"),
+        );
+      } else if (outputRelativePath === "sdk.gen.ts") {
+        contents = patchGeneratedSdk(
           await formatGeneratedFile(contents, generatedPath, "typescript"),
         );
       }

@@ -1,9 +1,11 @@
+import { createClient } from "@hey-api/client-fetch";
 import { describe, expect, it, vi } from "vitest";
 
 import {
   createSefariaClient,
   getIndexV2,
   getLinks,
+  getRef,
   getShape,
   getTextVersions,
   getV3Texts,
@@ -45,6 +47,83 @@ describe("generated Sefaria SDK", () => {
     expect(result.response?.status).toBe(200);
   });
 
+  it("rejects clients not returned by createSefariaClient", async () => {
+    const unsafeClient = createClient({
+      fetch: async () => jsonResponse([]),
+    });
+
+    expect(() =>
+      getTextVersions({
+        // @ts-expect-error Runtime callers can still supply untyped JavaScript.
+        client: unsafeClient,
+        path: { tref: "Genesis 1:1" },
+      }),
+    ).toThrow("Generated Sefaria SDK functions require createSefariaClient().");
+
+    const validClient = createSefariaClient({
+      fetch: async () => jsonResponse([]),
+    });
+    const inheritedBrand = Object.create(validClient, {
+      get: {
+        value: async () => ({ data: { unvalidated: true } }),
+      },
+    }) as {
+      get: () => Promise<{ data: unknown }>;
+    };
+
+    expect(() =>
+      getTextVersions({
+        // @ts-expect-error Runtime callers can still supply untyped JavaScript.
+        client: inheritedBrand,
+        path: { tref: "Genesis 1:1" },
+      }),
+    ).toThrow("Generated Sefaria SDK functions require createSefariaClient().");
+  });
+
+  it("forces fields responses and generated validators at runtime", async () => {
+    const replacementValidator = vi.fn(() => {
+      throw new Error("caller validator ran");
+    });
+    const replacementTransformer = vi.fn(async () => ({
+      malformed: true,
+    }));
+    const client = createSefariaClient({
+      fetch: async () => jsonResponse([]),
+    });
+
+    const styledResult = await getTextVersions({
+      client,
+      path: { tref: "Genesis 1:1" },
+      // @ts-expect-error Untyped JavaScript callers can still pass this option.
+      responseStyle: "data",
+    });
+    const validatedResult = await getTextVersions({
+      client,
+      path: { tref: "Genesis 1:1" },
+      // @ts-expect-error Untyped JavaScript callers can still pass this option.
+      responseValidator: replacementValidator,
+    });
+    const parsedResult = await getTextVersions({
+      client,
+      path: { tref: "Genesis 1:1" },
+      // @ts-expect-error Untyped JavaScript callers can still pass this option.
+      parseAs: "text",
+    });
+    const transformedResult = await getTextVersions({
+      client,
+      path: { tref: "Genesis 1:1" },
+      // @ts-expect-error Untyped JavaScript callers can still pass this option.
+      responseTransformer: replacementTransformer,
+    });
+
+    expect(styledResult.data).toEqual([]);
+    expect(validatedResult.data).toEqual([]);
+    expect(parsedResult.data).toEqual([]);
+    expect(transformedResult.data).toEqual([]);
+    expect(replacementValidator).not.toHaveBeenCalled();
+    expect(replacementTransformer).not.toHaveBeenCalled();
+  });
+
   it("keeps a validated documented HTTP error as a typed error result", async () => {
     const body = {
       error: "with_text is not supported for whole-book refs.",
@@ -84,6 +163,40 @@ describe("generated Sefaria SDK", () => {
     expect(requestedUrl).toBe(
       "https://example.test/root/api/texts/versions/Genesis%201%3A1",
     );
+  });
+
+  it("encodes getRef paths and validates its response", async () => {
+    let requestedUrl = "";
+    const body = {
+      is_ref: true,
+      normalized: "Sheet 643492",
+      hebrew: "Sheet",
+      url_ref: "Sheet.643492",
+      index_title: "Sheet",
+      node_type: "SheetNode",
+      navigation_refs: {
+        shortest_path_to_root: ["Sheet"],
+        first_subref: "Sheet 643492:1",
+        last_subref: "Sheet 643492:22",
+      },
+      sheet_id: 643492,
+    };
+    const client = createSefariaClient({
+      baseUrl: "https://example.test",
+      fetch: async (request) => {
+        requestedUrl =
+          request instanceof Request ? request.url : request.toString();
+        return jsonResponse(body);
+      },
+    });
+
+    const result = await getRef({
+      client,
+      path: { tref: "Sheet 643492" },
+    });
+
+    expect(requestedUrl).toBe("https://example.test/api/ref/Sheet%20643492");
+    expect(result.data).toEqual(body);
   });
 
   it("serializes repeatable v3 versions, link categories, and shape flags", async () => {

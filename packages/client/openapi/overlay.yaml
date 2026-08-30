@@ -363,6 +363,24 @@ actions:
           application/json:
             schema:
               $ref: "#/components/schemas/CoreErrorResponse"
+  - x-action-id: ref-description
+    x-finding-id: ref-contract
+    target: "$.paths['/api/ref/{tref}'].get.description"
+    description: Correct the conditional navigation-field documentation.
+    update: |-
+      Validates a text reference (`tref`) and returns structured metadata about it.
+
+      The response varies based on the `node_type` of the referenced text:
+
+      - **JaggedArrayNode**: Standard text nodes (e.g. biblical chapters/verses, Talmud pages). Returns `depth`, `address_types`, `section_names`, and positional indexes/labels.
+      - **SchemaNode**: Nodes with named children (e.g. a commentary with an introduction and main text). Returns `children` list.
+      - **DictionaryEntryNode**: Individual dictionary entries. Returns `lexicon_name` and `headword`, plus the JaggedArrayNode fields.
+      - **DictionaryNode**: Dictionary root nodes. Returns `lexicon_name`.
+      - **SheetNode**: User-created source sheets. Returns `sheet_id`.
+
+      If the node has a default child (a child node that represents the primary content), the response includes a `default_child_node` object with the child's `node_type`, `node_index`, and optionally `depth`, `address_types` and `sectionNames` (for JaggedArrayNode children) or `lexicon_name` (for DictionaryNode parents).
+
+      Navigation fields depend on node type and reference depth. `navigation_refs.shortest_path_to_root` is always present. Non-`SheetNode` responses also include `first_available_section_ref`. Segment-level refs include `prev_segment_ref` and `next_segment_ref`; section-level refs include `prev_section_ref` and `next_section_ref`. Refs with a node depth that are neither ranges nor segment-level include `first_subref` and `last_subref`. `SheetNode` responses omit `first_available_section_ref` and previous/next navigation, but can include `first_subref` and `last_subref`.
   - x-action-id: ref-schemas
     x-finding-id: ref-contract
     target: "$.components.schemas"
@@ -660,6 +678,70 @@ actions:
     target: "$.paths['/api/shape/{title}'].get.responses['200'].content['application/json'].schema['$ref']"
     description: Replace the upper-case single-object schema with the source response union.
     update: "#/components/schemas/CoreShapeResponse"
+  - x-action-id: shape-simple-example-temp-seed
+    x-finding-id: shape-contract
+    target: "$.paths['/api/shape/{title}'].get.responses['200'].content['application/json'].examples['Simple Text']"
+    description: Create a temporary copy target for the original simple-text example.
+    update:
+      x-sefaria-original-value: {}
+  - x-action-id: shape-simple-example-temp-copy
+    x-finding-id: shape-contract
+    target: "$.paths['/api/shape/{title}'].get.responses['200'].content['application/json'].examples['Simple Text']['x-sefaria-original-value']"
+    description: Preserve the original simple-text example while changing its root type.
+    copy: "$.paths['/api/shape/{title}'].get.responses['200'].content['application/json'].examples['Simple Text'].value"
+  - x-action-id: shape-simple-example-value-remove
+    x-finding-id: shape-contract
+    target: "$.paths['/api/shape/{title}'].get.responses['200'].content['application/json'].examples['Simple Text'].value"
+    description: Remove the bare simple-text object.
+    remove: true
+  - x-action-id: shape-simple-example-array-seed
+    x-finding-id: shape-contract
+    target: "$.paths['/api/shape/{title}'].get.responses['200'].content['application/json'].examples['Simple Text']"
+    description: Create the corrected simple-text array root.
+    update:
+      value: []
+  - x-action-id: shape-simple-example-array-copy
+    x-finding-id: shape-contract
+    target: "$.paths['/api/shape/{title}'].get.responses['200'].content['application/json'].examples['Simple Text'].value"
+    description: Append the preserved simple-text object to the corrected array.
+    copy: "$.paths['/api/shape/{title}'].get.responses['200'].content['application/json'].examples['Simple Text']['x-sefaria-original-value']"
+  - x-action-id: shape-simple-example-temp-remove
+    x-finding-id: shape-contract
+    target: "$.paths['/api/shape/{title}'].get.responses['200'].content['application/json'].examples['Simple Text']['x-sefaria-original-value']"
+    description: Remove the temporary simple-text overlay value.
+    remove: true
+  - x-action-id: shape-complex-example-temp-seed
+    x-finding-id: shape-contract
+    target: "$.paths['/api/shape/{title}'].get.responses['200'].content['application/json'].examples['Complex Text']"
+    description: Create a temporary copy target for the original complex-text example.
+    update:
+      x-sefaria-original-value: {}
+  - x-action-id: shape-complex-example-temp-copy
+    x-finding-id: shape-contract
+    target: "$.paths['/api/shape/{title}'].get.responses['200'].content['application/json'].examples['Complex Text']['x-sefaria-original-value']"
+    description: Preserve the original complex-text example while changing its root type.
+    copy: "$.paths['/api/shape/{title}'].get.responses['200'].content['application/json'].examples['Complex Text'].value"
+  - x-action-id: shape-complex-example-value-remove
+    x-finding-id: shape-contract
+    target: "$.paths['/api/shape/{title}'].get.responses['200'].content['application/json'].examples['Complex Text'].value"
+    description: Remove the bare complex-text object.
+    remove: true
+  - x-action-id: shape-complex-example-array-seed
+    x-finding-id: shape-contract
+    target: "$.paths['/api/shape/{title}'].get.responses['200'].content['application/json'].examples['Complex Text']"
+    description: Create the corrected complex-text array root.
+    update:
+      value: []
+  - x-action-id: shape-complex-example-array-copy
+    x-finding-id: shape-contract
+    target: "$.paths['/api/shape/{title}'].get.responses['200'].content['application/json'].examples['Complex Text'].value"
+    description: Append the preserved complex-text object to the corrected array.
+    copy: "$.paths['/api/shape/{title}'].get.responses['200'].content['application/json'].examples['Complex Text']['x-sefaria-original-value']"
+  - x-action-id: shape-complex-example-temp-remove
+    x-finding-id: shape-contract
+    target: "$.paths['/api/shape/{title}'].get.responses['200'].content['application/json'].examples['Complex Text']['x-sefaria-original-value']"
+    description: Remove the temporary complex-text overlay value.
+    remove: true
   - x-action-id: links-schemas
     x-finding-id: links-contract
     target: "$.components.schemas"

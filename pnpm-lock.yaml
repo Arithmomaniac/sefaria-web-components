@@ -77,6 +77,9 @@ importers:
 
   packages/client:
     dependencies:
+      '@hey-api/client-fetch':
+        specifier: 0.13.1
+        version: 0.13.1(@hey-api/openapi-ts@0.99.0(typescript@6.0.3))
       zod:
         specifier: 4.4.3
         version: 4.4.3
@@ -304,6 +307,12 @@ packages:
   '@eslint/plugin-kit@0.7.2':
     resolution: {integrity: sha1-Swli8/LHzovJiz7P40UlwJ0styk=}
     engines: {node: ^20.19.0 || ^22.13.0 || >=24}
+
+  '@hey-api/client-fetch@0.13.1':
+    resolution: {integrity: sha1-0Bze7V9bW1cG1S/+KTh3QdKlM+A=}
+    deprecated: Starting with v0.73.0, this package is bundled directly inside @hey-api/openapi-ts.
+    peerDependencies:
+      '@hey-api/openapi-ts': < 2
 
   '@hey-api/codegen-core@0.9.1':
     resolution: {integrity: sha1-5mvMKU7hbE3Li4dQtw5i07U/X+o=}
@@ -2072,6 +2081,10 @@ snapshots:
     dependencies:
       '@eslint/core': 1.2.1
       levn: 0.4.1
+
+  '@hey-api/client-fetch@0.13.1(@hey-api/openapi-ts@0.99.0(typescript@6.0.3))':
+    dependencies:
+      '@hey-api/openapi-ts': 0.99.0(typescript@6.0.3)
 
   '@hey-api/codegen-core@0.9.1':
     dependencies:

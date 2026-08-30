@@ -417,7 +417,7 @@ describe("OpenAPI generation", () => {
     expect(await readFile(sourcePath, "utf8")).toBe(before);
   });
 
-  it("rolls back every published output when atomic refresh replacement fails", async () => {
+  it("rolls back every published output when refresh publication fails", async () => {
     const temporaryParent = await mkdtemp(
       resolve(tmpdir(), "sefaria-refresh-test-"),
     );
@@ -435,7 +435,7 @@ describe("OpenAPI generation", () => {
         ),
       ]);
       const before = await snapshotRefreshOutputs(temporaryRoot);
-      const failure = new Error("simulated atomic publication failure");
+      const failure = new Error("simulated publication failure");
       let renameCount = 0;
 
       await expect(
@@ -466,6 +466,69 @@ describe("OpenAPI generation", () => {
           name.startsWith(".sefaria-client-refresh-"),
         ),
       ).toEqual([]);
+    } finally {
+      await rm(temporaryParent, { recursive: true, force: true });
+    }
+  });
+
+  it("retains recovery files when refresh rollback fails", async () => {
+    const temporaryParent = await mkdtemp(
+      resolve(tmpdir(), "sefaria-refresh-test-"),
+    );
+    const temporaryRoot = resolve(temporaryParent, "client");
+    await mkdir(temporaryRoot, { recursive: true });
+    try {
+      await Promise.all([
+        cp(resolve(packageRoot, "openapi"), resolve(temporaryRoot, "openapi"), {
+          recursive: true,
+        }),
+        cp(
+          resolve(packageRoot, "src/generated"),
+          resolve(temporaryRoot, "src/generated"),
+          { recursive: true },
+        ),
+      ]);
+      let renameCount = 0;
+      const publicationFailure = new Error("simulated publication failure");
+      const restorationFailure = new Error("simulated restoration failure");
+
+      const refresh = refreshOpenApi(
+        "a".repeat(40),
+        async () =>
+          new Response(upstream.slice(), {
+            status: 200,
+            headers: { "content-type": "application/json" },
+          }),
+        temporaryRoot,
+        {
+          renamePath: async (oldPath, newPath) => {
+            renameCount += 1;
+            if (renameCount === 4) {
+              throw publicationFailure;
+            }
+            await rename(oldPath, newPath);
+          },
+          restorePath: async () => {
+            throw restorationFailure;
+          },
+        },
+      );
+
+      await expect(refresh).rejects.toSatisfy(
+        (error: unknown) =>
+          error instanceof AggregateError &&
+          error.errors.includes(publicationFailure) &&
+          error.errors.includes(restorationFailure) &&
+          error.message.includes(".sefaria-client-refresh-backup-"),
+      );
+
+      const recoveryDirectories = (await readdir(temporaryParent)).filter(
+        (name) => name.startsWith(".sefaria-client-refresh-backup-"),
+      );
+      expect(recoveryDirectories).toHaveLength(1);
+      expect(
+        await readdir(resolve(temporaryParent, recoveryDirectories[0]!)),
+      ).not.toHaveLength(0);
     } finally {
       await rm(temporaryParent, { recursive: true, force: true });
     }
@@ -573,6 +636,20 @@ describe("reviewed Core corrections", () => {
       ((failure.properties as JsonObject).is_ref as JsonObject).enum,
     ).toEqual([false]);
     expect(JSON.stringify(schemas.CoreRefNavigation)).toContain("first_subref");
+    const description = (
+      ((core.paths as JsonObject)["/api/ref/{tref}"] as JsonObject)
+        .get as JsonObject
+    ).description;
+    expect(description).toContain(
+      "Navigation fields depend on node type and reference depth.",
+    );
+    expect(description).toContain(
+      "`SheetNode` responses omit `first_available_section_ref` and previous/next navigation",
+    );
+    expect(description).toContain("include `first_subref` and `last_subref`");
+    expect(description).not.toContain(
+      "All types include `navigation_refs` with `shortest_path_to_root`",
+    );
   });
 
   it("adds index query options and the HTTP 200 error union", () => {
@@ -612,6 +689,41 @@ describe("reviewed Core corrections", () => {
     expect(text).toContain('"CoreShapeRecord"');
     expect(text).toContain('"section"');
     expect(text).not.toContain('"ShapeJSON"');
+
+    const correctedExamples = (
+      (
+        (
+          ((shape.get as JsonObject).responses as JsonObject)[
+            "200"
+          ] as JsonObject
+        ).content as JsonObject
+      )["application/json"] as JsonObject
+    ).examples as JsonObject;
+    const upstreamDocument = JSON.parse(
+      new TextDecoder().decode(upstream),
+    ) as JsonObject;
+    const upstreamExamples = (
+      (
+        (
+          (
+            (
+              (upstreamDocument.paths as JsonObject)[
+                "/api/shape/{title}"
+              ] as JsonObject
+            ).get as JsonObject
+          ).responses as JsonObject
+        )["200"] as JsonObject
+      ).content as JsonObject
+    )["application/json"] as JsonObject;
+
+    for (const name of ["Simple Text", "Complex Text"]) {
+      const corrected = correctedExamples[name] as JsonObject;
+      const original = (
+        (upstreamExamples.examples as JsonObject)[name] as JsonObject
+      ).value;
+      expect(corrected.value).toEqual([original]);
+      expect(corrected).not.toHaveProperty("x-sefaria-original-value");
+    }
   });
 
   it("models link, sheet-link, nullable text, and whole-book error variants", () => {

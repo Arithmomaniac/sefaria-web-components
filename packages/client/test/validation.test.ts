@@ -25,14 +25,49 @@ import { validateExternalResponse } from "../src/validation.js";
 
 const fixtureRoot = resolve(import.meta.dirname, "fixtures");
 
+async function readFixture(name: string): Promise<unknown> {
+  return JSON.parse(
+    await readFile(resolve(fixtureRoot, name), "utf8"),
+  ) as unknown;
+}
+
 describe("public generated response validators", () => {
-  it("validates every documented Core success and error shape", async () => {
-    const v3 = JSON.parse(
+  it("validates every corrected shape response example", async () => {
+    const core = JSON.parse(
       await readFile(
-        resolve(fixtureRoot, "v3-text-spanning-2026-08-29.json"),
+        resolve(fixtureRoot, "../../openapi/corrected-core.json"),
         "utf8",
       ),
-    ) as unknown;
+    ) as {
+      paths: {
+        "/api/shape/{title}": {
+          get: {
+            responses: {
+              "200": {
+                content: {
+                  "application/json": {
+                    examples: Record<string, { value: unknown }>;
+                  };
+                };
+              };
+            };
+          };
+        };
+      };
+    };
+    const examples =
+      core.paths["/api/shape/{title}"].get.responses["200"].content[
+        "application/json"
+      ].examples;
+
+    for (const [name, example] of Object.entries(examples)) {
+      expect(Array.isArray(example.value), name).toBe(true);
+      expect(validateGetShape200(example.value), name).toBe(true);
+    }
+  });
+
+  it("validates every documented Core success and error shape", async () => {
+    const v3 = await readFixture("v3-text-spanning-2026-08-29.json");
 
     expect(validateGetV3Texts200(v3)).toBe(true);
     expect(validateGetV3Texts400({ error: "invalid format" })).toBe(true);
@@ -109,6 +144,24 @@ describe("public generated response validators", () => {
         ref: "Genesis",
       }),
     ).toBe(true);
+  });
+
+  it("validates preserved schema-driving live probes", async () => {
+    await expect(
+      Promise.all([
+        readFixture("versions-nullable-2026-08-30.json").then(
+          validateGetTextVersions200,
+        ),
+        readFixture("versions-error-2026-08-30.json").then(
+          validateGetTextVersions200,
+        ),
+        readFixture("shape-genesis-2026-08-30.json").then(validateGetShape200),
+        readFixture("shape-error-2026-08-30.json").then(validateGetShape200),
+        readFixture("links-error-2026-08-30.json").then(validateGetLinks200),
+        readFixture("links-targum-2026-08-30.json").then(validateGetLinks200),
+        readFixture("ref-sheet-2026-08-30.json").then(validateGetRef200),
+      ]),
+    ).resolves.toEqual([true, true, true, true, true, true, true]);
   });
 
   it("accepts recursive nullable text and link values", () => {
