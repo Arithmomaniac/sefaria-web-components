@@ -46,14 +46,23 @@ The Core API source audit uses Sefaria commit [`1f7d0844ca6a9eddc8e48168962aacb0
 The source audit establishes these constraints before overlay work:
 
 - The v3 text response builder starts with `versions`, `missings`, `available_langs`, and `available_versions`. The handler removes `missings` and `available_langs` and adds `warnings`.
+- The v3 text handler reads every `version` query value with `request.GET.getlist("version")`, so the generated request contract must permit a repeated parameter.
 - The v3 text handler returns 404 for an invalid or empty reference. It returns 400 for an invalid `return_format` or an adapter failure.
 - V3 text success fields include unconditional reference fields and conditional spanning, index, node, source, and linker fields. Required lists must follow the handler branches.
 - The versions route names its parameter `tref`, and the tests pass `Genesis 1:1`. The OpenAPI path calls the same parameter `index`.
 - The versions endpoint calls `Ref.version_list()`. A successful response is a list of version metadata. Book-level requests can add `firstSectionRef`.
+- Live versions probes on August 30, 2026 returned `versionSource: null` for one Rashi on Genesis version and `status: null` for one Sefer HaChinukh version.
+- A live invalid versions reference on August 30, 2026 returned HTTP 200 with a JSON `error` object through `catch_error_as_json`.
 - The ref endpoint returns HTTP 200 with `{ "is_ref": false }` for expected parse failures. Successful fields depend on the node type and reference depth.
 - The index endpoint delegates to `Index.contents()`. Query parameters can add content counts and related topics.
+- `index_api` uses `catch_error_as_json`; an invalid title therefore returns an HTTP 200 JSON error object. A live invalid-title probe confirmed this branch on August 30, 2026.
 - The shape endpoint returns a list for a text, complex text, corpus, or category. Each shape record uses lower-case `section`, `length`, `chapters`, and `book`, plus `heTitle`, `title`, and `heBook`.
+- The shape collapse branch omits `title` and `heTitle` from aggregate complex-book records. The handler parses `dependents` with `bool(int(...))` and reads but does not use the deprecated `depth` value. A live Talmud shape probe on August 30, 2026 returned five collapsed records.
 - The links endpoint defaults to `with_text=1`. A successful response is a list. Text and version fields can be strings, arrays, or null because merged and missing versions use different branches.
+- The repeatable `category` query is read with `request.GET.getlist("category")`.
+- When `with_sheet_links=1`, `format_sheet_as_link()` adds `isSheet`, `index_title`, `category`, `collectiveTitle`, `sourceRef`, and `sourceHeRef` to sheet results before appending them to the same response list.
+- Essay links expose `displayedText` as an object with required `en` and `he` strings. Live Genesis 1:1 links on August 30, 2026 contained this branch.
+- A live invalid links reference on August 30, 2026 returned HTTP 200 with a JSON `error` object.
 
 These source facts constrain the overlay. Deployed fixtures must still cover representative data-dependent branches.
 

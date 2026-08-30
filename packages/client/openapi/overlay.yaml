@@ -1,0 +1,853 @@
+overlay: 1.1.0
+info:
+  title: Sefaria Core API corrections
+  version: 1.0.0
+  description: Source-backed corrections for the six generated Core operations.
+extends: ./upstream.json
+actions:
+  - x-action-id: versions-path-seed
+    x-finding-id: versions-contract
+    target: "$.paths"
+    description: Create the corrected tref path before copying the upstream operation.
+    update:
+      "/api/texts/versions/{tref}": {}
+  - x-action-id: versions-path-copy
+    x-finding-id: versions-contract
+    target: "$.paths['/api/texts/versions/{tref}']"
+    description: Copy the complete versions operation to the corrected tref path.
+    copy: "$.paths['/api/texts/versions/{index}']"
+  - x-action-id: versions-path-remove
+    x-finding-id: versions-contract
+    target: "$.paths['/api/texts/versions/{index}']"
+    description: Remove the incorrectly named index path.
+    remove: true
+  - x-action-id: versions-parameter
+    x-finding-id: versions-contract
+    target: "$.paths['/api/texts/versions/{tref}'].parameters[0]"
+    description: Match the path parameter to the route and handler.
+    update:
+      name: tref
+      description: A valid Sefaria reference.
+  - x-action-id: versions-content-seed
+    x-finding-id: versions-contract
+    target: "$.paths['/api/texts/versions/{tref}'].get.responses['200'].content"
+    description: Create the JSON media-type key before copying its schema.
+    update:
+      application/json: {}
+  - x-action-id: versions-content-copy
+    x-finding-id: versions-contract
+    target: "$.paths['/api/texts/versions/{tref}'].get.responses['200'].content['application/json']"
+    description: Copy the version-list schema under the correct JSON media type.
+    copy: "$.paths['/api/texts/versions/{tref}'].get.responses['200'].content['VersionJSON']"
+  - x-action-id: versions-response-schema-remove
+    x-finding-id: versions-contract
+    target: "$.paths['/api/texts/versions/{tref}'].get.responses['200'].content['application/json'].schema"
+    description: Remove the array-only schema before adding the source error branch.
+    remove: true
+  - x-action-id: versions-response-schema
+    x-finding-id: versions-contract
+    target: "$.paths['/api/texts/versions/{tref}'].get.responses['200'].content['application/json']"
+    description: Model successful version metadata arrays and HTTP 200 JSON errors.
+    update:
+      schema:
+        oneOf:
+          - type: array
+            items:
+              $ref: "#/components/schemas/VersionJSON"
+          - $ref: "#/components/schemas/CoreErrorResponse"
+  - x-action-id: versions-content-remove
+    x-finding-id: versions-contract
+    target: "$.paths['/api/texts/versions/{tref}'].get.responses['200'].content['VersionJSON']"
+    description: Remove the schema name that was incorrectly used as a media type.
+    remove: true
+  - x-action-id: versions-version-source-nullable
+    x-finding-id: versions-contract
+    target: "$.components.schemas.VersionJSON.properties.versionSource"
+    description: Permit stored version metadata whose required source value is null.
+    update:
+      nullable: true
+  - x-action-id: versions-status-nullable
+    x-finding-id: versions-contract
+    target: "$.components.schemas.VersionJSON.properties.status"
+    description: Permit stored version metadata whose optional status value is null.
+    update:
+      nullable: true
+  - x-action-id: v3-version-parameter
+    x-finding-id: v3-text-contract
+    target: "$.paths['/api/v3/texts/{tref}'].parameters[0]"
+    description: Model the repeatable version selector read through request.GET.getlist.
+    update:
+      schema:
+        type: array
+        items:
+          type: string
+      style: form
+      explode: true
+  - x-action-id: v3-schemas
+    x-finding-id: v3-text-contract
+    target: "$.components.schemas"
+    description: Add the source-backed v3 response, warning, error, and recursive value schemas.
+    update:
+      CoreErrorResponse:
+        type: object
+        required:
+          - error
+        properties:
+          error:
+            type: string
+      CoreStringArrayOrNull:
+        description: A string, null, or recursively nested list of the same values.
+        oneOf:
+          - type: string
+          - type: array
+            items:
+              $ref: "#/components/schemas/CoreStringArrayOrNull"
+          - type: string
+            nullable: true
+            enum:
+              - null
+      CoreV3TextValue:
+        description: A nullable text segment or recursively nested text segments.
+        oneOf:
+          - type: string
+          - type: array
+            items:
+              $ref: "#/components/schemas/CoreV3TextValue"
+          - type: string
+            nullable: true
+            enum:
+              - null
+      CoreV3WarningDetail:
+        type: object
+        required:
+          - warning_code
+          - message
+        properties:
+          warning_code:
+            type: integer
+          message:
+            type: string
+      CoreV3Warning:
+        type: object
+        minProperties: 1
+        additionalProperties:
+          $ref: "#/components/schemas/CoreV3WarningDetail"
+      CoreV3VersionMetadata:
+        allOf:
+          - $ref: "#/components/schemas/VersionJSON"
+          - type: object
+            required:
+              - versionTitle
+              - versionSource
+              - language
+              - actualLanguage
+              - languageFamilyName
+              - isSource
+              - isPrimary
+              - direction
+            properties:
+              versionTitle:
+                type: string
+              versionSource:
+                type: string
+                nullable: true
+              language:
+                $ref: "#/components/schemas/LanguageCode"
+              actualLanguage:
+                type: string
+              languageFamilyName:
+                type: string
+              isSource:
+                type: boolean
+              isPrimary:
+                type: boolean
+              direction:
+                type: string
+                enum:
+                  - ltr
+                  - rtl
+              formatAsPoetry:
+                oneOf:
+                  - type: boolean
+                  - type: string
+              hasManuallyWrappedRefs:
+                oneOf:
+                  - type: boolean
+                  - type: string
+      CoreV3AvailableVersion:
+        allOf:
+          - $ref: "#/components/schemas/CoreV3VersionMetadata"
+          - type: object
+            required:
+              - title
+            properties:
+              title:
+                type: string
+      CoreV3Version:
+        allOf:
+          - $ref: "#/components/schemas/CoreV3VersionMetadata"
+          - type: object
+            required:
+              - text
+            properties:
+              text:
+                $ref: "#/components/schemas/CoreV3TextValue"
+              firstSectionRef:
+                type: string
+              sources:
+                $ref: "#/components/schemas/CoreStringArrayOrNull"
+      CoreV3TextsResponse:
+        type: object
+        required:
+          - versions
+          - available_versions
+          - ref
+          - heRef
+          - sections
+          - toSections
+          - sectionRef
+          - heSectionRef
+          - firstAvailableSectionRef
+          - isSpanning
+          - next
+          - prev
+          - title
+          - book
+          - heTitle
+          - primary_category
+          - type
+          - indexTitle
+          - categories
+          - heIndexTitle
+          - isComplex
+          - isDependant
+          - order
+          - collectiveTitle
+          - heCollectiveTitle
+          - alts
+          - textDepth
+          - sectionNames
+          - addressTypes
+          - titleVariants
+          - heTitleVariants
+          - warnings
+        properties:
+          versions:
+            type: array
+            items:
+              $ref: "#/components/schemas/CoreV3Version"
+          available_versions:
+            type: array
+            items:
+              $ref: "#/components/schemas/CoreV3AvailableVersion"
+          ref:
+            $ref: "#/components/schemas/ref"
+          heRef:
+            type: string
+          sections:
+            type: array
+            items:
+              type: string
+          toSections:
+            type: array
+            items:
+              type: string
+          sectionRef:
+            $ref: "#/components/schemas/ref"
+          heSectionRef:
+            type: string
+          firstAvailableSectionRef:
+            type: string
+          isSpanning:
+            type: boolean
+          spanningRefs:
+            type: array
+            items:
+              $ref: "#/components/schemas/ref"
+          next:
+            type: string
+            nullable: true
+          prev:
+            type: string
+            nullable: true
+          title:
+            type: string
+          book:
+            type: string
+          heTitle:
+            type: string
+          primary_category:
+            type: string
+          type:
+            type: string
+          indexTitle:
+            type: string
+          categories:
+            type: array
+            items:
+              type: string
+          heIndexTitle:
+            type: string
+          isComplex:
+            type: boolean
+          isDependant:
+            type: boolean
+          order:
+            oneOf:
+              - type: array
+                items:
+                  type: integer
+              - type: string
+          collectiveTitle:
+            type: string
+          heCollectiveTitle:
+            type: string
+          alts:
+            type: array
+          lengths:
+            type: array
+            items:
+              type: integer
+          length:
+            type: integer
+          textDepth:
+            type: integer
+            nullable: true
+          sectionNames:
+            type: array
+            nullable: true
+            items:
+              type: string
+          addressTypes:
+            type: array
+            nullable: true
+            items:
+              type: string
+          titleVariants:
+            type: array
+            items:
+              type: string
+          heTitleVariants:
+            type: array
+            items:
+              type: string
+          index_offsets_by_depth:
+            type: object
+          linker_output:
+            type: array
+            items:
+              type: object
+          warnings:
+            type: array
+            items:
+              $ref: "#/components/schemas/CoreV3Warning"
+  - x-action-id: v3-responses
+    x-finding-id: v3-text-contract
+    target: "$.paths['/api/v3/texts/{tref}'].get.responses"
+    description: Correct the success schema and document the handler's JSON error statuses.
+    update:
+      "200":
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CoreV3TextsResponse"
+      "400":
+        description: Invalid return format or text adapter failure.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CoreErrorResponse"
+      "404":
+        description: Invalid, empty, or unavailable reference.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CoreErrorResponse"
+  - x-action-id: ref-schemas
+    x-finding-id: ref-contract
+    target: "$.components.schemas"
+    description: Add the parse-failure and node-dependent reference response union.
+    update:
+      CoreRefNavigation:
+        type: object
+        required:
+          - shortest_path_to_root
+        properties:
+          shortest_path_to_root:
+            type: array
+            items:
+              type: string
+          first_available_section_ref:
+            type: string
+            nullable: true
+          prev_segment_ref:
+            type: string
+            nullable: true
+          next_segment_ref:
+            type: string
+            nullable: true
+          prev_section_ref:
+            type: string
+            nullable: true
+          next_section_ref:
+            type: string
+            nullable: true
+          first_subref:
+            type: string
+          last_subref:
+            type: string
+      CoreRefSuccess:
+        type: object
+        required:
+          - is_ref
+          - normalized
+          - hebrew
+          - url_ref
+          - index_title
+          - node_type
+          - navigation_refs
+        properties:
+          is_ref:
+            type: boolean
+            enum:
+              - true
+          normalized:
+            type: string
+          hebrew:
+            type: string
+          url_ref:
+            type: string
+          index_title:
+            type: string
+          node_type:
+            type: string
+          navigation_refs:
+            $ref: "#/components/schemas/CoreRefNavigation"
+          depth:
+            type: integer
+          address_types:
+            type: array
+            items:
+              type: string
+          section_names:
+            type: array
+            items:
+              type: string
+          start_indexes:
+            type: array
+            items:
+              type: integer
+          start_labels:
+            type: array
+            items:
+              type: string
+          end_indexes:
+            type: array
+            items:
+              type: integer
+          end_labels:
+            type: array
+            items:
+              type: string
+          children:
+            type: array
+            items:
+              type: string
+          lexicon_name:
+            type: string
+          headword:
+            type: string
+          sheet_id:
+            type: integer
+          default_child_node:
+            type: object
+            required:
+              - node_type
+              - node_index
+            properties:
+              node_type:
+                type: string
+              node_index:
+                type: integer
+              depth:
+                type: integer
+              address_types:
+                type: array
+                items:
+                  type: string
+              sectionNames:
+                type: array
+                items:
+                  type: string
+              lexicon_name:
+                type: string
+      CoreRefResponse:
+        oneOf:
+          - type: object
+            required:
+              - is_ref
+            properties:
+              is_ref:
+                type: boolean
+                enum:
+                  - false
+            additionalProperties: false
+          - $ref: "#/components/schemas/CoreRefSuccess"
+  - x-action-id: ref-success
+    x-finding-id: ref-contract
+    target: "$.paths['/api/ref/{tref}'].get.responses['200'].content['application/json'].schema['$ref']"
+    description: Use the success-or-expected-parse-failure union for HTTP 200.
+    update: "#/components/schemas/CoreRefResponse"
+  - x-action-id: ref-error-remove
+    x-finding-id: ref-contract
+    target: "$.paths['/api/ref/{tref}'].get.responses['404'].content['application/json'].schema"
+    description: Remove the incomplete inline error schema.
+    remove: true
+  - x-action-id: ref-error
+    x-finding-id: ref-contract
+    target: "$.paths['/api/ref/{tref}'].get.responses['404'].content['application/json']"
+    description: Reference the required Core JSON error schema.
+    update:
+      schema:
+        $ref: "#/components/schemas/CoreErrorResponse"
+  - x-action-id: index-query
+    x-finding-id: index-contract
+    target: "$.paths['/api/v2/index/{title}'].get.parameters"
+    description: Add the source-backed conditional response query parameters.
+    update:
+      - name: with_content_counts
+        description: Annotate schema leaves with content_counts and add firstSectionRef.
+        schema:
+          type: string
+          enum:
+            - "0"
+            - "1"
+          default: "0"
+        in: query
+      - name: with_related_topics
+        description: Add relatedTopics for the requested index.
+        schema:
+          type: string
+          enum:
+            - "0"
+            - "1"
+          default: "0"
+        in: query
+  - x-action-id: index-base-schema
+    x-finding-id: index-contract
+    target: "$.components.schemas.IndexJSON"
+    description: Require the source-owned success fields and add conditional query fields.
+    update:
+      required:
+        - title
+        - categories
+        - schema
+      properties:
+        firstSectionRef:
+          type: string
+        relatedTopics:
+          type: array
+          items:
+            type: object
+  - x-action-id: index-schema
+    x-finding-id: index-contract
+    target: "$.components.schemas"
+    description: Add the HTTP 200 success-or-error response union.
+    update:
+      CoreIndexResponse:
+        oneOf:
+          - $ref: "#/components/schemas/IndexJSON"
+          - $ref: "#/components/schemas/CoreErrorResponse"
+  - x-action-id: index-response
+    x-finding-id: index-contract
+    target: "$.paths['/api/v2/index/{title}'].get.responses['200'].content['application/json'].schema['$ref']"
+    description: Use the query-aware index response schema.
+    update: "#/components/schemas/CoreIndexResponse"
+  - x-action-id: shape-dependents-parameter
+    x-finding-id: shape-contract
+    target: "$.paths['/api/shape/{title}'].parameters[2]"
+    description: Match the integer flag consumed by bool(int(...)).
+    update:
+      description: Include dependent texts when set to 1.
+      schema:
+        type: string
+        enum:
+          - "0"
+          - "1"
+  - x-action-id: shape-depth-remove
+    x-finding-id: shape-contract
+    target: "$.paths['/api/shape/{title}'].parameters[1]"
+    description: Remove the deprecated depth parameter because the handler does not use it.
+    remove: true
+  - x-action-id: shape-schemas
+    x-finding-id: shape-contract
+    target: "$.components.schemas"
+    description: Add the lower-case list, recursive chapter, and HTTP 200 error variants.
+    update:
+      CoreShapeChapter:
+        description: A segment count, nested shape list, or collapsed complex-text leaf record.
+        oneOf:
+          - type: integer
+          - type: array
+            items:
+              $ref: "#/components/schemas/CoreShapeChapter"
+          - $ref: "#/components/schemas/CoreShapeLeafRecord"
+      CoreShapeLeafRecord:
+        type: object
+        required:
+          - section
+          - heTitle
+          - title
+          - length
+          - chapters
+          - book
+          - heBook
+        properties:
+          section:
+            type: string
+          heTitle:
+            type: string
+          title:
+            type: string
+          length:
+            type: integer
+          chapters:
+            $ref: "#/components/schemas/CoreShapeChapter"
+          book:
+            type: string
+          heBook:
+            type: string
+          isComplex:
+            type: boolean
+      CoreShapeCollapsedRecord:
+        type: object
+        required:
+          - isComplex
+          - section
+          - length
+          - chapters
+          - book
+          - heBook
+        properties:
+          isComplex:
+            type: boolean
+            enum:
+              - true
+          section:
+            type: string
+          length:
+            type: integer
+          chapters:
+            type: array
+            items:
+              $ref: "#/components/schemas/CoreShapeLeafRecord"
+          book:
+            type: string
+          heBook:
+            type: string
+      CoreShapeRecord:
+        oneOf:
+          - $ref: "#/components/schemas/CoreShapeLeafRecord"
+          - $ref: "#/components/schemas/CoreShapeCollapsedRecord"
+      CoreShapeResponse:
+        oneOf:
+          - type: array
+            items:
+              $ref: "#/components/schemas/CoreShapeRecord"
+          - $ref: "#/components/schemas/CoreErrorResponse"
+  - x-action-id: shape-response
+    x-finding-id: shape-contract
+    target: "$.paths['/api/shape/{title}'].get.responses['200'].content['application/json'].schema['$ref']"
+    description: Replace the upper-case single-object schema with the source response union.
+    update: "#/components/schemas/CoreShapeResponse"
+  - x-action-id: links-schemas
+    x-finding-id: links-contract
+    target: "$.components.schemas"
+    description: Add source-backed link, sheet-link, version, and whole-book error schemas.
+    update:
+      CoreLinkVersion:
+        type: object
+        required:
+          - title
+        properties:
+          title:
+            type: string
+          language:
+            type: string
+            nullable: true
+      CoreLinkObject:
+        type: object
+        required:
+          - _id
+          - index_title
+          - category
+          - type
+          - ref
+          - anchorRef
+          - anchorRefExpanded
+          - sourceRef
+          - sourceHeRef
+          - anchorVerse
+          - sourceHasEn
+          - commentaryNum
+          - collectiveTitle
+        properties:
+          _id:
+            type: string
+          index_title:
+            type: string
+          category:
+            type: string
+          type:
+            type: string
+          ref:
+            $ref: "#/components/schemas/ref"
+          anchorRef:
+            $ref: "#/components/schemas/ref"
+          anchorRefExpanded:
+            type: array
+            items:
+              $ref: "#/components/schemas/ref"
+          sourceRef:
+            $ref: "#/components/schemas/ref"
+          sourceHeRef:
+            type: string
+          anchorVerse:
+            type: integer
+          sourceHasEn:
+            type: boolean
+          compDate:
+            type: array
+            items:
+              type: integer
+          commentaryNum:
+            type: number
+          collectiveTitle:
+            type: object
+            required:
+              - en
+              - he
+            properties:
+              en:
+                type: string
+              he:
+                type: string
+          he:
+            $ref: "#/components/schemas/CoreStringArrayOrNull"
+          text:
+            $ref: "#/components/schemas/CoreStringArrayOrNull"
+          heVersionTitle:
+            $ref: "#/components/schemas/CoreStringArrayOrNull"
+          versionTitle:
+            $ref: "#/components/schemas/CoreStringArrayOrNull"
+          heLicense:
+            $ref: "#/components/schemas/CoreStringArrayOrNull"
+          license:
+            $ref: "#/components/schemas/CoreStringArrayOrNull"
+          heVersionTitleInHebrew:
+            $ref: "#/components/schemas/CoreStringArrayOrNull"
+          versionTitleInHebrew:
+            $ref: "#/components/schemas/CoreStringArrayOrNull"
+          inline_reference:
+            type: object
+          highlightedWords: {}
+          anchorVersion:
+            $ref: "#/components/schemas/CoreLinkVersion"
+          sourceVersion:
+            $ref: "#/components/schemas/CoreLinkVersion"
+          displayedText:
+            type: object
+            required:
+              - en
+              - he
+            properties:
+              en:
+                type: string
+              he:
+                type: string
+          heTitle:
+            type: string
+      CoreSheetLinkObject:
+        type: object
+        required:
+          - isSheet
+          - index_title
+          - category
+          - collectiveTitle
+          - sourceRef
+          - sourceHeRef
+        properties:
+          isSheet:
+            type: boolean
+            enum:
+              - true
+          index_title:
+            type: string
+          category:
+            type: string
+          collectiveTitle:
+            type: object
+            required:
+              - en
+              - he
+            properties:
+              en:
+                type: string
+              he:
+                type: string
+          sourceRef:
+            type: string
+          sourceHeRef:
+            type: string
+      CoreLinkResponse:
+        oneOf:
+          - type: array
+            items:
+              oneOf:
+                - $ref: "#/components/schemas/CoreLinkObject"
+                - $ref: "#/components/schemas/CoreSheetLinkObject"
+          - $ref: "#/components/schemas/CoreErrorResponse"
+      CoreLinksErrorResponse:
+        type: object
+        required:
+          - error
+          - ref
+        properties:
+          error:
+            type: string
+          ref:
+            $ref: "#/components/schemas/ref"
+  - x-action-id: links-category-parameter
+    x-finding-id: links-contract
+    target: "$.paths['/api/links/{tref}'].get.parameters[2]"
+    description: Model the repeatable category filter read through request.GET.getlist.
+    update:
+      schema:
+        type: array
+        items:
+          type: string
+      style: form
+      explode: true
+  - x-action-id: links-response-remove
+    x-finding-id: links-contract
+    target: "$.paths['/api/links/{tref}'].get.responses['200'].content['application/json'].schema"
+    description: Remove the incomplete array item schema before replacing it.
+    remove: true
+  - x-action-id: links-response
+    x-finding-id: links-contract
+    target: "$.paths['/api/links/{tref}'].get.responses['200'].content['application/json']"
+    description: Use the link and optional sheet-link response union.
+    update:
+      schema:
+        $ref: "#/components/schemas/CoreLinkResponse"
+  - x-action-id: links-error
+    x-finding-id: links-contract
+    target: "$.paths['/api/links/{tref}'].get.responses"
+    description: Document the whole-book request error.
+    update:
+      "400":
+        description: Whole-book references cannot include text.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CoreLinksErrorResponse"

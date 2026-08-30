@@ -10,7 +10,7 @@
   "scripts": {
     "build": "pnpm -r --if-present build",
     "build:mcp": "pnpm --filter @sefaria-demo/mcp-app build && pnpm stage:mcp",
-    "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm check:python:staged",
+    "check": "pnpm openapi:check && pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm check:python:staged",
     "check:python": "pnpm install:python && pnpm --filter @sefaria-demo/mcp-app build && pnpm check:python:staged",
     "check:python:staged": "pnpm stage:mcp && uv run --no-sync --directory demos/mcp/fixture-server ruff format --check . && uv run --no-sync --directory demos/mcp/fixture-server ruff check . && uv run --no-sync --directory demos/mcp/fixture-server mypy src tests && uv run --no-sync --directory demos/mcp/fixture-server pytest",
     "dev": "pnpm --filter @sefaria-demo/component-lab dev",
@@ -20,6 +20,9 @@
     "format:check": "prettier --check .",
     "install:python": "uv venv --allow-existing --directory demos/mcp/fixture-server && uv pip sync --directory demos/mcp/fixture-server requirements.lock",
     "lint": "eslint .",
+    "openapi:check": "pnpm --filter @sefaria/client openapi:check",
+    "openapi:generate": "pnpm --filter @sefaria/client openapi:generate",
+    "openapi:refresh": "pnpm --filter @sefaria/client openapi:refresh",
     "stage:mcp": "node demos/mcp/stage-fixture.mjs",
     "test": "vitest run",
     "test:watch": "vitest",

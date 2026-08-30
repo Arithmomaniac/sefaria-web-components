@@ -4,6 +4,7 @@ coverage
 playwright-report
 test-results
 demos/mcp/fixture-server/src/sefaria_mcp_fixture/static
+packages/client/openapi/upstream.json
 pnpm-lock.yaml
 demos/mcp/fixture-server/requirements.lock
 CODE_OF_CONDUCT.md

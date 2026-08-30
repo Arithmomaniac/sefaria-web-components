@@ -1,0 +1,7 @@
+{
+  "v3-text-spanning-2026-08-29.json": {
+    "source": "https://www.sefaria.org/api/v3/texts/Genesis%201:31-2:2?version=primary",
+    "capturedAt": "2026-08-29",
+    "reduction": "Retains deployed metadata and the observed two-level recursive text shape; text strings and optional collections are minimized for a stable focused fixture."
+  }
+}

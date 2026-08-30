@@ -1,12 +1,12 @@
 # Development
 
-This guide describes current commands and planned architecture work. The current implementation does not yet satisfy all planned contracts.
+This guide describes current commands and remaining planned architecture work.
 
 ## Current implementation
 
 | Area | Current behavior | Planned change |
 | --- | --- | --- |
-| `packages/client` | Exports base URL and `fetch` option types | Add the OpenAPI supply chain and thin client |
+| `packages/client` | Generates six named Core SDK functions, contracts, Zod validators, and a status-aware fetch client from a pinned corrected OpenAPI document | Expand only when a reviewed contract adds another operation |
 | `packages/text-transform` | Exports option types | Implement pure sanitization, vocalization, and footnote operations |
 | `packages/components` | Exports the base element and token defaults | Add component factories and request-free elements |
 | `demos/mcp` | Packages an App shell and returns a text-only tool result | Add corrected payload validation and component projection |
@@ -32,7 +32,7 @@ TypeScript emits reusable ES modules. Vite builds the browser demonstrations and
 
 | Path | Planned responsibility |
 | --- | --- |
-| `packages/client` | Pinned OpenAPI input, overlay, corrected artifact, generated contracts, public schemas, validators, and thin client |
+| `packages/client` | Pinned OpenAPI input, formal overlay and preconditions, corrected artifact, generated contracts, public schemas, validators, and named SDK functions |
 | `packages/text-transform` | Pure sanitization, vocalization, and footnotes |
 | `packages/components` | Non-DOM component factories and request-free Lit elements |
 | `tests/compatibility` | Pinned compatibility evidence for retained pure behavior |
@@ -76,9 +76,7 @@ npx --yes pnpm@11.22.0 exec playwright install chromium
 pnpm check
 ```
 
-The current command runs Prettier, ESLint, TypeScript checks, tests, builds, Python checks, MCP staging, and wheel package-data checks.
-
-The current command does not yet generate or validate the planned OpenAPI artifacts with corrections.
+The current command checks stale OpenAPI output, then runs Prettier, ESLint, TypeScript checks, tests, builds, Python checks, MCP staging, and wheel package-data checks.
 
 ## Current focused checks
 
@@ -102,71 +100,67 @@ pnpm check:python
 
 The Python command builds and stages the current MCP App before it runs Python checks.
 
-## Planned OpenAPI workflow
-
-The planned repository scripts do not exist yet. Their implementation can refine names, but it must preserve these operations.
+## OpenAPI workflow
 
 ### Explicit refresh
 
 The refresh operation requires a complete Sefaria commit SHA. It can access the network.
 
-Its planned behavior is equivalent to:
-
 ```powershell
 pnpm openapi:refresh --commit 1f7d0844ca6a9eddc8e48168962aacb09de75bd6
 ```
 
-The operation downloads only the OpenAPI document from that commit. It updates the committed pin, upstream input, and SHA-256.
+The operation downloads only the OpenAPI document from that commit. It validates the formal overlay preconditions before updating the committed pin, upstream input, SHA-256, corrected Core document, and generated output.
 
 It then applies the local overlay and regenerates the corrected document, TypeScript contracts, and runtime validators.
 
 ### Offline generation
 
-The ordinary generation operation reads only committed files:
-
 ```powershell
 pnpm openapi:generate
 ```
 
-The operation validates the checksum, applies old-state assertions, writes the corrected OpenAPI document, and regenerates public outputs.
+The operation validates the checksum and sidecar preconditions, applies `openapi/overlay.yaml` through `openapi-format` 1.33.6, extracts the six Core GET operations and recursive references, writes the corrected Core document, and runs `@hey-api/openapi-ts` 0.99.0.
+
+The generator configures a deterministic Zod object resolver for every retained `additionalProperties: false` schema. It also maps the explicitly typed OpenAPI 3.0 null-only branches to `z.null()` and applies the `minProperties: 1` warning-record correction that Hey API 0.99 does not emit correctly.
+
+Refresh writes every new file into a sibling staging directory. Publication moves existing outputs to a rollback directory, replaces corrected artifacts and the generated directory, then publishes `upstream.json` and `source.json` last. Any replacement failure restores every prior output.
 
 It must not access Sefaria, GitHub, the current time, or environment-specific data.
 
 ### Stale-output check
 
-The planned check regenerates artifacts in a clean temporary location and compares them with committed output:
-
 ```powershell
 pnpm openapi:check
 ```
 
-The check fails if any generated file is stale. The planned `pnpm check` includes this operation.
+The check fails for changed, missing, or unexpected generated files. `pnpm check` includes this operation.
 
 ### Overlay failure
 
 If upstream content differs from an asserted old value, generation stops with an exact path:
 
 ```text
-OpenAPI overlay mismatch at /paths/~1api~1texts~1versions~1{index}/get/responses/200/content/VersionJSON
-expected: media-type key is present
-actual: media-type key is absent
+OpenAPI precondition mismatch for versions-contract at $.paths['/api/texts/versions/{index}']
+expected: SHA-256 <reviewed value>
+actual: <current value>
 ```
 
 The developer must review the new upstream document. Do not change an assertion only to make generation pass.
 
-## Planned generated artifacts
+## Generated artifacts
 
-`@sefaria/client` will commit:
+`@sefaria/client` commits:
 
 - the upstream OpenAPI input
 - the complete commit pin
 - the SHA-256
-- the deterministic Core overlay
+- the formal Overlay 1.1 document and its findings/preconditions sidecar
 - the corrected OpenAPI document
-- generated TypeScript `paths`, `components`, and operation declarations
-- generated corrected public schemas and TypeScript runtime validators
+- generated named SDK functions and TypeScript operation declarations
+- generated Zod schemas, status-aware response metadata, public validators, and portable response JSON Schemas
 
-The exact directories and generator packages remain open implementation choices. Generated and corrected files must identify their source pin and generation command.
+Generated TypeScript files live under `packages/client/src/generated`. Generated and corrected files identify their source pin and generation command.
 
 Do not edit generated declarations or the corrected artifact by hand.
 

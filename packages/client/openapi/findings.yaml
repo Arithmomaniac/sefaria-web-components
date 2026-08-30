@@ -1,0 +1,269 @@
+version: 1
+findings:
+  - id: versions-contract
+    summary: The versions endpoint accepts a tref and returns JSON under a malformed upstream media-type key.
+    actions:
+      - versions-path-seed
+      - versions-path-copy
+      - versions-path-remove
+      - versions-parameter
+      - versions-content-seed
+      - versions-content-copy
+      - versions-response-schema-remove
+      - versions-response-schema
+      - versions-content-remove
+      - versions-version-source-nullable
+      - versions-status-nullable
+    evidence:
+      route: https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/sefaria/urls_shared.py#L74
+      handler: https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/reader/views.py#L2615-L2622
+      responseBuilder: https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/sefaria/model/text.py#L4649-L4671
+      tests: https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/api-tests/test_texts.py#L52-L56
+    fixture:
+      capturedAt: "2026-08-30"
+      source:
+        - https://www.sefaria.org/api/texts/versions/Rashi%20on%20Genesis
+        - https://www.sefaria.org/api/texts/versions/Sefer%20HaChinukh
+        - https://www.sefaria.org/api/texts/versions/__missing_generated_client_probe__
+    preconditions:
+      - target: "$.paths['/api/texts/versions/{index}']"
+        expected:
+          sha256: 7d3a1ad0fbf2dd65eccd3005a061806ef42ef87e4ce80629adb7f787c177e00b
+      - target: "$.paths['/api/texts/versions/{tref}']"
+        expected:
+          absent: true
+      - target: "$.paths['/api/texts/versions/{index}'].parameters[0].name"
+        expected:
+          value: index
+      - target: "$.paths['/api/texts/versions/{index}'].parameters[0]"
+        expected:
+          sha256: 1e3ec10dc573a81e49858caf3ac37e8273658ad0f9e6b420ead36481118005fe
+      - target: "$.paths['/api/texts/versions/{index}'].get.responses['200'].content['VersionJSON']"
+        expected:
+          sha256: faed8c019245e012ec007a4b21ff79d632276a334f3f1ebd6df07f569702b584
+      - target: "$.paths['/api/texts/versions/{index}'].get.responses['200'].content['application/json']"
+        expected:
+          absent: true
+      - target: "$.components.schemas.VersionJSON.properties.versionSource.type"
+        expected:
+          value: string
+      - target: "$.components.schemas.VersionJSON.properties.versionSource"
+        expected:
+          sha256: 60ad2aadf74669729dbc29919f5b0efdaf80c0ef4a17441689be60b7be2c83a2
+      - target: "$.components.schemas.VersionJSON.properties.versionSource.nullable"
+        expected:
+          absent: true
+      - target: "$.components.schemas.VersionJSON.properties.status.type"
+        expected:
+          value: string
+      - target: "$.components.schemas.VersionJSON.properties.status"
+        expected:
+          sha256: 56639d0f6f8295dcda98974d90ae7eaa4d0bc59f0eb5acd7457b65fb1d4421c4
+      - target: "$.components.schemas.VersionJSON.properties.status.nullable"
+        expected:
+          absent: true
+  - id: v3-text-contract
+    summary: The v3 handler has JSON 400 and 404 branches and returns nullable recursively nested text values.
+    actions:
+      - v3-version-parameter
+      - v3-schemas
+      - v3-responses
+    evidence:
+      route: https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/sefaria/urls_shared.py#L86
+      handler: https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/api/views.py#L28-L88
+      responseBuilder: https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/sefaria/model/text_request_adapter.py#L26-L235
+      tests: https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/api/tests.py#L13-L227
+    fixture:
+      path: test/fixtures/v3-text-spanning-2026-08-29.json
+      capturedAt: "2026-08-29"
+      source: https://www.sefaria.org/api/v3/texts/Genesis%201%3A31-2%3A2
+    preconditions:
+      - target: "$.components.schemas.CoreErrorResponse"
+        expected:
+          absent: true
+      - target: "$.components.schemas.CoreStringArrayOrNull"
+        expected:
+          absent: true
+      - target: "$.components.schemas.CoreV3TextValue"
+        expected:
+          absent: true
+      - target: "$.components.schemas.CoreV3WarningDetail"
+        expected:
+          absent: true
+      - target: "$.components.schemas.CoreV3Warning"
+        expected:
+          absent: true
+      - target: "$.components.schemas.CoreV3AvailableVersion"
+        expected:
+          absent: true
+      - target: "$.components.schemas.CoreV3VersionMetadata"
+        expected:
+          absent: true
+      - target: "$.components.schemas.CoreV3Version"
+        expected:
+          absent: true
+      - target: "$.components.schemas.CoreV3TextsResponse"
+        expected:
+          absent: true
+      - target: "$.paths['/api/v3/texts/{tref}'].parameters[0].name"
+        expected:
+          value: version
+      - target: "$.paths['/api/v3/texts/{tref}'].parameters[0]"
+        expected:
+          sha256: b3ba871f7846c58a5ade9ec7832a60eaeaece89cec4e31aa3afb66483a416836
+      - target: "$.paths['/api/v3/texts/{tref}'].parameters[0].schema"
+        expected:
+          value:
+            type: string
+      - target: "$.paths['/api/v3/texts/{tref}'].get.responses['200'].content['application/json'].schema['$ref']"
+        expected:
+          value: "#/components/schemas/v3TextsJson"
+      - target: "$.paths['/api/v3/texts/{tref}'].get.responses['400']"
+        expected:
+          absent: true
+      - target: "$.paths['/api/v3/texts/{tref}'].get.responses['404']"
+        expected:
+          absent: true
+  - id: ref-contract
+    summary: Expected parse failures are HTTP 200 while successful fields depend on reference node type and depth.
+    actions:
+      - ref-schemas
+      - ref-success
+      - ref-error-remove
+      - ref-error
+    evidence:
+      route: https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/sefaria/urls_shared.py#L135
+      handler: https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/api/views.py#L91-L176
+      responseBuilder: https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/api/views.py#L108-L175
+      tests: https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/api/tests.py#L230-L380
+    preconditions:
+      - target: "$.components.schemas.CoreRefNavigation"
+        expected:
+          absent: true
+      - target: "$.components.schemas.CoreRefSuccess"
+        expected:
+          absent: true
+      - target: "$.components.schemas.CoreRefResponse"
+        expected:
+          absent: true
+      - target: "$.paths['/api/ref/{tref}'].get.responses['200'].content['application/json'].schema['$ref']"
+        expected:
+          value: "#/components/schemas/RefJSON"
+      - target: "$.paths['/api/ref/{tref}'].get.responses['404'].content['application/json'].schema"
+        expected:
+          value:
+            type: object
+            properties:
+              error:
+                type: string
+  - id: index-contract
+    summary: Query parameters conditionally add content counts, firstSectionRef, and relatedTopics, while invalid titles return an HTTP 200 error object.
+    actions:
+      - index-query
+      - index-base-schema
+      - index-schema
+      - index-response
+    evidence:
+      route: https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/sefaria/urls_shared.py#L92
+      handler: https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/reader/views.py#L2061-L2072
+      responseBuilder: https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/sefaria/model/text.py#L260-L302
+      tests: https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/api-tests/test_endpoints.py#L14-L19
+    fixture:
+      capturedAt: "2026-08-30"
+      source: https://www.sefaria.org/api/v2/index/__missing_generated_client_probe__
+    preconditions:
+      - target: "$.paths['/api/v2/index/{title}'].get.parameters"
+        expected:
+          sha256: 25c871bb3cf96c48b6725f31345c4677d2bda9ff1312445de5d4e95ddab355a2
+      - target: "$.components.schemas.CoreIndexResponse"
+        expected:
+          absent: true
+      - target: "$.components.schemas.IndexJSON"
+        expected:
+          sha256: 5e033d42164a6c3080e6bcab9aaaf42347f013ccbe4dfff4b40fe52583d670b9
+      - target: "$.paths['/api/v2/index/{title}'].get.responses['200'].content['application/json'].schema['$ref']"
+        expected:
+          value: "#/components/schemas/IndexJSON"
+  - id: shape-contract
+    summary: Shape responses are lower-case records in a list or an HTTP 200 error object.
+    actions:
+      - shape-dependents-parameter
+      - shape-depth-remove
+      - shape-schemas
+      - shape-response
+    evidence:
+      route: https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/sefaria/urls_shared.py#L104
+      handler: https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/reader/views.py#L2204-L2304
+      responseBuilder: https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/reader/views.py#L2225-L2304
+      tests: https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/api-tests/test_endpoints.py#L56-L58
+    fixture:
+      capturedAt: "2026-08-30"
+      source: https://www.sefaria.org/api/shape/Talmud
+    preconditions:
+      - target: "$.components.schemas.CoreShapeChapter"
+        expected:
+          absent: true
+      - target: "$.components.schemas.CoreShapeLeafRecord"
+        expected:
+          absent: true
+      - target: "$.components.schemas.CoreShapeCollapsedRecord"
+        expected:
+          absent: true
+      - target: "$.components.schemas.CoreShapeRecord"
+        expected:
+          absent: true
+      - target: "$.components.schemas.CoreShapeResponse"
+        expected:
+          absent: true
+      - target: "$.paths['/api/shape/{title}'].get.responses['200'].content['application/json'].schema['$ref']"
+        expected:
+          value: "#/components/schemas/ShapeJSON"
+      - target: "$.paths['/api/shape/{title}'].parameters[1]"
+        expected:
+          sha256: f209270e54909395df3056cb9732ab65fdbd1d9d1394d1083a59c011ca1f0ff4
+      - target: "$.paths['/api/shape/{title}'].parameters[2]"
+        expected:
+          sha256: ec346ea97c63dab3d16dda628d4d26edf192ddbeb800e877ec2993cb979f3115
+  - id: links-contract
+    summary: Link responses are lists with nullable text/version variants, optional sheet links, and a whole-book JSON error.
+    actions:
+      - links-schemas
+      - links-category-parameter
+      - links-response-remove
+      - links-response
+      - links-error
+    evidence:
+      route: https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/sefaria/urls_shared.py#L95
+      handler: https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/reader/views.py#L2344-L2391
+      responseBuilder: https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/sefaria/client/wrapper.py#L18-L327
+      tests: https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/api-tests/test_endpoints.py#L22-L26
+    fixture:
+      capturedAt: "2026-08-30"
+      source:
+        - https://www.sefaria.org/api/links/Genesis%201%3A1
+        - https://www.sefaria.org/api/links/__missing_generated_client_probe__
+    preconditions:
+      - target: "$.components.schemas.CoreLinkVersion"
+        expected:
+          absent: true
+      - target: "$.components.schemas.CoreLinkObject"
+        expected:
+          absent: true
+      - target: "$.components.schemas.CoreSheetLinkObject"
+        expected:
+          absent: true
+      - target: "$.components.schemas.CoreLinkResponse"
+        expected:
+          absent: true
+      - target: "$.components.schemas.CoreLinksErrorResponse"
+        expected:
+          absent: true
+      - target: "$.paths['/api/links/{tref}'].get.parameters[2]"
+        expected:
+          sha256: 202a934c4f87fcc0ec5ccdc61e1612c2007ea16b574dcdf944b7ea15d5809c2b
+      - target: "$.paths['/api/links/{tref}'].get.responses['200'].content['application/json'].schema"
+        expected:
+          sha256: cf4a94c306c4de8bbe62acb7c3abb511ec4a0902309132548df13257a8f63c57
+      - target: "$.paths['/api/links/{tref}'].get.responses['400']"
+        expected:
+          absent: true

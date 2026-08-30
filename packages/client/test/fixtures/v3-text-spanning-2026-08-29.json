@@ -1,0 +1,53 @@
+{
+  "ref": "Genesis 1:31-2:2",
+  "heRef": "\u05d1\u05e8\u05d0\u05e9\u05d9\u05ea \u05d0\u05f3:\u05dc\u05f4\u05d0-\u05d1\u05f3:\u05d1\u05f3",
+  "sections": ["1", "31"],
+  "toSections": ["2", "2"],
+  "sectionRef": "Genesis 1-2",
+  "heSectionRef": "\u05d1\u05e8\u05d0\u05e9\u05d9\u05ea \u05d0\u05f3-\u05d1\u05f3",
+  "firstAvailableSectionRef": "Genesis 1:31-2:2",
+  "isSpanning": true,
+  "spanningRefs": ["Genesis 1:31", "Genesis 2:1-2"],
+  "next": "Genesis 3",
+  "prev": null,
+  "title": "Genesis 1-2",
+  "book": "Genesis",
+  "heTitle": "\u05d1\u05e8\u05d0\u05e9\u05d9\u05ea",
+  "primary_category": "Tanakh",
+  "type": "Tanakh",
+  "indexTitle": "Genesis",
+  "categories": ["Tanakh", "Torah"],
+  "heIndexTitle": "\u05d1\u05e8\u05d0\u05e9\u05d9\u05ea",
+  "isComplex": false,
+  "isDependant": false,
+  "order": [1, 1],
+  "collectiveTitle": "",
+  "heCollectiveTitle": "",
+  "textDepth": 2,
+  "sectionNames": ["Chapter", "Verse"],
+  "addressTypes": ["Perek", "Pasuk"],
+  "titleVariants": ["Bereshit", "Genesis"],
+  "heTitleVariants": [
+    "\u05d1\u05b0\u05bc\u05e8\u05b5\u05d0\u05e9\u05b4\u05c1\u05d9\u05ea",
+    "\u05d1\u05e8\u05d0\u05e9\u05d9\u05ea"
+  ],
+  "alts": [],
+  "available_versions": [],
+  "versions": [
+    {
+      "versionTitle": "Miqra according to the Masorah",
+      "versionSource": "https://he.wikisource.org/wiki/%D7%9E%D7%A9%D7%AA%D7%9E%D7%A9:Dovi/%D7%9E%D7%A7%D7%A8%D7%90_%D7%A2%D7%9C_%D7%A4%D7%99_%D7%94%D7%9E%D7%A1%D7%95%D7%A8%D7%94",
+      "language": "he",
+      "actualLanguage": "he",
+      "languageFamilyName": "hebrew",
+      "isSource": true,
+      "isPrimary": true,
+      "direction": "rtl",
+      "text": [
+        ["spanning chapter one"],
+        ["spanning chapter two", "spanning chapter two segment two"]
+      ]
+    }
+  ],
+  "warnings": []
+}
