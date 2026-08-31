@@ -97,7 +97,17 @@ importers:
         specifier: ^3.3.3
         version: 3.3.3
 
-  packages/text-transform: {}
+  packages/text-transform:
+    dependencies:
+      domhandler:
+        specifier: 6.0.0
+        version: 6.0.0
+      entities:
+        specifier: 8.0.0
+        version: 8.0.0
+      htmlparser2:
+        specifier: 12.0.0
+        version: 12.0.0
 
   tests/compatibility:
     dependencies:
@@ -975,6 +985,10 @@ packages:
 
   domelementtype@3.0.0:
     resolution: {integrity: sha1-5sCiS9Ocpet+pnqY0vaZSX17zFU=}
+    engines: {node: '>=20.19.0'}
+
+  domhandler@6.0.0:
+    resolution: {integrity: sha1-dJa7YQ+LUR6NeVlFhbVv7NJFLnY=}
     engines: {node: '>=20.19.0'}
 
   domhandler@6.0.1:
@@ -2684,6 +2698,10 @@ snapshots:
       entities: 8.0.0
 
   domelementtype@3.0.0: {}
+
+  domhandler@6.0.0:
+    dependencies:
+      domelementtype: 3.0.0
 
   domhandler@6.0.1:
     dependencies:

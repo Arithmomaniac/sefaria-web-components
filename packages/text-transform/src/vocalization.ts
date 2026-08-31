@@ -1,0 +1,93 @@
+export type VocalizationMode = "taamim_and_nikkud" | "nikkud" | "none";
+
+export type PaseqMode = "always" | "after-space";
+
+export interface VocalizationOptions {
+  paseq?: PaseqMode;
+}
+
+const PASEQ = "\u05c0";
+
+export function applyVocalization(
+  text: string,
+  mode: VocalizationMode,
+  options: VocalizationOptions = {},
+): string {
+  assertMode(mode);
+  const paseq = options.paseq ?? "after-space";
+  assertPaseqMode(paseq);
+
+  if (mode === "taamim_and_nikkud" || text.length === 0) {
+    return text;
+  }
+
+  const result: string[] = [];
+  const characters = [...text];
+  for (let index = 0; index < characters.length; index += 1) {
+    const character = characters[index];
+    if (character === undefined) {
+      continue;
+    }
+
+    if (character === PASEQ) {
+      if (paseq === "always") {
+        continue;
+      }
+
+      const previousInput = characters[index - 1];
+      if (previousInput !== undefined && /\s/u.test(previousInput)) {
+        result.pop();
+        continue;
+      }
+
+      result.push(character);
+      continue;
+    }
+
+    if (isCantillation(character)) {
+      continue;
+    }
+
+    if (mode === "none" && isFullRemovalExtra(character)) {
+      continue;
+    }
+
+    function isCantillation(character: string): boolean {
+      const codePoint = character.codePointAt(0);
+      return (
+        codePoint !== undefined &&
+        ((codePoint >= 0x0591 && codePoint <= 0x05af) ||
+          codePoint === 0x05bd ||
+          codePoint === 0x05bf ||
+          (codePoint >= 0x05c4 && codePoint <= 0x05c5) ||
+          codePoint === 0x200d)
+      );
+    }
+
+    function isFullRemovalExtra(character: string): boolean {
+      const codePoint = character.codePointAt(0);
+      return (
+        codePoint !== undefined &&
+        ((codePoint >= 0x05b0 && codePoint <= 0x05bc) ||
+          (codePoint >= 0x05c1 && codePoint <= 0x05c3) ||
+          codePoint === 0x05c7)
+      );
+    }
+
+    result.push(character);
+  }
+
+  return result.join("");
+}
+
+function assertMode(mode: string): asserts mode is VocalizationMode {
+  if (mode !== "taamim_and_nikkud" && mode !== "nikkud" && mode !== "none") {
+    throw new TypeError(`Unsupported vocalization mode: ${mode}`);
+  }
+}
+
+function assertPaseqMode(mode: string): asserts mode is PaseqMode {
+  if (mode !== "always" && mode !== "after-space") {
+    throw new TypeError(`Unsupported PASEQ mode: ${mode}`);
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "fixtures": [
+    {
+      "name": "genesis-footnote",
+      "sourceType": "deployed",
+      "source": "https://www.sefaria.org/api/v3/texts/Genesis%201%3A1?version=english%7CThe%20Contemporary%20Torah%2C%20Jewish%20Publication%20Society%2C%202006&return_format=default",
+      "capturedAt": "2026-08-30",
+      "families": ["footnote", "bold"],
+      "reduction": "Retains one deployed marker/body pair and nested bold text.",
+      "input": "When God began to create<sup class=\"footnote-marker\">*</sup><i class=\"footnote\"><b>When God began to create </b>Others.</i> heaven"
+    },
+    {
+      "name": "shulchan-commentary-itag",
+      "sourceType": "deployed",
+      "source": "https://www.sefaria.org/api/v3/texts/Shulchan%20Arukh%2C%20Orach%20Chayim%201?version=hebrew%7CMaginei%20Eretz%3A%20Shulchan%20Aruch%20Orach%20Chaim%2C%20Lemberg%2C%201893&return_format=default",
+      "capturedAt": "2026-08-30",
+      "families": ["commentary-itag"],
+      "reduction": "Retains representative commentator, order, and label metadata.",
+      "input": "דין <i data-commentator=\"Magen Avraham\" data-order=\"3\" data-label=\"ג\"></i> השכמת"
+    },
+    {
+      "name": "jerusalem-overlay",
+      "sourceType": "deployed",
+      "source": "https://www.sefaria.org/api/v3/texts/Jerusalem%20Talmud%20Berakhot%201%3A1?version=hebrew%7CThe%20Jerusalem%20Talmud%2C%20edition%20by%20Heinrich%20W.%20Guggenheimer.%20Berlin%2C%20De%20Gruyter%2C%201999-2015&return_format=default",
+      "capturedAt": "2026-08-30",
+      "families": ["structural-overlay"],
+      "reduction": "Retains one deployed overlay name and value.",
+      "input": "א<i data-overlay=\"Venice Pages\" data-value=\"2a\"></i>ב"
+    },
+    {
+      "name": "genesis-wrapped-entities",
+      "sourceType": "deployed",
+      "source": "https://www.sefaria.org/api/v3/texts/Genesis%2010?version=english%7CThe%20Contemporary%20Torah%2C%20Jewish%20Publication%20Society%2C%202006&return_format=wrap_all_entities",
+      "capturedAt": "2026-08-30",
+      "families": ["reference-link", "named-entity-link"],
+      "reduction": "Retains one reference link and one named-entity link with runtime range metadata.",
+      "input": "<a class=\"refLink\" href=\"/Genesis.10.1\" data-ref=\"Genesis 10:1\" data-range=\"0-7\">Genesis</a> <a class=\"namedEntityLink\" href=\"/topics/noah\" data-slug=\"noah\" data-range=\"8-12\">Noah</a>"
+    },
+    {
+      "name": "mam-structure",
+      "sourceType": "deployed",
+      "source": "https://www.sefaria.org/api/v3/texts/Obadiah%201?version=hebrew%7CMiqra%20according%20to%20the%20Masorah&return_format=default",
+      "capturedAt": "2026-08-30",
+      "families": ["mam-paragraph", "mam-ketiv-qere", "line-break"],
+      "reduction": "Combines reviewed MAM classes found in the Obadiah and Song of Songs probes.",
+      "input": "<span class=\"mam-spi-pe\">פ</span><br><span class=\"mam-kq\"><span class=\"mam-kq-k\">כתיב</span><span class=\"mam-kq-q\">קרי</span></span><span class=\"mam-kq-trivial\">שְׁעָרָ֗ו</span>"
+    },
+    {
+      "name": "hostile-synthetic",
+      "sourceType": "synthetic",
+      "source": "Project-defined adversarial fixture",
+      "capturedAt": "2026-08-30",
+      "families": ["active-content", "dangerous-url", "dangerous-attributes"],
+      "reduction": "Exercises encoded active URLs, active subtrees, event handlers, and inline styles.",
+      "input": "<script>alert(1)</script><a href=\"jav&#x61;script:alert(1)\" onclick=\"alert(2)\">unsafe</a><span style=\"color:red\" onmouseover=\"alert(3)\">safe text</span>"
+    }
+  ]
+}

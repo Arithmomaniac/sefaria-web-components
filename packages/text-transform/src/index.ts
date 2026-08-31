@@ -1,11 +1,13 @@
-export type VocalizationMode = "taamim_and_nikkud" | "nikkud" | "none";
-
-export interface VocalizationOptions {
-  paseq?: "always" | "after-space";
-}
-
-export interface SanitizeOptions {
-  allowFootnotes?: boolean;
-  allowNamedEntities?: boolean;
-  allowRefLinks?: boolean;
-}
+export {
+  applyVocalization,
+  type PaseqMode,
+  type VocalizationMode,
+  type VocalizationOptions,
+} from "./vocalization.js";
+export { sanitize, type SanitizeOptions } from "./sanitize.js";
+export {
+  extractFootnotes,
+  type ExtractedFootnote,
+  type ExtractFootnotesResult,
+  type FootnoteBodyPart,
+} from "./footnotes.js";
