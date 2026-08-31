@@ -27,6 +27,10 @@ The API payload is authoritative for transport fields. The view model is authori
 
 The element does not read, validate, or project an API payload.
 
+The pure factory is the payload-to-rendering boundary. Raw HTML can enter the factory as a validated payload field, but it cannot pass through unchanged as deferred work for the view model or element. The factory can place sanitized HTML fragments and typed text parts in the view model after applying the required `@sefaria/text-transform` operations.
+
+A convenience API can accept a payload and return or configure a component, but it must delegate to the same pure factory and then supply its result to the request-free element.
+
 ## Component subpath contract
 
 Every component has a non-DOM `@sefaria/components` subpath. The subpath owns:
@@ -89,6 +93,7 @@ The factory:
 - reads no global client or cache
 - uses no DOM state
 - uses `@sefaria/text-transform` for required text processing
+- applies HTML vocalization through the transform package rather than parsing HTML independently
 - preserves available attribution needed by the component
 - returns a component-specific partial or empty state for missing requested content
 - calls child pure factories for child views
@@ -184,6 +189,8 @@ No element accepts:
 - a base URL or host
 - a `fetch` function
 - request parameters
+
+No element interprets raw API HTML. Sanitized render-ready HTML fragments are view-model data rather than transport payloads.
 
 An element must not call `fetch`, `@sefaria/client`, or an async component factory.
 

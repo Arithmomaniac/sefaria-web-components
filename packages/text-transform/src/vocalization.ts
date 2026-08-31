@@ -1,3 +1,5 @@
+import { parseHtml, serializeNodes } from "./html.js";
+
 export type VocalizationMode = "taamim_and_nikkud" | "nikkud" | "none";
 
 export type PaseqMode = "always" | "after-space";
@@ -14,9 +16,16 @@ export function applyVocalization(
   options: VocalizationOptions = {},
 ): string {
   assertMode(mode);
-  const paseq = options.paseq ?? "after-space";
+  const paseq = options.paseq === undefined ? "after-space" : options.paseq;
   assertPaseqMode(paseq);
+  return applyValidatedVocalization(text, mode, paseq);
+}
 
+function applyValidatedVocalization(
+  text: string,
+  mode: VocalizationMode,
+  paseq: PaseqMode,
+): string {
   if (mode === "taamim_and_nikkud" || text.length === 0) {
     return text;
   }
@@ -52,32 +61,46 @@ export function applyVocalization(
       continue;
     }
 
-    function isCantillation(character: string): boolean {
-      const codePoint = character.codePointAt(0);
-      return (
-        codePoint !== undefined &&
-        ((codePoint >= 0x0591 && codePoint <= 0x05af) ||
-          codePoint === 0x05bd ||
-          codePoint === 0x05bf ||
-          (codePoint >= 0x05c4 && codePoint <= 0x05c5) ||
-          codePoint === 0x200d)
-      );
-    }
-
-    function isFullRemovalExtra(character: string): boolean {
-      const codePoint = character.codePointAt(0);
-      return (
-        codePoint !== undefined &&
-        ((codePoint >= 0x05b0 && codePoint <= 0x05bc) ||
-          (codePoint >= 0x05c1 && codePoint <= 0x05c3) ||
-          codePoint === 0x05c7)
-      );
-    }
-
     result.push(character);
   }
 
   return result.join("");
+}
+
+function isCantillation(character: string): boolean {
+  const codePoint = character.codePointAt(0);
+  return (
+    codePoint !== undefined &&
+    ((codePoint >= 0x0591 && codePoint <= 0x05af) ||
+      codePoint === 0x05bd ||
+      codePoint === 0x05bf ||
+      (codePoint >= 0x05c4 && codePoint <= 0x05c5) ||
+      codePoint === 0x200d)
+  );
+}
+
+function isFullRemovalExtra(character: string): boolean {
+  const codePoint = character.codePointAt(0);
+  return (
+    codePoint !== undefined &&
+    ((codePoint >= 0x05b0 && codePoint <= 0x05bc) ||
+      (codePoint >= 0x05c1 && codePoint <= 0x05c3) ||
+      codePoint === 0x05c7)
+  );
+}
+
+export function applyVocalizationToHtml(
+  html: string,
+  mode: VocalizationMode,
+  options: VocalizationOptions = {},
+): string {
+  assertMode(mode);
+  const paseq = options.paseq === undefined ? "after-space" : options.paseq;
+  assertPaseqMode(paseq);
+
+  return serializeNodes(parseHtml(html), (text) =>
+    applyValidatedVocalization(text, mode, paseq),
+  );
 }
 
 function assertMode(mode: string): asserts mode is VocalizationMode {

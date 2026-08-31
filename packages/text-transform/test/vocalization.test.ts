@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { applyVocalization } from "../src/index.js";
+import { applyVocalization, applyVocalizationToHtml } from "../src/index.js";
 
 describe("applyVocalization", () => {
   it("preserves all marks in taamim_and_nikkud mode", () => {
@@ -66,6 +66,36 @@ describe("applyVocalization", () => {
     );
     expect(() =>
       applyVocalization("text", "nikkud", { paseq: "sometimes" as never }),
+    ).toThrow(TypeError);
+    expect(() =>
+      applyVocalization("text", "nikkud", { paseq: null as never }),
+    ).toThrow(TypeError);
+  });
+});
+
+describe("applyVocalizationToHtml", () => {
+  it("changes text nodes without changing markup or attribute values", () => {
+    expect(
+      applyVocalizationToHtml(
+        '<span data-label="בְּ">בְּרֵאשִׁ֖ית</span><br><b>בָּרָא</b>',
+        "none",
+      ),
+    ).toBe('<span data-label="בְּ">בראשית</span><br><b>ברא</b>');
+  });
+
+  it("validates options even when the HTML has no text nodes", () => {
+    expect(() => applyVocalizationToHtml("<br>", "partial" as never)).toThrow(
+      TypeError,
+    );
+    expect(() =>
+      applyVocalizationToHtml("<br>", "nikkud", {
+        paseq: "sometimes" as never,
+      }),
+    ).toThrow(TypeError);
+    expect(() =>
+      applyVocalizationToHtml("<br>", "nikkud", {
+        paseq: null as never,
+      }),
     ).toThrow(TypeError);
   });
 });

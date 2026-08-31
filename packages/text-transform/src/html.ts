@@ -44,7 +44,14 @@ export function serializeCloseTag(name: string): string {
   return VOID_TAGS.has(name) ? "" : `</${name}>`;
 }
 
-export function serializeNodes(nodes: readonly ChildNode[]): string {
+function identityText(text: string): string {
+  return text;
+}
+
+export function serializeNodes(
+  nodes: readonly ChildNode[],
+  transformText: (text: string) => string = identityText,
+): string {
   const output: string[] = [];
   const tasks: SerializeTask[] = [{ kind: "nodes", nodes, index: 0 }];
 
@@ -70,7 +77,7 @@ export function serializeNodes(nodes: readonly ChildNode[]): string {
     }
 
     if (isText(node)) {
-      output.push(escapeText(node.data));
+      output.push(escapeText(transformText(node.data)));
       continue;
     }
 

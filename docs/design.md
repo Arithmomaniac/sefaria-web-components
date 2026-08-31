@@ -121,6 +121,10 @@ Each component has a non-DOM public subpath. That subpath owns its request type,
 
 The pure factory converts a corrected API payload into one component view model. The async factory requests the payload through a supplied client and calls the same pure factory.
 
+Raw HTML can enter the pure factory only as a field of a validated API payload. The factory uses `@sefaria/text-transform` to sanitize, structurally interpret, and vocalize that field before constructing the view model. A view model can contain sanitized render-ready HTML fragments and typed text parts, but it must not contain raw API HTML together with an expectation that the element will interpret it.
+
+An integration can expose a convenient payload-to-component operation, but that operation is a facade over the same pure factory and request-free element. It does not create a second projection path or move payload interpretation into the element.
+
 Data state belongs in the view model. Layout, theme, focus behavior, and other interaction state remain element properties.
 
 An element accepts no reference, raw JSON, client, host, or fetch function. An element cannot make a request.
@@ -163,9 +167,9 @@ MCP `structuredContent` carries a corrected API payload. The App validates the p
 
 ## Text processing
 
-`@sefaria/text-transform` remains a pure package for sanitization, vocalization, and footnote processing. Component factories use these operations before unsafe HTML reaches an element.
+`@sefaria/text-transform` remains a pure package for sanitization, vocalization, and footnote processing. Component factories use these operations while converting validated payloads into render-ready view models, before unsafe or uninterpreted HTML reaches an element.
 
-The package does not own API shapes or component view models. See the [text-processing specification](specs/text-processing.md).
+The package does not own API shapes or component view models. It does own HTML parsing required by its transformations, so component factories must not add a second parser merely to apply vocalization to HTML text nodes. See the [text-processing specification](specs/text-processing.md).
 
 ## Integrations
 

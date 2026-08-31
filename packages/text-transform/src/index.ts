@@ -1,5 +1,6 @@
 export {
   applyVocalization,
+  applyVocalizationToHtml,
   type PaseqMode,
   type VocalizationMode,
   type VocalizationOptions,

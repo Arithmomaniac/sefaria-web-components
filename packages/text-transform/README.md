@@ -10,7 +10,7 @@ Component pure factories process text in this order:
 
 1. Call `sanitize` on API HTML.
 2. Call `extractFootnotes` on the sanitized result.
-3. Call `applyVocalization` only on parsed text-node content in body parts and notes.
+3. Call `applyVocalizationToHtml` on HTML body parts and note content, and `applyVocalization` on plain marker text.
 4. Add component rendering state such as accessible marker and note IDs.
 
 API validation and HTML sanitation are separate controls. `@sefaria/client` validates the JSON response shape; this package restricts markup inside valid string fields.
@@ -26,6 +26,8 @@ const unpointed = applyVocalization("בְּרֵאשִׁ֖ית", "none");
 `taamim_and_nikkud` preserves all marks, `nikkud` removes cantillation, and `none` removes cantillation, vowel marks, and U+05C3 SOF PASUQ. PASEQ removal defaults to the mobile-style `after-space` behavior; pass `{ paseq: "always" }` for the Web/Linker-style behavior.
 
 Do not pass raw HTML to `applyVocalization`. It operates on plain text or parsed text-node content.
+
+Use `applyVocalizationToHtml` for an already-sanitized HTML fragment. It changes only text nodes and preserves markup and attribute values; it does not sanitize its input.
 
 ## Sanitization
 

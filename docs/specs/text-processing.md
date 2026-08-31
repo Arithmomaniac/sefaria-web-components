@@ -236,11 +236,19 @@ applyVocalization(
   mode: VocalizationMode,
   options?: { paseq?: "always" | "after-space" },
 ): string;
+
+applyVocalizationToHtml(
+  html: string,
+  mode: VocalizationMode,
+  options?: { paseq?: "always" | "after-space" },
+): string;
 ```
 
 Each mode is a preset over separate cantillation and vowel controls. Internal code keeps those controls separate.
 
 The function accepts plain text or parsed text-node content. It must not run over raw markup because Unicode changes can corrupt attributes.
+
+`applyVocalizationToHtml` parses an already-sanitized HTML fragment, applies the same vocalization operation only to text nodes, and deterministically serializes the result. It does not sanitize input or widen the accepted markup contract. Component factories use this operation rather than implementing another HTML parser.
 
 ### Modes
 
@@ -426,10 +434,12 @@ A component pure factory owns this sequence:
 
 1. Sanitize the API HTML with the selected narrowing options.
 2. Extract structured footnotes from the sanitized HTML.
-3. Apply vocalization only to parsed text-node content in the resulting body and note content.
+3. Apply `applyVocalizationToHtml` to HTML body parts and non-null note content, and apply `applyVocalization` to plain marker text.
 4. Assign component-specific rendering fields, including accessible IDs.
 
 `extractFootnotes` is deterministic on any parsed input, but it does not independently claim that unsanitized input is safe.
+
+Raw payload HTML must not be stored in a component view model for later interpretation. A view model can contain sanitized and transformed HTML fragments plus typed marker and note fields.
 
 The element must not repeat sanitization, vocalization, footnote extraction, or API parsing during rendering.
 
