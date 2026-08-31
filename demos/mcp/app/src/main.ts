@@ -5,9 +5,6 @@ import {
   applyHostStyleVariables,
   type McpUiHostContext,
 } from "@modelcontextprotocol/ext-apps";
-import { isSourceCardData, type SourceCardData } from "@sefaria/model";
-import { SefariaSourceCard } from "@sefaria/components";
-import developmentFixture from "../../contract/source-card.example.json";
 
 function findRoot(): HTMLElement {
   const root = document.querySelector<HTMLElement>("#app");
@@ -27,12 +24,6 @@ function showStatus(message: string) {
   root.replaceChildren(status);
 }
 
-function showSource(data: SourceCardData) {
-  const card = new SefariaSourceCard();
-  card.data = data;
-  root.replaceChildren(card);
-}
-
 function applyHostContext(context: McpUiHostContext) {
   if (context.theme) {
     applyDocumentTheme(context.theme);
@@ -45,22 +36,16 @@ function applyHostContext(context: McpUiHostContext) {
   }
 }
 
-if (!isSourceCardData(developmentFixture)) {
-  throw new Error("Development source-card fixture is invalid");
-}
-
 if (new URLSearchParams(window.location.search).has("standalone")) {
-  showSource(developmentFixture);
+  showStatus("Sefaria MCP App scaffold");
 } else {
-  const app = new App({ name: "Sefaria Source Card", version: "0.0.0" });
+  const app = new App({ name: "Sefaria MCP App", version: "0.0.0" });
 
   app.ontoolresult = (result) => {
-    if (isSourceCardData(result.structuredContent)) {
-      showSource(result.structuredContent);
-      return;
-    }
-
-    showStatus("The tool result did not contain a Sefaria source-card payload");
+    const content = result.content.find((item) => item.type === "text");
+    showStatus(
+      content?.type === "text" ? content.text : "Tool result received",
+    );
   };
   app.onhostcontextchanged = applyHostContext;
   app.onerror = (error) => {

@@ -6,8 +6,6 @@
   "exports": "./src/index.ts",
   "dependencies": {
     "@sefaria/client": "workspace:*",
-    "@sefaria/model": "workspace:*",
-    "@sefaria/ref": "workspace:*",
     "@sefaria/text-transform": "workspace:*"
   },
   "scripts": {

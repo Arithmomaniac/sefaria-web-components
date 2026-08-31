@@ -6,13 +6,11 @@ This guide describes current commands and planned architecture work. The current
 
 | Area | Current behavior | Planned change |
 | --- | --- | --- |
-| `packages/client` | Exports client option and cache types and imports `TextResponse` from `@sefaria/model` | Replace with the OpenAPI supply chain and thin client |
-| `packages/model` | Exports normalized types, `SourceCardData`, and a runtime guard | Remove the package |
-| `packages/ref` | Exports reference type stubs without a production consumer | Retire the package from Core |
+| `packages/client` | Exports base URL and `fetch` option types | Add the OpenAPI supply chain and thin client |
 | `packages/text-transform` | Exports option types | Implement pure sanitization, vocalization, and footnote operations |
-| `packages/components` | Exports a base element and a source card that accepts `SourceCardData` | Add component factories and make every element view-model-only |
-| `demos/mcp` | Stages a private source-card schema and fixture | Replace the writer, validator, App reader, and fixture atomically |
-| `tests/compatibility` | Imports `@sefaria/model` and `@sefaria/ref` in workspace checks | Remove obsolete package dependencies during their owning migrations |
+| `packages/components` | Exports the base element and token defaults | Add component factories and request-free elements |
+| `demos/mcp` | Packages an App shell and returns a text-only tool result | Add corrected payload validation and component projection |
+| `tests/compatibility` | Imports the client and text-transform stubs | Add pinned compatibility evidence |
 
 ## Technology
 
@@ -41,8 +39,6 @@ TypeScript emits reusable ES modules. Vite builds the browser demonstrations and
 | `demos/component-lab` | Browser development for view-model states and interactions |
 | `demos/mcp` | Corrected-payload MCP boundary and FastMCP fixture |
 | `demos/linker-userscript` | Third-party popup integration |
-
-`packages/model` is planned for removal. `packages/ref` is outside current Core scope.
 
 Workspace dependencies use `workspace:*`. All workspace packages remain private during the hackathon.
 
@@ -104,7 +100,7 @@ Run the Python checks:
 pnpm check:python
 ```
 
-The Python command builds the current MCP App and stages the current private files for the source card before it runs Python checks.
+The Python command builds and stages the current MCP App before it runs Python checks.
 
 ## Planned OpenAPI workflow
 
@@ -191,18 +187,14 @@ pnpm dev:mcp
 The current command:
 
 1. Builds the single-file MCP App.
-2. Stages the App, `source-card.schema.json`, and `source-card.example.json`.
-3. Starts the FastMCP fixture over standard input and output.
+2. Stages the App.
+3. Starts the text-only FastMCP fixture over standard input and output.
 
-This staging path belongs to the current implementation. The integration specification defines its replacement.
-
-The planned atomic migration will stage:
+The planned integration will also stage:
 
 - the built HTML
 - the corrected API payload fixture
 - the public corrected JSON Schema for the staged API payload
-
-It will remove the private `SourceCardData` schema and fixture names in the same change.
 
 An MCP host can use this current configuration:
 
