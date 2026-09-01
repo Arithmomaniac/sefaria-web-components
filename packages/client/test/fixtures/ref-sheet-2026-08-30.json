@@ -1,0 +1,14 @@
+{
+  "is_ref": true,
+  "normalized": "Sheet 643492",
+  "hebrew": "דף תרמג׳תצ״ב",
+  "url_ref": "Sheet.643492",
+  "index_title": "Sheet",
+  "node_type": "SheetNode",
+  "navigation_refs": {
+    "shortest_path_to_root": ["Sheet"],
+    "first_subref": "Sheet 643492:1",
+    "last_subref": "Sheet 643492:22"
+  },
+  "sheet_id": 643492
+}

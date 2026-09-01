@@ -8,6 +8,7 @@ export default tseslint.config(
       "**/.pytest_cache/**",
       "**/.venv/**",
       "**/node_modules/**",
+      "**/src/generated/**",
       "coverage/**",
       "playwright-report/**",
       "test-results/**",

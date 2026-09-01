@@ -41,9 +41,8 @@ Review the initial corrections for:
 
 ## Generated contracts
 
-- [ ] The corrected OpenAPI artifact is deterministic.
-- [ ] TypeScript `paths`, `components`, and operation types come from the corrected artifact.
-- [ ] Public corrected JSON Schemas and TypeScript runtime validators come from the corrected artifact.
+- [ ] Temporary corrected Core generation is deterministic.
+- [ ] TypeScript `paths`, `components`, operation types, Zod schemas, and runtime validators come from the same temporary corrected Core document.
 - [ ] Generated output identifies its source pin.
 - [ ] No handwritten file duplicates a complete generated interface.
 - [ ] No generated file has a manual-only edit.
@@ -117,7 +116,7 @@ Review the initial corrections for:
 ## MCP integration
 
 - [ ] `structuredContent` contains a corrected API payload.
-- [ ] The App validates the unknown payload with the public corrected JSON Schema or its generated TypeScript validator.
+- [ ] The App validates the unknown payload with the generated TypeScript validator.
 - [ ] The App reports structured paths for invalid payloads.
 - [ ] The App calls the same pure factory as client mode.
 - [ ] The App supplies only a view model to the element.

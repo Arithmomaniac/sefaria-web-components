@@ -22,7 +22,7 @@ The connections panel and recursive connected reading remain outside Core. Their
 
 The repository specifications define intended behavior. The [pinned Sefaria OpenAPI document](https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/docs/openAPI.json), original endpoint implementation, upstream tests, and deployed fixtures provide evidence.
 
-The corrected OpenAPI artifact is the machine-readable authority for transport payloads. Generated declarations are the field-level reference for those payloads.
+The pinned OpenAPI input plus guarded overlay is the machine-readable authority for transport payloads. Generated declarations are the field-level reference for those payloads.
 
 Each component view model is the authority for that component's rendered data state. Elements do not reinterpret transport payloads.
 
@@ -34,7 +34,7 @@ Each OpenAPI correction starts with the original Sefaria route, handler, respons
 
 - The ordinary build must generate all API artifacts without network access.
 - Every overlay correction must assert its expected old state at an exact JSON path.
-- Public client calls must preserve `openapi-fetch` and Fetch API success and failure semantics.
+- Public client calls must preserve generated-client and Fetch API success and failure semantics.
 - Every element must accept only a component view model plus visual or interaction properties.
 - Every async component factory must produce the same result as its pure factory for the captured payload.
 - A composite factory that produces ten child views from one response must make one request and zero child requests.
@@ -44,8 +44,8 @@ Each OpenAPI correction starts with the original Sefaria route, handler, respons
 
 | Concern | Boundary |
 | --- | --- |
-| Transport contracts | Corrected OpenAPI artifact and generated declarations |
-| Client | Thin `openapi-fetch` client with a configurable base URL and injectable `fetch` |
+| Transport contracts | Pinned OpenAPI input, guarded overlay, and generated declarations |
+| Client | Thin configured `@hey-api/client-fetch` capability with a configurable base URL and injectable `fetch` |
 | Public API data | Generated API contracts consumed directly |
 | Component data | One view-model union per component |
 | Element input | View models only |
@@ -57,7 +57,7 @@ Each OpenAPI correction starts with the original Sefaria route, handler, respons
 
 | Owner | Responsibility | Must not own |
 | --- | --- | --- |
-| `@sefaria/client` | Pinned OpenAPI input, checksum, overlay, corrected artifact, generated contracts, corrected public schemas, TypeScript validators, and thin client | Rendering, component view models, default caches, retries, coalescing, or component methods |
+| `@sefaria/client` | Pinned OpenAPI input, checksum, guarded overlay, generated contracts, Zod schemas, TypeScript validators, and thin client | Rendering, component view models, default caches, retries, coalescing, or component methods |
 | `@sefaria/text-transform` | Pure sanitization, vocalization, and footnote operations | Requests, DOM rendering, or API contract correction |
 | Non-DOM `@sefaria/components` subpaths | Component request types, view-model unions, pure factories, and async factories | Hidden global clients or DOM state |
 | `@sefaria/components` elements | Layout, interaction, accessibility, theming, and DOM rendering | References, raw JSON, clients, hosts, fetch functions, or requests |
@@ -95,7 +95,7 @@ The deterministic overlay records reviewed Core corrections. Each change identif
 
 If an assertion fails, generation stops at that JSON path and reports the expected and actual state. The overlay never applies a best-effort correction.
 
-The corrected document generates TypeScript `paths`, `components`, and operation types. It also generates corrected public schemas and TypeScript runtime validators.
+The temporary corrected document generates TypeScript `paths`, `components`, operation types, Zod schemas, and runtime validators.
 
 Checks regenerate these outputs and fail if the worktree differs. Stale generated output cannot pass the repository check.
 
@@ -103,11 +103,11 @@ See the [client specification](specs/client.md) for endpoint and failure contrac
 
 ## Client boundary
 
-The public client is a thin `openapi-fetch` client. Its options include a base URL and an injectable `fetch`.
+The public client is a thin configured `@hey-api/client-fetch` capability. Its options include a base URL and an injectable `fetch`.
 
 The client exposes generated operation contracts from the corrected schema. It does not add a generalized normalized facade.
 
-Documented HTTP failures remain typed error payloads from `openapi-fetch`. Network failures and aborts preserve Fetch API rejection behavior.
+Documented HTTP failures remain typed error payloads from the generated client. Network failures and aborts preserve Fetch API rejection behavior.
 
 The client validates every JSON response against the generated schema for its operation and status.
 

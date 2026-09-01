@@ -91,7 +91,7 @@ The planned fixture contains:
 - one `ui://` resource
 - the self-contained App
 - one corrected API payload fixture
-- validation with the public corrected JSON Schema
+- validation with the generated TypeScript validator
 - in-memory integration tests
 - installed-wheel package-data tests
 

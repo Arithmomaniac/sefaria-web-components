@@ -3,9 +3,28 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "exports": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./client": "./src/client.ts",
+    "./contracts": "./src/generated/contracts.gen.ts",
+    "./errors": "./src/contract-error.ts",
+    "./schemas": "./src/generated/zod.gen.ts",
+    "./validation": "./src/validation.ts",
+    "./validators": "./src/generated/response-validators.gen.ts"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
+    "openapi:check": "tsx scripts/generate-openapi.ts --check",
+    "openapi:generate": "tsx scripts/generate-openapi.ts",
+    "openapi:refresh": "tsx scripts/refresh-openapi.ts",
     "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@hey-api/client-fetch": "0.13.1",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@hey-api/openapi-ts": "0.99.0",
+    "openapi-format": "1.33.6"
   }
 }
