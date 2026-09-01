@@ -6,11 +6,7 @@ This specification defines the planned component architecture.
 
 ## Boundary
 
-Each component has three layers:
-
-1. A corrected generated API payload.
-2. A component-specific view model.
-3. A Lit element that renders the view model.
+Each component projects a corrected generated API payload through a pure factory into a component-specific view model, which a request-free Lit element renders.
 
 ```mermaid
 flowchart LR
@@ -23,11 +19,7 @@ flowchart LR
     ASYNC -->|"captured payload"| PURE
 ```
 
-The API payload is authoritative for transport fields. The view model is authoritative for rendered data.
-
-The element does not read, validate, or project an API payload.
-
-The pure factory is the payload-to-rendering boundary. Raw HTML can enter the factory as a validated payload field, but it cannot pass through unchanged as deferred work for the view model or element. The factory can place sanitized HTML fragments and typed text parts in the view model after applying the required `@sefaria/text-transform` operations.
+The API payload is authoritative for transport fields, and the view model is authoritative for rendered data. Raw HTML can enter only the pure factory as a validated payload field; the factory applies the required `@sefaria/text-transform` operations before placing sanitized HTML fragments or typed text parts in the view model. The element does not read, validate, or project an API payload.
 
 A convenience API can accept a payload and return or configure a component, but it must delegate to the same pure factory and then supply its result to the request-free element.
 
