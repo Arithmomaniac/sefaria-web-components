@@ -1,4 +1,4 @@
-> Created/edited by GitHub Copilot with human review/feedback by avilevin.
+> Created/edited by GitHub Copilot; pending human review.
 
 # Development
 
@@ -9,10 +9,10 @@ This guide describes current commands and remaining planned architecture work.
 | Area | Current behavior | Planned change |
 | --- | --- | --- |
 | `packages/client` | Generates six named Core SDK functions, contracts, Zod validators, and a status-aware fetch client from a pinned corrected OpenAPI document | Expand only when a reviewed contract adds another operation |
-| `packages/text-transform` | Implements parser-backed sanitization, Hebrew vocalization modes, and structured footnote extraction without browser DOM globals | Add broad pinned compatibility qualification in #14 |
+| `packages/text-transform` | Implements parser-backed sanitization, Hebrew vocalization modes, and structured footnote extraction without browser DOM globals | Broader corpus comparison remains planned |
 | `packages/components` | Exports the base element and token defaults | Add component factories and request-free elements |
 | `demos/mcp` | Packages an App shell and returns a text-only tool result | Add corrected payload validation and component projection |
-| `tests/compatibility` | Imports the client and text-transform packages | Add pinned compatibility evidence |
+| `tests/compatibility` | Runs focused pinned client/transform comparisons, a composed v3 validate-to-transform smoke case, and grouped qualification output without network access | Broader corpus comparison and compatibility publication remain planned |
 
 ## Technology
 
@@ -78,7 +78,7 @@ npx --yes pnpm@11.22.0 exec playwright install chromium
 pnpm check
 ```
 
-The current command checks stale OpenAPI output, then runs Prettier, ESLint, TypeScript checks, tests, builds, Python checks, MCP staging, and wheel package-data checks.
+The current command checks stale OpenAPI output, then runs Prettier, ESLint, TypeScript checks, tests, the offline focused compatibility qualification, builds, Python checks, MCP staging, and wheel package-data checks. The qualification prints grouped pass, failure, unavailable-source, and intentional-difference results. It does not refresh network fixtures.
 
 ## Current focused checks
 
@@ -88,7 +88,15 @@ Run all TypeScript tests:
 pnpm test
 ```
 
-Run the compatibility harness:
+Run the current focused compatibility qualification:
+
+```powershell
+pnpm compatibility:qualify
+```
+
+The command runs offline against committed and source-derived fixtures. It exits nonzero only for unexpected failures; unavailable sources and documented intentional differences remain separate visible result classes. The suite is representative and non-exhaustive.
+
+Run the compatibility tests, including output semantics and network denial:
 
 ```powershell
 pnpm exec vitest run tests/compatibility
@@ -149,6 +157,18 @@ actual: <current value>
 ```
 
 The developer must review the new upstream document. Do not change an assertion only to make generation pass.
+
+## Client fixture candidate capture
+
+The current Genesis index candidate capture is explicit and networked. Replace `YYYY-MM-DD` with the actual caller-declared capture date:
+
+```powershell
+pnpm client:fixture:capture-candidate --write --capture-date YYYY-MM-DD
+```
+
+The command requires exactly `--write --capture-date YYYY-MM-DD`. It refuses an invalid date or an existing `index-genesis-YYYY-MM-DD.json` before fetching. It then fetches only the deployed Genesis index URL declared by the immutable September 1 manifest entry, validates the unknown response with the generated public validator, deterministically reduces it, stages it beside the fixture directory, verifies the dated target is still absent, and publishes the new candidate with one same-filesystem rename. Download, JSON parsing, validation, reduction, or publication failure leaves committed evidence unchanged.
+
+Candidate generation does not update `manifest.json`, tests, or other references and is not automatic baseline replacement. A reviewer must inspect the candidate and manually update provenance and references in the same reviewed change if it should become committed evidence. The committed `index-genesis-2026-09-01.json` remains immutable. Existing prose-reduced payloads, reduced captures for the other Core endpoints, and hand-extracted markup fragments remain manual-review-only because their reductions depend on source interpretation rather than a general capture rule.
 
 ## Generated artifacts
 

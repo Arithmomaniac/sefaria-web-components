@@ -25,6 +25,8 @@ export default defineConfig({
             enabled: true,
             provider: playwright(),
             headless: true,
+            // Keep this below Windows' dynamic port range, where reserved ports fail with EACCES.
+            api: 6338,
             instances: [{ browser: "chromium" }],
           },
         },

@@ -14,6 +14,7 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
+    "fixture:capture-candidate": "tsx scripts/refresh-fixtures.ts",
     "openapi:check": "tsx scripts/generate-openapi.ts --check",
     "openapi:generate": "tsx scripts/generate-openapi.ts",
     "openapi:refresh": "tsx scripts/refresh-openapi.ts",
