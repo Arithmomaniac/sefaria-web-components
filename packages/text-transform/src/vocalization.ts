@@ -1,15 +1,25 @@
 import { parseHtml, serializeNodes } from "./html.js";
 
+/** Supported Hebrew vocalization-preservation presets. */
 export type VocalizationMode = "taamim_and_nikkud" | "nikkud" | "none";
 
+/** Policy used for U+05C0 PASEQ when cantillation is removed. */
 export type PaseqMode = "always" | "after-space";
 
+/** Optional behavior for vocalization transforms. */
 export interface VocalizationOptions {
+  /** Selects whether every PASEQ or only whitespace-prefixed PASEQ is removed. */
   paseq?: PaseqMode;
 }
 
 const PASEQ = "\u05c0";
 
+/**
+ * Applies a vocalization preset to plain text without Unicode normalization.
+ *
+ * @throws {TypeError} When a runtime mode or PASEQ value is unsupported.
+ * @see [Vocalization](../README.md#vocalization)
+ */
 export function applyVocalization(
   text: string,
   mode: VocalizationMode,
@@ -68,6 +78,7 @@ function applyValidatedVocalization(
 }
 
 function isCantillation(character: string): boolean {
+  // PASEQ is excluded because its removal depends on the selected policy.
   const codePoint = character.codePointAt(0);
   return (
     codePoint !== undefined &&
@@ -89,6 +100,14 @@ function isFullRemovalExtra(character: string): boolean {
   );
 }
 
+/**
+ * Applies vocalization only to text nodes in an already-sanitized HTML fragment.
+ *
+ * Markup and attribute values are preserved; this operation is not a sanitizer.
+ *
+ * @throws {TypeError} When a runtime mode or PASEQ value is unsupported.
+ * @see [Vocalization](../README.md#vocalization)
+ */
 export function applyVocalizationToHtml(
   html: string,
   mode: VocalizationMode,

@@ -1,5 +1,6 @@
 import { css } from "lit";
 
+/** Default internal token values backed by host-overridable `--sefaria-*` properties. */
 export const sefariaTokenDefaults = css`
   :host {
     --_sefaria-surface: var(--sefaria-surface, light-dark(#f9f9f7, #2d2d2b));

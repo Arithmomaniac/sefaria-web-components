@@ -20,6 +20,9 @@ importers:
       eslint:
         specifier: ^10.0.1
         version: 10.9.0(jiti@2.7.0)
+      eslint-plugin-jsdoc:
+        specifier: 62.9.0
+        version: 62.9.0(eslint@10.9.0(jiti@2.7.0))
       playwright:
         specifier: ^1.62.1
         version: 1.62.1
@@ -122,6 +125,14 @@ packages:
 
   '@blazediff/core@1.9.1':
     resolution: {integrity: sha1-rWHE7EjcEaKRO5dTyMdJAuBejxQ=}
+
+  '@es-joy/jsdoccomment@0.86.0':
+    resolution: {integrity: sha1-9ydpBO1zvyE2mTYnAzrrUYO0OSo=}
+    engines: {node: ^20.19.0 || ^22.13.0 || >=24}
+
+  '@es-joy/resolve.exports@1.2.0':
+    resolution: {integrity: sha1-/lQaaKoIAlX3mMhWFxSsj61yzdU=}
+    engines: {node: '>=10'}
 
   '@esbuild/aix-ppc64@0.28.2':
     resolution: {integrity: sha1-v24QMDvPLnxoaXX6Uvk37Cco2Lw=}
@@ -665,6 +676,10 @@ packages:
     cpu: [x64]
     os: [win32]
 
+  '@sindresorhus/base62@1.0.0':
+    resolution: {integrity: sha1-xHxCQQ5SEuT6RldnDhGN37o5rNY=}
+    engines: {node: '>=18'}
+
   '@standard-schema/spec@1.1.0':
     resolution: {integrity: sha1-p5tV26+GBIEvUtFAssmrQbwVC7g=}
 
@@ -828,6 +843,10 @@ packages:
     resolution: {integrity: sha1-KjRt5wBC+jyeHeuHfBDziDpfqyU=}
     engines: {node: '>=18.0.0'}
 
+  are-docs-informative@0.0.2:
+    resolution: {integrity: sha1-OH8Ok/XUUoA3PTh6WdNMltsyGWM=}
+    engines: {node: '>=14'}
+
   argparse@2.0.1:
     resolution: {integrity: sha1-JG9Q88p4oyQPbJl+ipvR6sSeSzg=}
 
@@ -900,6 +919,10 @@ packages:
   commander@15.0.0:
     resolution: {integrity: sha1-lvOWHxKtrBeZ7z+9i8YdQFctGxE=}
     engines: {node: '>=22.12.0'}
+
+  comment-parser@1.4.6:
+    resolution: {integrity: sha1-Saax1T+lYzJPdXerjAsm2059H5o=}
+    engines: {node: '>= 12.0.0'}
 
   concat-map@0.0.1:
     resolution: {integrity: sha1-2Klr13/Wjfd5OnMDajug1UBdR3s=}
@@ -1044,6 +1067,12 @@ packages:
   escape-string-regexp@4.0.0:
     resolution: {integrity: sha1-FLqDpdNz49MR5a/KKc9b+tllvzQ=}
     engines: {node: '>=10'}
+
+  eslint-plugin-jsdoc@62.9.0:
+    resolution: {integrity: sha1-pJAvaXix58xcXRpSjs99jHznFtk=}
+    engines: {node: ^20.19.0 || ^22.13.0 || >=24}
+    peerDependencies:
+      eslint: ^7.0.0 || ^8.0.0 || ^9.0.0 || ^10.0.0
 
   eslint-scope@9.1.2:
     resolution: {integrity: sha1-ud5qzi+rHP8k0uWNhbdMj86jmAI=}
@@ -1219,6 +1248,9 @@ packages:
     resolution: {integrity: sha1-lxWjX2NxFfdFUofOb93cqyFlPWs=}
     engines: {node: '>=16.9.0'}
 
+  html-entities@2.6.0:
+    resolution: {integrity: sha1-fGTx6js2gYzK49P7SLaXQgjphPg=}
+
   htmlparser2@12.0.0:
     resolution: {integrity: sha1-amedD1fFJZkPnLrYpYWzIOzG0Zg=}
     engines: {node: '>=20.19.0'}
@@ -1303,6 +1335,10 @@ packages:
   js-yaml@4.2.0:
     resolution: {integrity: sha1-K9noVoLdkb1GmvuAnYFgQ7PUlSQ=}
     hasBin: true
+
+  jsdoc-type-pratt-parser@7.2.0:
+    resolution: {integrity: sha1-CinCe9TgHoXkYXYl4055e+FIaps=}
+    engines: {node: '>=20.0.0'}
 
   json-buffer@3.0.1:
     resolution: {integrity: sha1-kziAKjDTtmBfvgYT4JQAjKjAWhM=}
@@ -1491,6 +1527,9 @@ packages:
     resolution: {integrity: sha1-IQmtx5ZYh8/AXLvUQsrIv7s2CGM=}
     engines: {node: '>=0.10.0'}
 
+  object-deep-merge@2.0.1:
+    resolution: {integrity: sha1-uUN+p3KvGNu4DsH9Bk8E6defA9Y=}
+
   object-inspect@1.13.4:
     resolution: {integrity: sha1-g3UmXiG8IND6WCwi4bE0hdbgAhM=}
     engines: {node: '>= 0.4'}
@@ -1533,6 +1572,12 @@ packages:
   p-locate@5.0.0:
     resolution: {integrity: sha1-g8gxXGeFAF470CGDlBHJ4RDm2DQ=}
     engines: {node: '>=10'}
+
+  parse-imports-exports@0.2.4:
+    resolution: {integrity: sha1-4/s7XiZM+1XCW138vn9BD43E568=}
+
+  parse-statements@1.0.11:
+    resolution: {integrity: sha1-h4fF04OuV0ZWhXFhS+crBolYQ0Q=}
 
   parseurl@1.3.3:
     resolution: {integrity: sha1-naGee+6NEt/wUT7Vt2lXeTvC6NQ=}
@@ -1645,6 +1690,10 @@ packages:
     resolution: {integrity: sha1-iaf92TgmEmcxjq/hT5wy5ZjDaQk=}
     engines: {node: '>=0.10.0'}
 
+  reserved-identifiers@1.2.0:
+    resolution: {integrity: sha1-0pgs1pjjF909ztHuHFJBLb1k/GQ=}
+    engines: {node: '>=18'}
+
   resolve-pkg-maps@1.0.0:
     resolution: {integrity: sha1-YWs9wsVwVrVYjDHN9LPWTbEzcg8=}
 
@@ -1729,6 +1778,15 @@ packages:
     resolution: {integrity: sha1-HOVlD93YerwJnto33P8CTCZnrkY=}
     engines: {node: '>=0.10.0'}
 
+  spdx-exceptions@2.5.0:
+    resolution: {integrity: sha1-XWB9J/yAb2bXtkp2ZlD6iQ8E7WY=}
+
+  spdx-expression-parse@4.0.0:
+    resolution: {integrity: sha1-ojr58xMhFUZdrCFcCZMD5M6sV5Q=}
+
+  spdx-license-ids@3.0.23:
+    resolution: {integrity: sha1-sGnmh7EpGjLxJok+12onp0XuITM=}
+
   stackback@0.0.2:
     resolution: {integrity: sha1-Gsig2Ug4SNFpXkGLbQMaPDzmjjs=}
 
@@ -1760,6 +1818,10 @@ packages:
   to-regex-range@5.0.1:
     resolution: {integrity: sha1-FkjESq58jZiKMmAY7XL1tN0DkuQ=}
     engines: {node: '>=8.0'}
+
+  to-valid-identifier@1.0.0:
+    resolution: {integrity: sha1-JzN5VTM8PFF/62C+pTPPJ85Ut58=}
+    engines: {node: '>=20'}
 
   toidentifier@1.0.1:
     resolution: {integrity: sha1-O+NDIaiKgg7RvYDfqjPkefu43TU=}
@@ -1983,6 +2045,16 @@ packages:
 snapshots:
 
   '@blazediff/core@1.9.1': {}
+
+  '@es-joy/jsdoccomment@0.86.0':
+    dependencies:
+      '@types/estree': 1.0.9
+      '@typescript-eslint/types': 8.67.0
+      comment-parser: 1.4.6
+      esquery: 1.7.0
+      jsdoc-type-pratt-parser: 7.2.0
+
+  '@es-joy/resolve.exports@1.2.0': {}
 
   '@esbuild/aix-ppc64@0.28.2':
     optional: true
@@ -2339,6 +2411,8 @@ snapshots:
   '@rollup/rollup-win32-x64-msvc@4.62.5':
     optional: true
 
+  '@sindresorhus/base62@1.0.0': {}
+
   '@standard-schema/spec@1.1.0': {}
 
   '@types/chai@5.2.3':
@@ -2561,6 +2635,8 @@ snapshots:
     dependencies:
       json-crawl: 0.4.2
 
+  are-docs-informative@0.0.2: {}
+
   argparse@2.0.1: {}
 
   assertion-error@2.0.1: {}
@@ -2638,6 +2714,8 @@ snapshots:
   color-support@1.1.3: {}
 
   commander@15.0.0: {}
+
+  comment-parser@1.4.6: {}
 
   concat-map@0.0.1: {}
 
@@ -2769,6 +2847,26 @@ snapshots:
   escape-html@1.0.3: {}
 
   escape-string-regexp@4.0.0: {}
+
+  eslint-plugin-jsdoc@62.9.0(eslint@10.9.0(jiti@2.7.0)):
+    dependencies:
+      '@es-joy/jsdoccomment': 0.86.0
+      '@es-joy/resolve.exports': 1.2.0
+      are-docs-informative: 0.0.2
+      comment-parser: 1.4.6
+      debug: 4.4.3
+      escape-string-regexp: 4.0.0
+      eslint: 10.9.0(jiti@2.7.0)
+      espree: 11.2.0
+      esquery: 1.7.0
+      html-entities: 2.6.0
+      object-deep-merge: 2.0.1
+      parse-imports-exports: 0.2.4
+      semver: 7.8.5
+      spdx-expression-parse: 4.0.0
+      to-valid-identifier: 1.0.0
+    transitivePeerDependencies:
+      - supports-color
 
   eslint-scope@9.1.2:
     dependencies:
@@ -2986,6 +3084,8 @@ snapshots:
 
   hono@4.13.3: {}
 
+  html-entities@2.6.0: {}
+
   htmlparser2@12.0.0:
     dependencies:
       domelementtype: 3.0.0
@@ -3050,6 +3150,8 @@ snapshots:
   js-yaml@4.2.0:
     dependencies:
       argparse: 2.0.1
+
+  jsdoc-type-pratt-parser@7.2.0: {}
 
   json-buffer@3.0.1: {}
 
@@ -3194,6 +3296,8 @@ snapshots:
 
   object-assign@4.1.1: {}
 
+  object-deep-merge@2.0.1: {}
+
   object-inspect@1.13.4: {}
 
   obug@2.1.4: {}
@@ -3250,6 +3354,12 @@ snapshots:
   p-locate@5.0.0:
     dependencies:
       p-limit: 3.1.0
+
+  parse-imports-exports@0.2.4:
+    dependencies:
+      parse-statements: 1.0.11
+
+  parse-statements@1.0.11: {}
 
   parseurl@1.3.3: {}
 
@@ -3338,6 +3448,8 @@ snapshots:
   readdirp@5.1.1: {}
 
   require-from-string@2.0.2: {}
+
+  reserved-identifiers@1.2.0: {}
 
   resolve-pkg-maps@1.0.0: {}
 
@@ -3485,6 +3597,15 @@ snapshots:
 
   source-map-js@1.2.1: {}
 
+  spdx-exceptions@2.5.0: {}
+
+  spdx-expression-parse@4.0.0:
+    dependencies:
+      spdx-exceptions: 2.5.0
+      spdx-license-ids: 3.0.23
+
+  spdx-license-ids@3.0.23: {}
+
   stackback@0.0.2: {}
 
   statuses@2.0.2: {}
@@ -3507,6 +3628,11 @@ snapshots:
   to-regex-range@5.0.1:
     dependencies:
       is-number: 7.0.0
+
+  to-valid-identifier@1.0.0:
+    dependencies:
+      '@sindresorhus/base62': 1.0.0
+      reserved-identifiers: 1.2.0
 
   toidentifier@1.0.1: {}
 

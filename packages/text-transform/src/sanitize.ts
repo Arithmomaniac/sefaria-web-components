@@ -12,10 +12,15 @@ import {
   serializeOpenTag,
 } from "./html.js";
 
+/** Feature-narrowing options for {@link sanitize}; no option can widen the policy. */
 export interface SanitizeOptions {
+  /** Retain recognized footnote marker/body pairs. Defaults to `true`. */
   allowFootnotes?: boolean;
+  /** Retain inert commentary, overlay, and rendered annotation metadata. Defaults to `true`. */
   allowInlineAnnotations?: boolean;
+  /** Retain reviewed named-entity anchors. Defaults to `true`. */
   allowNamedEntities?: boolean;
+  /** Retain reviewed reference anchors. Defaults to `true`. */
   allowRefLinks?: boolean;
 }
 
@@ -125,6 +130,16 @@ const APPROVED_HOSTS = new Set([
   "www.sefaria.org.il",
 ]);
 
+/**
+ * Converts untrusted Sefaria text HTML into deterministic allowlisted markup.
+ *
+ * Options can narrow the fixed policy but cannot permit additional markup.
+ * Rejected links and unsupported wrappers preserve safe children; active
+ * subtrees are removed with their contents.
+ *
+ * @see [Sanitization](../README.md#sanitization)
+ * @see [Sanitizer traversal](../README.md#sanitizer-traversal)
+ */
 export function sanitize(html: string, options: SanitizeOptions = {}): string {
   const resolvedOptions: ResolvedSanitizeOptions = {
     allowFootnotes: options.allowFootnotes ?? true,
@@ -133,6 +148,8 @@ export function sanitize(html: string, options: SanitizeOptions = {}): string {
     allowRefLinks: options.allowRefLinks ?? true,
   };
   const writer = new SanitizeWriter();
+  // Classification and serialization use an explicit task stack instead of
+  // recursion so hostile nesting cannot exhaust the JavaScript call stack.
   const tasks: SanitizeTask[] = [
     { kind: "nodes", nodes: parseHtml(html), index: 0 },
   ];
@@ -163,6 +180,8 @@ export function sanitize(html: string, options: SanitizeOptions = {}): string {
     }
 
     const footnoteBodyIndex = findFollowingFootnoteBody(task.nodes, task.index);
+    // Disabling footnotes skips a recognized marker and its adjacent body as
+    // one semantic unit instead of leaving an orphan body behind.
     const nextIndex =
       !resolvedOptions.allowFootnotes &&
       isFootnoteMarker(node) &&
@@ -279,6 +298,8 @@ function classifyItalic(
   }
 
   if (isEmptyElement(element)) {
+    // Sefaria stores commentary and overlay placement in empty italic tags.
+    // Content-bearing italics are ordinary formatting and lose metadata.
     const commentator = element.attribs["data-commentator"];
     const overlay = element.attribs["data-overlay"];
     const value = element.attribs["data-value"];
@@ -431,6 +452,9 @@ function resolveApprovedHref(href: string | undefined): string | null {
   }
 
   try {
+    // Scheme-bearing input is parsed without a base so malformed absolute
+    // URLs cannot inherit the trusted origin. Relative input is deliberately
+    // resolved to an absolute Sefaria URL for third-party embedding.
     const hasScheme = /^[a-z][a-z0-9+.-]*:/iu.test(value);
     const url = hasScheme
       ? new URL(value)
@@ -547,6 +571,8 @@ class SanitizeWriter {
   }
 
   #flushSeparator(next: string): void {
+    // Block boundaries become one space only when later visible content needs
+    // it, avoiding both word concatenation and artificial edge whitespace.
     if (!this.#pendingSeparator) {
       return;
     }

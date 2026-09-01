@@ -15,6 +15,26 @@ Component pure factories process text in this order:
 
 API validation and HTML sanitation are separate controls. `@sefaria/client` validates the JSON response shape; this package restricts markup inside valid string fields.
 
+## Implementation notes
+
+### Parsing and serialization
+
+The package parses fragments in HTML mode. This decodes entities and applies browser-style recovery to malformed markup. The package never returns the parser's original source string. Its serializers escape text and attribute values, sort retained attributes, and emit canonical markup. `applyVocalizationToHtml` uses the same serializer but does not apply the sanitizer's allowlist.
+
+The parser, serializers, and traversal helpers are iterative. They can handle realistic deep nesting without exhausting the JavaScript call stack.
+
+### Sanitizer traversal
+
+The sanitizer assigns one of five actions to each parsed element: retain a reviewed element, unwrap its children, remove its entire subtree, replace it with text, or unwrap it as a block with a deferred separator. Only the retain action can emit a tag or attribute. Parser recovery cannot make unsupported source markup trusted.
+
+Block separators are deferred until visible content appears. This prevents adjacent legacy block wrappers from concatenating words without introducing leading, trailing, or duplicate spaces.
+
+### Footnote extraction
+
+The extractor recognizes a marker followed by optional whitespace and a footnote body. When a marker appears inside retained markup, the serializer temporarily closes each open ancestor, emits the marker as a typed body part, and reopens the ancestors. This keeps each emitted HTML part balanced and independently renderable.
+
+Closing and reopening tags can make the output much larger for hostile deeply nested input. Body and note serialization therefore share one output limit. Exceeding the documented limit throws `RangeError` instead of producing unbounded synchronous output.
+
 ## Vocalization
 
 ```ts

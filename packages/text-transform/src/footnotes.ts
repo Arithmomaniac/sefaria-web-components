@@ -13,12 +13,17 @@ import {
   textContent,
 } from "./html.js";
 
+/** One logical footnote extracted from a sanitized HTML fragment. */
 export interface ExtractedFootnote {
+  /** Stable zero-based logical index within one extraction result. */
   readonly index: number;
+  /** Decoded plain text for text-node rendering, never an HTML fragment. */
   readonly markerText: string;
+  /** Escaped HTML, `""` for a present empty body, or `null` for a missing body. */
   readonly content: string | null;
 }
 
+/** Ordered content emitted for the footnote-free body rendering surface. */
 export type FootnoteBodyPart =
   | {
       readonly kind: "html";
@@ -30,11 +35,23 @@ export type FootnoteBodyPart =
       readonly markerText: string;
     };
 
+/** Structured body and note collections produced by {@link extractFootnotes}. */
 export interface ExtractFootnotesResult {
+  /** Ordered balanced HTML fragments and logical marker insertion points. */
   readonly body: readonly FootnoteBodyPart[];
+  /** Source-ordered logical notes referenced by body marker parts. */
   readonly notes: readonly ExtractedFootnote[];
 }
 
+/**
+ * Splits sanitized HTML into balanced body fragments and logical footnotes.
+ *
+ * This function does not sanitize its input and does not assign DOM IDs.
+ *
+ * @throws {RangeError} When nested marker projection exceeds the output bound.
+ * @see [Footnotes](../README.md#footnotes)
+ * @see [Footnote extraction](../README.md#footnote-extraction)
+ */
 export function extractFootnotes(html: string): ExtractFootnotesResult {
   const body: FootnoteBodyPart[] = [];
   const notes: ExtractedFootnote[] = [];
@@ -175,6 +192,8 @@ class FootnoteBodyWriter {
   }
 
   appendMarker(noteIndex: number, markerText: string): void {
+    // Closing and reopening active ancestors makes both neighboring HTML
+    // fragments balanced while preserving the marker's original nesting.
     for (let index = this.#openElements.length - 1; index >= 0; index -= 1) {
       const element = this.#openElements[index];
       if (element) {
@@ -225,6 +244,8 @@ class ProjectionBudget {
   }
 
   add(length: number): void {
+    // Body fragments and note contents share this budget because either side
+    // can grow when nested ancestors are serialized around many markers.
     this.#length += length;
     if (this.#length > this.#maximumLength) {
       throw new RangeError(

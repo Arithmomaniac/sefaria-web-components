@@ -14,6 +14,7 @@ applyTo: "packages/text-transform/**,docs/specs/text-processing.md"
 - Remove active content, event attributes, inline styles, and dangerous URLs.
 - Preserve allowed Sefaria text structure and attribution markup.
 - Keep footnote marker order stable.
+- Add JSDoc to every handwritten exported declaration and every exported interface or class property. Document security boundaries, failures, units, and representation differences at the declaration. Link to the package README for algorithm details.
 - Do not treat missing footnote bodies as proof that no footnotes exist.
 - Include malformed HTML, hostile fragments, and adversarial Unicode tests.
 - Report Unicode differences with code points.

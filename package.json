@@ -33,6 +33,7 @@
     "@types/node": "^26.2.0",
     "@vitest/browser-playwright": "^4.1.10",
     "eslint": "^10.0.1",
+    "eslint-plugin-jsdoc": "62.9.0",
     "playwright": "^1.62.1",
     "prettier": "^3.9.6",
     "tsx": "^4.23.12",

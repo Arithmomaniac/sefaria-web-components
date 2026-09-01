@@ -6,12 +6,17 @@ import {
 } from "./generated/response-contracts.gen.js";
 import { SefariaContractError, type ContractIssue } from "./contract-error.js";
 
+/** Identifies one documented operation response by method, path, and status. */
 export interface ResponseSelector {
+  /** HTTP method; matching is case-insensitive. */
   readonly method: string;
+  /** Generated OpenAPI path template rather than a concrete request URL. */
   readonly path: string;
+  /** HTTP response status code. */
   readonly status: number;
 }
 
+/** Non-throwing validation result for externally supplied response-shaped JSON. */
 export type ValidationResult =
   | {
       readonly valid: true;
@@ -22,13 +27,18 @@ export type ValidationResult =
       readonly issues: readonly ContractIssue[];
     };
 
+/** Resolves the runtime schema used for one generated response contract. */
 export type ResponseValidatorLookup = (
   contract: GeneratedResponseContract,
 ) => ZodType | undefined;
 
+/** Response metadata consumed by the public client's validation interceptor. */
 export interface ResponseValidationContext {
+  /** HTTP method used for generated operation lookup. */
   readonly method: string;
+  /** Generated OpenAPI path template used for operation lookup. */
   readonly path: string;
+  /** Original response to validate without consuming its body. */
   readonly response: Response;
 }
 
@@ -45,6 +55,7 @@ function findOperationContract(
   );
 }
 
+/** Returns the generated contract matching an exact method, path, and status. */
 export function getResponseContract(
   selector: ResponseSelector,
 ): GeneratedResponseContract | undefined {
@@ -57,6 +68,7 @@ export function getResponseContract(
   );
 }
 
+/** Returns the Zod schema attached to a generated response contract. */
 export function getResponseValidator(
   contract: GeneratedResponseContract,
 ): ZodType {
@@ -95,6 +107,7 @@ function syntheticIssue(
   };
 }
 
+/** Validates externally supplied JSON without throwing or requiring a Response. */
 export function validateExternalResponse(
   selector: ResponseSelector,
   value: unknown,
@@ -157,6 +170,11 @@ function contractError(
   });
 }
 
+/**
+ * Validates a client response's status, content type, JSON syntax, and body.
+ *
+ * @throws {SefariaContractError} When the response violates its generated contract.
+ */
 export async function validateResponse(
   context: ResponseValidationContext,
   lookup: ResponseValidatorLookup = getResponseValidator,

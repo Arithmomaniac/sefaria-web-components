@@ -5,6 +5,11 @@ import { parseDocument } from "htmlparser2";
 
 const VOID_TAGS = new Set(["br"]);
 
+/**
+ * Parses an HTML fragment using browser-style recovery and decoded entities.
+ *
+ * @see [Parsing and serialization](../README.md#parsing-and-serialization)
+ */
 export function parseHtml(html: string): ChildNode[] {
   return parseDocument(html, {
     decodeEntities: true,
@@ -13,22 +18,27 @@ export function parseHtml(html: string): ChildNode[] {
   }).children;
 }
 
+/** Returns normalized non-empty class tokens from a parsed element. */
 export function classTokens(element: Element): string[] {
   return (element.attribs.class ?? "").split(/\s+/u).filter(Boolean);
 }
 
+/** Tests whether a parsed element contains one exact class token. */
 export function hasClass(element: Element, token: string): boolean {
   return classTokens(element).includes(token);
 }
 
+/** Tests whether a parsed node is a text node containing only whitespace. */
 export function hasOnlyWhitespace(node: ChildNode): boolean {
   return isText(node) && node.data.trim().length === 0;
 }
 
+/** Narrows a parsed node to an element and optionally checks its tag name. */
 export function isElement(node: ChildNode, name?: string): node is Element {
   return isTag(node) && (name === undefined || node.name === name);
 }
 
+/** Serializes one opening tag with escaped, deterministically ordered attributes. */
 export function serializeOpenTag(
   name: string,
   attributes: Readonly<Record<string, string>> = {},
@@ -40,6 +50,7 @@ export function serializeOpenTag(
   return `<${name}${serializedAttributes}>`;
 }
 
+/** Serializes a closing tag, omitting closers for supported void elements. */
 export function serializeCloseTag(name: string): string {
   return VOID_TAGS.has(name) ? "" : `</${name}>`;
 }
@@ -48,11 +59,13 @@ function identityText(text: string): string {
   return text;
 }
 
+/** Serializes parsed nodes iteratively, optionally transforming text-node values. */
 export function serializeNodes(
   nodes: readonly ChildNode[],
   transformText: (text: string) => string = identityText,
 ): string {
   const output: string[] = [];
+  // An explicit task stack keeps serialization safe for deeply nested input.
   const tasks: SerializeTask[] = [{ kind: "nodes", nodes, index: 0 }];
 
   while (tasks.length > 0) {
@@ -98,6 +111,7 @@ export function serializeNodes(
   return output.join("");
 }
 
+/** Returns decoded descendant text without retaining markup. */
 export function textContent(nodes: readonly ChildNode[]): string {
   const output: string[] = [];
   const stack = [...nodes].reverse();
