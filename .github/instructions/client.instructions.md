@@ -24,6 +24,7 @@ applyTo: "packages/client/**,docs/specs/client.md"
 - Keep the public client as a thin configured `@hey-api/client-fetch` capability used by the generated SDK.
 - Accept a configurable base URL and injectable `fetch`.
 - Preserve documented HTTP error payloads and Fetch API network or abort failures.
+- Add JSDoc to every handwritten exported declaration and every exported interface or class property. Document field meanings, failures, and important behavior at the declaration. Link to the package README for longer explanations.
 - Do not add a generalized facade, normalized model, default cache, retry, coalescing, or component method.
 - Cover the six Core endpoints from `docs/specs/client.md`.
 - Add a correction only after source review or runtime validation identifies a mismatch.

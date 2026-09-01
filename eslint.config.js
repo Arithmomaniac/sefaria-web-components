@@ -1,4 +1,5 @@
 import eslint from "@eslint/js";
+import jsdoc from "eslint-plugin-jsdoc";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
@@ -20,6 +21,35 @@ export default tseslint.config(
     files: ["**/*.ts"],
     rules: {
       "@typescript-eslint/consistent-type-imports": "error",
+    },
+  },
+  {
+    files: ["packages/**/*.ts"],
+    ignores: ["**/*.test.ts", "**/generated/**"],
+    plugins: { jsdoc },
+    rules: {
+      "jsdoc/require-jsdoc": [
+        "error",
+        {
+          contexts: [
+            "ExportNamedDeclaration > TSInterfaceDeclaration",
+            "ExportNamedDeclaration > TSInterfaceDeclaration TSPropertySignature",
+            "ExportNamedDeclaration > TSEnumDeclaration",
+            "ExportNamedDeclaration > TSTypeAliasDeclaration",
+            "ExportNamedDeclaration > VariableDeclaration",
+            "ExportNamedDeclaration > ClassDeclaration PropertyDefinition",
+            "ExportDefaultDeclaration > TSInterfaceDeclaration",
+            "ExportDefaultDeclaration > TSInterfaceDeclaration TSPropertySignature",
+            "ExportDefaultDeclaration > TSEnumDeclaration",
+            "ExportDefaultDeclaration > ClassDeclaration PropertyDefinition",
+          ],
+          publicOnly: { cjs: false, esm: true },
+          require: {
+            ClassDeclaration: true,
+            FunctionDeclaration: true,
+          },
+        },
+      ],
     },
   },
 );

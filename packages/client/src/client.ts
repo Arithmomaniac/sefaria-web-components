@@ -7,8 +7,11 @@ import {
 
 import { validateResponse } from "./validation.js";
 
+/** Configuration used to create an isolated Sefaria API client. */
 export interface SefariaClientOptions {
+  /** API origin. Defaults to `https://www.sefaria.org`. */
   readonly baseUrl?: string;
+  /** Fetch implementation used for requests, testing, or host integration. */
   readonly fetch?: typeof fetch;
 }
 
@@ -22,8 +25,11 @@ type SefariaGetOptions<ThrowOnError extends boolean> = Omit<
   readonly responseStyle?: "fields";
 };
 
+/** Branded client accepted by the generated Sefaria SDK operations. */
 export interface SefariaClient {
+  /** Compile-time brand preventing accidental structural substitutes. */
   readonly [sefariaClientBrand]: true;
+  /** Performs a validated GET request using fields-style responses. */
   readonly get: <
     TData = unknown,
     TError = unknown,
@@ -33,6 +39,7 @@ export interface SefariaClient {
   ) => RequestResult<TData, TError, ThrowOnError, "fields">;
 }
 
+/** Creates a frozen generated-SDK client with status-aware response validation. */
 export function createSefariaClient(
   options: SefariaClientOptions = {},
 ): SefariaClient {
@@ -68,6 +75,7 @@ export function createSefariaClient(
   return Object.freeze(facade);
 }
 
+/** Rejects clients that were not created by {@link createSefariaClient}. */
 export function requireSefariaClient(client: SefariaClient): SefariaClient {
   if (!sefariaClients.has(client)) {
     throw new TypeError(

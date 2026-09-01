@@ -18,65 +18,110 @@ import {
   resolveConfig as resolvePrettierConfig,
 } from "prettier";
 
+/** A JSON value that cannot contain child values. */
 export type JsonPrimitive = boolean | null | number | string;
+
+/** Any value allowed by JSON. */
 export type JsonValue =
   JsonPrimitive | JsonValue[] | { [key: string]: JsonValue };
+
+/** A JSON object keyed by property name. */
 export type JsonObject = { [key: string]: JsonValue };
 
+/** Identifies the pinned upstream OpenAPI document used for generation. */
 export interface OpenApiSource {
+  /** The repository that owns the upstream document. */
   readonly repository: "Sefaria/Sefaria-Project";
+  /** The complete upstream commit SHA. */
   readonly commit: string;
+  /** The document path within the upstream repository. */
   readonly path: "docs/openAPI.json";
+  /** The commit-pinned download URL. */
   readonly url: string;
+  /** The expected SHA-256 digest of the downloaded bytes. */
   readonly sha256: string;
 }
 
+/** Describes one correction in the formal OpenAPI Overlay. */
 export interface OverlayAction {
+  /** The JSONPath expression that selects the value to change. */
   readonly target: string;
+  /** The replacement or merged value. */
   readonly update?: JsonValue;
+  /** Whether to remove the selected value. */
   readonly remove?: true;
+  /** The JSONPath expression whose value should be copied. */
   readonly copy?: string;
+  /** A human-readable explanation of the correction. */
   readonly description?: string;
+  /** The stable identifier for this overlay action. */
   readonly "x-action-id": string;
+  /** The guard identifier that proves this correction is still needed. */
   readonly "x-correction-id": string;
 }
 
+/** The source state that an overlay precondition expects. */
 export type ExpectedState =
   | { readonly absent: true }
   | { readonly value: JsonValue }
   | { readonly sha256: string };
 
+/** Defines one source-state check that must pass before correction. */
 export interface OverlayPrecondition {
+  /** The JSONPath expression that selects the source value. */
   readonly target: string;
+  /** The exact value, digest, or absence expected at the target. */
   readonly expected: ExpectedState;
 }
 
+/** Groups the preconditions for one correction. */
 export interface OverlayGuard {
+  /** The correction identifier shared with its overlay actions. */
   readonly id: string;
+  /** The checks that must pass before the correction can run. */
   readonly preconditions: readonly OverlayPrecondition[];
 }
 
+/** The formal overlay and local guards applied to the upstream document. */
 export interface OverlayDocument {
+  /** The supported OpenAPI Overlay specification version. */
   readonly overlay: "1.1.0";
+  /** Metadata that describes the local correction set. */
   readonly info: {
+    /** The overlay title. */
     readonly title: string;
+    /** The overlay version. */
     readonly version: string;
+    /** An optional longer description of the overlay. */
     readonly description?: string;
   };
+  /** The relative path of the document corrected by this overlay. */
   readonly extends: "./upstream.json";
+  /** Local source-state guards keyed to correction identifiers. */
   readonly "x-sefaria-guards": readonly OverlayGuard[];
+  /** The ordered corrections applied to the upstream document. */
   readonly actions: readonly OverlayAction[];
 }
 
+/** Metadata needed to generate and select one response validator. */
 export interface ResponseContractMetadata {
+  /** The OpenAPI operation identifier. */
   readonly operationId: string;
+  /** The generated SDK function name. */
   readonly functionName: string;
+  /** The HTTP method for the response contract. */
   readonly method: "GET";
+  /** The OpenAPI path template. */
   readonly path: string;
+  /** The HTTP response status. */
   readonly status: number;
+  /** The response content types covered by the schema. */
   readonly contentTypes: readonly string[];
+  /** The local schema path in the corrected OpenAPI document. */
   readonly schemaPath: string;
+  /** The generated module export used as the validator schema. */
   readonly validatorExport: string;
+  /** The generated response-validator function name. */
   readonly validatorName: string;
 }
 
@@ -101,6 +146,7 @@ interface OpenApiFormatModule {
   ) => unknown[];
 }
 
+/** The retained Core endpoints and their stable generated names. */
 export const CORE_OPERATIONS = [
   {
     path: "/api/v3/texts/{tref}",
@@ -134,6 +180,7 @@ export const CORE_OPERATIONS = [
   },
 ] as const;
 
+/** The OpenAPI paths retained in the corrected Core document. */
 export const CORE_PATHS = CORE_OPERATIONS.map(({ path }) => path);
 
 const require = createRequire(import.meta.url);
@@ -220,10 +267,12 @@ function generatedHeader(source: OpenApiSource): string {
   ].join("\n");
 }
 
+/** Computes the lowercase SHA-256 digest for bytes or UTF-8 text. */
 export function sha256(bytes: Uint8Array | string): string {
   return createHash("sha256").update(bytes).digest("hex");
 }
 
+/** Verifies that upstream bytes match the digest recorded in source metadata. */
 export function verifyChecksum(
   source: Pick<OpenApiSource, "sha256">,
   upstreamBytes: Uint8Array | string,
@@ -236,6 +285,7 @@ export function verifyChecksum(
   }
 }
 
+/** Rejects null schemas that are not valid OpenAPI 3.0 nullable schemas. */
 export function validateOpenApi30NullSemantics(document: JsonObject): void {
   const version = document.openapi;
   if (typeof version !== "string" || !version.startsWith("3.0.")) {
@@ -283,6 +333,7 @@ export function validateOpenApi30NullSemantics(document: JsonObject): void {
   visit(document, "");
 }
 
+/** Validates the overlay structure and links each action to a local guard. */
 export function validateOverlayDocument(overlay: OverlayDocument): void {
   if (overlay.overlay !== "1.1.0") {
     throw new Error(
@@ -384,6 +435,7 @@ function preconditionMismatch(
   );
 }
 
+/** Verifies that the pinned upstream document still matches every guard. */
 export function validatePreconditions(
   document: JsonObject,
   guards: readonly OverlayGuard[],
@@ -441,6 +493,7 @@ export function validatePreconditions(
   }
 }
 
+/** Applies every formal overlay action and rejects unused actions. */
 export async function applyFormalOverlay(
   document: JsonObject,
   overlay: OverlayDocument,
@@ -514,6 +567,7 @@ function retainOnlyGet(pathItem: JsonValue): JsonValue {
   return retained;
 }
 
+/** Retains the selected GET paths and every component they reference. */
 export function extractCoreDocument(
   document: JsonObject,
   corePaths: readonly string[] = CORE_PATHS,
@@ -1193,6 +1247,7 @@ async function generateHeyApiArtifacts(
   }
 }
 
+/** Generates the corrected OpenAPI document, SDK, and response validators. */
 export async function generateArtifacts(
   source: OpenApiSource,
   upstreamBytes: Uint8Array | string,
@@ -1250,6 +1305,7 @@ export async function generateArtifacts(
   return artifacts;
 }
 
+/** Returns sorted artifact paths whose generated and committed contents differ. */
 export function findStaleArtifacts(
   generated: ReadonlyMap<string, string>,
   committed: ReadonlyMap<string, string>,
@@ -1270,6 +1326,7 @@ async function parseYamlFile<T>(path: string, description: string): Promise<T> {
   return parsed as T;
 }
 
+/** Loads and validates the committed OpenAPI Overlay input. */
 export async function loadOverlayInputs(root = packageRoot): Promise<{
   readonly overlay: OverlayDocument;
 }> {
@@ -1281,6 +1338,7 @@ export async function loadOverlayInputs(root = packageRoot): Promise<{
   };
 }
 
+/** Loads the pinned source metadata, upstream bytes, and overlay inputs. */
 export async function loadCommittedInputs(root = packageRoot): Promise<{
   readonly source: OpenApiSource;
   readonly upstreamBytes: Uint8Array;
@@ -1298,6 +1356,7 @@ export async function loadCommittedInputs(root = packageRoot): Promise<{
   };
 }
 
+/** Reads the committed generated files, or an empty map when none exist. */
 export async function readCommittedArtifacts(
   root = packageRoot,
 ): Promise<ReadonlyMap<string, string>> {
@@ -1325,6 +1384,7 @@ export async function readCommittedArtifacts(
   return artifacts;
 }
 
+/** Replaces the generated directory with the supplied artifact set. */
 export async function writeArtifacts(
   artifacts: ReadonlyMap<string, string>,
   root = packageRoot,
@@ -1340,6 +1400,7 @@ export async function writeArtifacts(
   }
 }
 
+/** Generates and writes all committed client artifacts. */
 export async function generateCommittedArtifacts(
   root = packageRoot,
 ): Promise<void> {
@@ -1352,6 +1413,7 @@ export async function generateCommittedArtifacts(
   await writeArtifacts(artifacts, root);
 }
 
+/** Returns the committed artifact paths that no longer match generation. */
 export async function checkCommittedArtifacts(
   root = packageRoot,
 ): Promise<readonly string[]> {

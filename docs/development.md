@@ -1,3 +1,5 @@
+> Created/edited by GitHub Copilot with human review/feedback by avilevin.
+
 # Development
 
 This guide describes current commands and remaining planned architecture work.
@@ -7,10 +9,10 @@ This guide describes current commands and remaining planned architecture work.
 | Area | Current behavior | Planned change |
 | --- | --- | --- |
 | `packages/client` | Generates six named Core SDK functions, contracts, Zod validators, and a status-aware fetch client from a pinned corrected OpenAPI document | Expand only when a reviewed contract adds another operation |
-| `packages/text-transform` | Exports option types | Implement pure sanitization, vocalization, and footnote operations |
+| `packages/text-transform` | Implements parser-backed sanitization, Hebrew vocalization modes, and structured footnote extraction without browser DOM globals | Add broad pinned compatibility qualification in #14 |
 | `packages/components` | Exports the base element and token defaults | Add component factories and request-free elements |
 | `demos/mcp` | Packages an App shell and returns a text-only tool result | Add corrected payload validation and component projection |
-| `tests/compatibility` | Imports the client and text-transform stubs | Add pinned compatibility evidence |
+| `tests/compatibility` | Imports the client and text-transform packages | Add pinned compatibility evidence |
 
 ## Technology
 

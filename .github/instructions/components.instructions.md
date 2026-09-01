@@ -22,6 +22,7 @@ applyTo: "packages/components/**,demos/component-lab/**,docs/specs/components.md
 - Make composite async factories issue one outer request and call child pure factories.
 - Prove that ten child views use one outer request and zero child requests.
 - Sanitize unsafe HTML before it enters a view model.
+- Add JSDoc to every handwritten exported declaration and every exported interface or class property. Document rendering state and element behavior at the declaration. Link to package documentation for longer explanations.
 - Use direction and attribution from payload data.
 - Use real interactive controls, accessible names, visible focus, and keyboard operation.
 - Use browser tests for structure, direction, focus, layout, event composition, token inheritance, and request absence.

@@ -27,8 +27,11 @@ const refreshTargets = [
 
 type RenamePath = (oldPath: string, newPath: string) => Promise<void>;
 
+/** Overrides filesystem moves used to publish or restore refreshed files. */
 export interface RefreshPublishOptions {
+  /** Moves each staged replacement into its committed location. */
   readonly renamePath?: RenamePath;
+  /** Restores an original path if publication fails. */
   readonly restorePath?: RenamePath;
 }
 
@@ -60,6 +63,7 @@ async function pathExists(path: string): Promise<boolean> {
   }
 }
 
+/** Publishes a complete staged refresh and rolls back partial publication. */
 export async function publishStagedRefresh(
   stagedRoot: string,
   root: string,
@@ -131,6 +135,7 @@ export async function publishStagedRefresh(
   }
 }
 
+/** Reads and validates the complete commit SHA from command-line arguments. */
 export function parseCommit(args: readonly string[]): string {
   const commitFlag = args.findIndex((argument) => argument === "--commit");
   const commit = commitFlag >= 0 ? args[commitFlag + 1] : undefined;
@@ -142,10 +147,12 @@ export function parseCommit(args: readonly string[]): string {
   return commit.toLowerCase();
 }
 
+/** Builds the raw download URL for an OpenAPI document at one commit. */
 export function pinnedOpenApiUrl(commit: string): string {
   return `https://raw.githubusercontent.com/Sefaria/Sefaria-Project/${commit}/docs/openAPI.json`;
 }
 
+/** Downloads, validates, generates, stages, and publishes a pinned refresh. */
 export async function refreshOpenApi(
   commit: string,
   fetchImpl: typeof fetch = fetch,
