@@ -77,6 +77,18 @@ These source facts constrain the overlay. Deployed fixtures must still cover rep
 
 The dated captures under `packages/client/test/fixtures` preserve the deployed v3 spanning-text, Genesis index, nullable version metadata, versions error, simple shape, shape error, Targum link, links error, and Sheet reference branches. `packages/client/test/fixtures/manifest.json` records the exact request URL and any reduction for each capture.
 
+### September 2, 2026 component captures
+
+The September 2, 2026 component captures add reduced deployed v3 responses for bilingual `Genesis 1:1`, Hebrew with a missing requested English version, only a missing requested English version, bilingual `Genesis 1:31-2:2`, and the complete primary Hebrew segment for `Shulchan Arukh, Orach Chayim 1:1`. They also retain the unmodified deployed v3 HTTP 400 invalid-format payload, v3 HTTP 404 invalid-reference payload, and ref HTTP 200 `{ "is_ref": false }` payload. The exact URLs, statuses, dates, and reductions are recorded in `packages/client/test/fixtures/manifest.json`.
+
+The deployed missing-version responses use warning code 101. Hebrew content plus a missing requested English version therefore provides evidence for a component-level partial state, while a response with no requested version provides evidence for an empty state. These state names remain project decisions in the component specification rather than transport fields.
+
+The spanning response retains three ordered segments across two chapters in each selected language. The final English segment contains one deployed footnote pair. The fixture catalog derives range partial and empty boundary inputs from that capture by explicitly removing selected versions and recording the derivation; those derived inputs are not claimed as separate deployed responses.
+
+The Shulchan Arukh capture preserves the full long Hebrew segment and its deployed commentary-placement markup. Standards-parser recovery changes malformed `data-commentator=Mishnah Berurah"` input to `data-commentator="Mishnah"`; the committed view-model oracle records the parser result without guessing the intended commentator.
+
+The generated ref HTTP 404 example is a contract example, not deployed evidence. It remains outside the deployed fixture manifest and identifies the generated response-schema path that authorizes it.
+
 ### September 1, 2026 Genesis index capture
 
 `packages/client/test/fixtures/index-genesis-2026-09-01.json` was captured from the deployed `https://www.sefaria.org/api/v2/index/Genesis` response on September 1, 2026. The committed fixture retains top-level `title` and `categories`; the root schema's `nodeType`, `depth`, `addressTypes`, `sectionNames`, `lengths`, `title`, `heTitle`, `heSectionNames`, and `key`; exactly the primary Hebrew and English root-schema titles; and only `alts.Parasha.nodes[0]`. That alternate node retains `nodeType`, `depth`, `wholeRef`, `addressTypes`, `sectionNames`, `refs`, reduced `match_templates`, `isMapReferenceable`, `sharedTitle`, all deployed titles in that node, `title`, and `heTitle`. All other top-level metadata and alternate nodes are omitted.

@@ -1,0 +1,3 @@
+{
+  "error": "return_format should be one of those formats: ['default', 'wrap_all_entities', 'text_only', 'strip_only_footnotes']."
+}

@@ -1,0 +1,74 @@
+{
+  "ref": "Genesis 1:31-2:2",
+  "heRef": "בראשית א׳:ל״א-ב׳:ב׳",
+  "sections": ["1", "31"],
+  "toSections": ["2", "2"],
+  "sectionRef": "Genesis 1-2",
+  "heSectionRef": "בראשית א׳-ב׳",
+  "firstAvailableSectionRef": "Genesis 1:31-2:2",
+  "isSpanning": true,
+  "spanningRefs": ["Genesis 1:31", "Genesis 2:1-2"],
+  "next": "Genesis 3",
+  "prev": null,
+  "title": "Genesis 1-2",
+  "book": "Genesis",
+  "heTitle": "בראשית",
+  "primary_category": "Tanakh",
+  "type": "Tanakh",
+  "indexTitle": "Genesis",
+  "categories": ["Tanakh", "Torah"],
+  "heIndexTitle": "בראשית",
+  "isComplex": false,
+  "isDependant": false,
+  "order": [1, 1],
+  "collectiveTitle": "",
+  "heCollectiveTitle": "",
+  "textDepth": 2,
+  "sectionNames": ["Chapter", "Verse"],
+  "addressTypes": ["Perek", "Pasuk"],
+  "titleVariants": ["Genesis"],
+  "heTitleVariants": ["בראשית"],
+  "alts": [],
+  "available_versions": [],
+  "versions": [
+    {
+      "versionTitle": "Miqra according to the Masorah",
+      "versionSource": "https://he.wikisource.org/wiki/%D7%9E%D7%A9%D7%AA%D7%9E%D7%A9:Dovi/%D7%9E%D7%A7%D7%A8%D7%90_%D7%A2%D7%9C_%D7%A4%D7%99_%D7%94%D7%9E%D7%A1%D7%95%D7%A8%D7%94",
+      "language": "he",
+      "actualLanguage": "he",
+      "languageFamilyName": "hebrew",
+      "isSource": true,
+      "isPrimary": true,
+      "direction": "rtl",
+      "text": [
+        [
+          "וַיַּ֤רְא אֱלֹהִים֙ אֶת־כׇּל־אֲשֶׁ֣ר עָשָׂ֔ה וְהִנֵּה־ט֖וֹב מְאֹ֑ד וַֽיְהִי־עֶ֥רֶב וַֽיְהִי־בֹ֖קֶר י֥וֹם הַשִּׁשִּֽׁי׃&nbsp;<span class=\"mam-spi-pe\">{פ}</span><br>"
+        ],
+        [
+          "וַיְכֻלּ֛וּ הַשָּׁמַ֥יִם וְהָאָ֖רֶץ וְכׇל־צְבָאָֽם׃",
+          "וַיְכַ֤ל אֱלֹהִים֙ בַּיּ֣וֹם הַשְּׁבִיעִ֔י מְלַאכְתּ֖וֹ אֲשֶׁ֣ר עָשָׂ֑ה וַיִּשְׁבֹּת֙ בַּיּ֣וֹם הַשְּׁבִיעִ֔י מִכׇּל־מְלַאכְתּ֖וֹ אֲשֶׁ֥ר עָשָֽׂה׃"
+        ]
+      ]
+    },
+    {
+      "versionTitle": "The Contemporary Torah, Jewish Publication Society, 2006",
+      "versionSource": "https://www.nli.org.il/he/books/NNL_ALEPH002529489/NLI",
+      "language": "en",
+      "actualLanguage": "en",
+      "languageFamilyName": "english",
+      "isSource": false,
+      "isPrimary": false,
+      "direction": "ltr",
+      "text": [
+        [
+          "And God saw all that had been made, and found it very good. And there was evening and there was morning, the sixth day."
+        ],
+        [
+          "The heaven and the earth were finished, and all their array.",
+          "On the seventh day God finished the work that had been undertaken: [God] ceased<sup class=\"footnote-marker\">*</sup><i class=\"footnote\"><b>ceased </b>Or “rested.”</i> on the seventh day from doing any of the work."
+        ]
+      ]
+    }
+  ],
+  "warnings": []
+}

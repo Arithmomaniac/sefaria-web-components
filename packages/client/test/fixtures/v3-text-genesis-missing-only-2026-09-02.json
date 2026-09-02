@@ -1,0 +1,41 @@
+{
+  "ref": "Genesis 1:1",
+  "heRef": "בראשית א׳:א׳",
+  "sections": ["1", "1"],
+  "toSections": ["1", "1"],
+  "sectionRef": "Genesis 1",
+  "heSectionRef": "בראשית א׳",
+  "firstAvailableSectionRef": "Genesis 1:1",
+  "isSpanning": false,
+  "next": "Genesis 2",
+  "prev": null,
+  "title": "Genesis 1",
+  "book": "Genesis",
+  "heTitle": "בראשית",
+  "primary_category": "Tanakh",
+  "type": "Tanakh",
+  "indexTitle": "Genesis",
+  "categories": ["Tanakh", "Torah"],
+  "heIndexTitle": "בראשית",
+  "isComplex": false,
+  "isDependant": false,
+  "order": [1, 1],
+  "collectiveTitle": "",
+  "heCollectiveTitle": "",
+  "textDepth": 2,
+  "sectionNames": ["Chapter", "Verse"],
+  "addressTypes": ["Perek", "Pasuk"],
+  "titleVariants": ["Genesis"],
+  "heTitleVariants": ["בראשית"],
+  "alts": [],
+  "available_versions": [],
+  "versions": [],
+  "warnings": [
+    {
+      "english|  missing component fixture  ": {
+        "warning_code": 101,
+        "message": "We do not have version named   missing component fixture   with language english for Genesis 1:1"
+      }
+    }
+  ]
+}

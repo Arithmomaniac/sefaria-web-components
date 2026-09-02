@@ -1,3 +1,5 @@
+> Created/edited by GitHub Copilot; pending human review.
+
 # Review guide
 
 This guide defines review gates for the planned architecture.
@@ -77,6 +79,28 @@ Review the initial corrections for:
 - [ ] HTML sanitization remains separate from JSON schema validation.
 
 ## Component factories
+
+- [ ] The private fixture package owns only test requests, view-model oracles, failures, browser scenarios, and harness mechanics.
+- [ ] Client payload fixtures are imported only through `@sefaria/client/test-fixtures`.
+- [ ] The main client and component entry points export no fixture code.
+- [ ] Every deployed payload records its exact URL, capture date, HTTP status, and reduction.
+- [ ] Every unknown payload passes the matching generated validator before projection.
+- [ ] Contract examples remain outside the deployed fixture manifest and identify their generated schema path.
+- [ ] Derived payloads identify the parent payload and exact derivation.
+- [ ] Request fixtures contain only generated `path` and applicable `query` fields.
+- [ ] A documented error trigger outside a generated request union is marked transport-only and is not presented as a reproducible component request.
+- [ ] Projection, documented HTTP error, rejection, and render-only scenarios remain distinct.
+- [ ] Partial, empty, error, and rejection examples have executable state distinctions.
+- [ ] Committed transformed text agrees with `@sefaria/text-transform` without generating the oracle at test runtime.
+- [ ] Each fixture-local view-model type names its production replacement owner.
+- [ ] Browser fixtures keep direction in view models and layout or interaction in element properties.
+- [ ] Browser containers use 320 or 960 CSS pixels within a 1024 by 768 viewport.
+- [ ] Browser measurement waits for the font-ready gate and uses generic local fonts with network access denied.
+- [ ] One CSS-pixel tolerance applies only to CSS-controlled geometry; font-dependent geometry uses relational assertions.
+- [ ] Blocking assertion identifiers and informational screenshot names remain separate.
+- [ ] The component lab imports the single fixture catalog and marks unimplemented components as planned.
+
+## Production component factories
 
 - [ ] Each component subpath owns its request type.
 - [ ] Each component subpath owns its view-model union.

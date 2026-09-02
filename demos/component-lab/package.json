@@ -5,6 +5,7 @@
   "type": "module",
   "dependencies": {
     "@sefaria/components": "workspace:*",
+    "@sefaria-tests/component-fixtures": "workspace:*",
     "lit": "^3.3.3"
   },
   "scripts": {

@@ -9,6 +9,7 @@
     "./contracts": "./src/generated/contracts.gen.ts",
     "./errors": "./src/contract-error.ts",
     "./schemas": "./src/generated/zod.gen.ts",
+    "./test-fixtures": "./test/fixtures/index.ts",
     "./validation": "./src/validation.ts",
     "./validators": "./src/generated/response-validators.gen.ts"
   },

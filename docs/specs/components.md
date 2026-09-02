@@ -1,3 +1,5 @@
+> Created/edited by GitHub Copilot; pending human review.
+
 # Component specification [Planned]
 
 ## Status
@@ -67,6 +69,23 @@ Missing requested content is not always an error. A bilingual component can retu
 
 A source card can return an empty state when the API supplies no renderable version. The factory must not invent missing text.
 
+### Core fixture state decisions [Planned]
+
+The Core fixture catalog defines exact test-only examples for the first component implementations. The catalog does not export production component types.
+
+| Component | Required fixture states | Exact missing-content decision |
+| --- | --- | --- |
+| Text segment | `loading`, `data`, `empty`, `error` | A valid payload with no renderable requested version is `empty` |
+| Reference label | `loading`, `data`, `empty`, `error` | A valid HTTP 200 `{ "is_ref": false }` payload is `empty`, not `error` |
+| Bilingual segment | `loading`, `data`, `partial`, `empty`, `error` | One requested language present is `partial`; no requested language present is `empty` |
+| Text range | `loading`, `data`, `partial`, `empty`, `error` | Renderable children with a requested language absent are `partial`; no renderable requested children are `empty` |
+
+Loading is a host-supplied render state. A successful pure projection can produce `data`, `partial`, or `empty`.
+
+A documented HTTP error can produce an `error` view model through the async factory. A network error, abort, invalid external payload, or internal fault remains a rejected operation and does not produce a view model.
+
+Each fixture-local view-model type names its production owner issue. The owning implementation replaces that fixture-local type with the production component type without changing the fixture literals.
+
 ## Component request types
 
 A component request contains only information needed to obtain and project that component's data. It can include a reference, endpoint parameters, version selection, language selection, or bounded paging.
@@ -74,6 +93,10 @@ A component request contains only information needed to obtain and project that 
 Layout, theme, open state, focus behavior, and host placement do not belong in a request.
 
 Non-DOM factories consume the request type. It is never an element property.
+
+The first Core fixtures project request fields from the generated operation contracts. V3 text fixtures use only `path` and applicable `query` fields. Reference-label fixtures use only `path`.
+
+The generated SDK `url` and `body` envelope fields are not component request fields. An absent optional query is omitted rather than assigned `undefined`.
 
 ## Pure factories
 
@@ -191,6 +214,8 @@ An element must not call `fetch`, `@sefaria/client`, or an async component facto
 Data state belongs in the view model. This includes text, labels, attribution, missing-content details, loading messages, empty messages, and error details.
 
 Visual and interaction state remains on the element. This includes layout, expanded state, selection, focus, popup placement, and whether a dialog is open.
+
+Direction is data state. Browser fixtures vary direction through the supplied view model, not through an element property.
 
 If an interaction changes requested data, the element emits an event. The host calls a factory and supplies a new view model.
 

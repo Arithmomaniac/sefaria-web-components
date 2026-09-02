@@ -11,6 +11,8 @@ This guide describes current commands and remaining planned architecture work.
 | `packages/client` | Generates six named Core SDK functions, contracts, Zod validators, and a status-aware fetch client from a pinned corrected OpenAPI document | Expand only when a reviewed contract adds another operation |
 | `packages/text-transform` | Implements parser-backed sanitization, Hebrew vocalization modes, and structured footnote extraction without browser DOM globals | Broader corpus comparison remains planned |
 | `packages/components` | Exports the base element and token defaults | Add component factories and request-free elements |
+| `tests/component-fixtures` | Exports exact test-only request, view-model, failure, and browser fixture oracles with an offline browser-harness probe | Replace fixture-local view-model types as production components land |
+| `demos/component-lab` | Displays the shared planned fixture catalog without rendering unimplemented production components | Render each view-model state and important interaction after its component lands |
 | `demos/mcp` | Packages an App shell and returns a text-only tool result | Add corrected payload validation and component projection |
 | `tests/compatibility` | Runs focused pinned client/transform comparisons, a composed v3 validate-to-transform smoke case, and grouped qualification output without network access | Broader corpus comparison and compatibility publication remain planned |
 
@@ -37,8 +39,9 @@ TypeScript emits reusable ES modules. Vite builds the browser demonstrations and
 | `packages/client` | Pinned OpenAPI input, formal guarded overlay, generated contracts, Zod schemas, validators, and named SDK functions |
 | `packages/text-transform` | Pure sanitization, vocalization, and footnotes |
 | `packages/components` | Non-DOM component factories and request-free Lit elements |
+| `tests/component-fixtures` | Exact test-only component requests, view-model oracles, failure scenarios, and browser scenarios |
 | `tests/compatibility` | Pinned compatibility evidence for retained pure behavior |
-| `demos/component-lab` | Browser development for view-model states and interactions |
+| `demos/component-lab` | Shared planned fixture catalog and later browser development for implemented states and interactions |
 | `demos/mcp` | Corrected-payload MCP boundary and FastMCP fixture |
 | `demos/linker-userscript` | Third-party popup integration |
 
@@ -170,6 +173,24 @@ The command requires exactly `--write --capture-date YYYY-MM-DD`. It refuses an 
 
 Candidate generation does not update `manifest.json`, tests, or other references and is not automatic baseline replacement. A reviewer must inspect the candidate and manually update provenance and references in the same reviewed change if it should become committed evidence. The committed `index-genesis-2026-09-01.json` remains immutable. Existing prose-reduced payloads, reduced captures for the other Core endpoints, and hand-extracted markup fragments remain manual-review-only because their reductions depend on source interpretation rather than a general capture rule.
 
+## Component fixture workflow
+
+Deployed component payloads live under `packages/client/test/fixtures` and are exposed to workspace tests only through `@sefaria/client/test-fixtures`. Add a capture only after recording the exact deployed URL, capture date, HTTP status, and deterministic reduction in `manifest.json`, then validate the unknown JSON with the matching generated public validator. Contract-derived examples stay outside the deployed manifest and identify their generated response-schema path.
+
+Exact component request, view-model, rejection, and browser oracles live in the private `@sefaria-tests/component-fixtures` workspace package. Requests contain only generated `path` and applicable `query` fields. A captured documented error whose trigger is outside a generated request union records an explicit transport-only trigger instead of a false component request. Browser scenarios receive exact view models plus separate element properties, local generic-font themes, 320- or 960-pixel containers, blocking assertion identifiers, and informational screenshot names.
+
+Run the focused fixture checks:
+
+```powershell
+pnpm --filter @sefaria-tests/component-fixtures typecheck
+pnpm exec vitest run --project unit packages/client/test/component-fixtures.test.ts tests/component-fixtures/src/index.test.ts demos/component-lab/src/fixture-catalog.test.ts
+pnpm exec vitest run --project browser tests/component-fixtures/src/harness.browser.test.ts
+pnpm --filter @sefaria-tests/component-fixtures build
+pnpm --filter @sefaria-demo/component-lab build
+```
+
+The browser harness uses a plain `HTMLElement` probe to prove direct view-model assignment, separate element-property assignment, external theme and container application, font-ready ordering, and measurement collection. It does not prove production component structure, accessibility, alignment, keyboard behavior, overflow, or request absence; the owning component issues must execute those fixture assertions against the real elements.
+
 ## Generated artifacts
 
 `@sefaria/client` commits:
@@ -191,7 +212,7 @@ Do not edit generated declarations by hand.
 pnpm dev
 ```
 
-The current page shows workspace status and the current components. Planned component-lab states will supply view models rather than references or raw payloads.
+The current page displays fixture IDs, states, production owner issues, browser widths, and planned status from the single `@sefaria-tests/component-fixtures` catalog. It does not render fake production components. Implemented component-lab states will supply view models rather than references or raw payloads.
 
 ## Run the MCP fixture
 

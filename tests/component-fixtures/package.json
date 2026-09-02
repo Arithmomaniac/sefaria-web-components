@@ -1,0 +1,15 @@
+{
+  "name": "@sefaria-tests/component-fixtures",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": "./src/index.ts",
+  "dependencies": {
+    "@sefaria/client": "workspace:*",
+    "@sefaria/text-transform": "workspace:*"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json"
+  }
+}

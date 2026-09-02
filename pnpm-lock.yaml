@@ -56,6 +56,9 @@ importers:
 
   demos/component-lab:
     dependencies:
+      '@sefaria-tests/component-fixtures':
+        specifier: workspace:*
+        version: link:../../tests/component-fixtures
       '@sefaria/components':
         specifier: workspace:*
         version: link:../../packages/components
@@ -113,6 +116,15 @@ importers:
         version: 12.0.0
 
   tests/compatibility:
+    dependencies:
+      '@sefaria/client':
+        specifier: workspace:*
+        version: link:../../packages/client
+      '@sefaria/text-transform':
+        specifier: workspace:*
+        version: link:../../packages/text-transform
+
+  tests/component-fixtures:
     dependencies:
       '@sefaria/client':
         specifier: workspace:*

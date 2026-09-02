@@ -2,46 +2,103 @@
   "v3-text-spanning-2026-08-29.json": {
     "source": "https://www.sefaria.org/api/v3/texts/Genesis%201:31-2:2?version=primary",
     "capturedAt": "2026-08-29",
+    "status": 200,
     "reduction": "Retains deployed metadata and the observed two-level recursive text shape; text strings and optional collections are minimized for a stable focused fixture."
   },
   "index-genesis-2026-09-01.json": {
     "source": "https://www.sefaria.org/api/v2/index/Genesis",
     "capturedAt": "2026-09-01",
+    "status": 200,
     "reduction": "Retains the generated required title, categories, and schema fields; retains the deployed root schema structural fields and only its primary English and Hebrew titles; retains only alts.Parasha.nodes[0] as the nested schema node; omits all other top-level metadata and alternate nodes."
   },
   "versions-nullable-2026-08-30.json": {
     "source": "https://www.sefaria.org/api/texts/versions/Rashi%20on%20Genesis",
     "capturedAt": "2026-08-30",
+    "status": 200,
     "reduction": "Retains one deployed version record with a null versionSource; other version records are omitted."
   },
   "versions-error-2026-08-30.json": {
     "source": "https://www.sefaria.org/api/texts/versions/__missing_generated_client_probe__",
     "capturedAt": "2026-08-30",
+    "status": 200,
     "reduction": "Unmodified deployed HTTP 200 error payload."
   },
   "shape-genesis-2026-08-30.json": {
     "source": "https://www.sefaria.org/api/shape/Genesis",
     "capturedAt": "2026-08-30",
+    "status": 200,
     "reduction": "Unmodified deployed simple shape payload."
   },
   "shape-error-2026-08-30.json": {
     "source": "https://www.sefaria.org/api/shape/Torah",
     "capturedAt": "2026-08-30",
+    "status": 200,
     "reduction": "Unmodified deployed HTTP 200 error payload."
   },
   "links-error-2026-08-30.json": {
     "source": "https://www.sefaria.org/api/links/__missing_generated_client_probe__",
     "capturedAt": "2026-08-30",
+    "status": 200,
     "reduction": "Unmodified deployed HTTP 200 error payload."
   },
   "links-targum-2026-08-30.json": {
     "source": "https://www.sefaria.org/api/links/Genesis%201%3A1?with_text=0&with_sheet_links=0&category=Targum",
     "capturedAt": "2026-08-30",
+    "status": 200,
     "reduction": "Retains the first deployed Targum link record; other link records are omitted."
   },
   "ref-sheet-2026-08-30.json": {
     "source": "https://www.sefaria.org/api/ref/Sheet%20643492",
     "capturedAt": "2026-08-30",
+    "status": 200,
     "reduction": "Unmodified deployed SheetNode payload with conditional navigation fields."
+  },
+  "v3-text-genesis-bilingual-2026-09-02.json": {
+    "source": "https://www.sefaria.org/api/v3/texts/Genesis%201%3A1?version=hebrew%7CMiqra%20according%20to%20the%20Masorah&version=english%7CThe%20Contemporary%20Torah%2C%20Jewish%20Publication%20Society%2C%202006",
+    "capturedAt": "2026-09-02",
+    "status": 200,
+    "reduction": "Retains required reference metadata and the selected Hebrew and English version records, including one deployed English footnote pair."
+  },
+  "v3-text-genesis-missing-english-2026-09-02.json": {
+    "source": "https://www.sefaria.org/api/v3/texts/Genesis%201%3A1?version=hebrew%7CMiqra%20according%20to%20the%20Masorah&version=english%7C__missing_component_fixture__",
+    "capturedAt": "2026-09-02",
+    "status": 200,
+    "reduction": "Retains required reference metadata, the selected Hebrew version, and the deployed warning for the missing requested English version."
+  },
+  "v3-text-genesis-missing-only-2026-09-02.json": {
+    "source": "https://www.sefaria.org/api/v3/texts/Genesis%201%3A1?version=english%7C__missing_component_fixture__",
+    "capturedAt": "2026-09-02",
+    "status": 200,
+    "reduction": "Retains required reference metadata, the empty versions list, and the deployed warning for the only requested version."
+  },
+  "v3-text-genesis-spanning-bilingual-2026-09-02.json": {
+    "source": "https://www.sefaria.org/api/v3/texts/Genesis%201%3A31-2%3A2?version=hebrew%7CMiqra%20according%20to%20the%20Masorah&version=english%7CThe%20Contemporary%20Torah%2C%20Jewish%20Publication%20Society%2C%202006",
+    "capturedAt": "2026-09-02",
+    "status": 200,
+    "reduction": "Retains required spanning-reference metadata and the selected Hebrew and English nested text for three segments across two chapters."
+  },
+  "v3-text-shulchan-arukh-long-2026-09-02.json": {
+    "source": "https://www.sefaria.org/api/v3/texts/Shulchan%20Arukh%2C%20Orach%20Chayim%201%3A1?version=primary",
+    "capturedAt": "2026-09-02",
+    "status": 200,
+    "reduction": "Retains required reference metadata and the complete selected long Hebrew segment with deployed line, size, and commentary-placement markup."
+  },
+  "v3-text-invalid-format-2026-09-02.json": {
+    "source": "https://www.sefaria.org/api/v3/texts/Genesis%201%3A1?return_format=__invalid_component_fixture__",
+    "capturedAt": "2026-09-02",
+    "status": 400,
+    "reduction": "Unmodified deployed documented HTTP 400 error payload."
+  },
+  "v3-text-invalid-ref-2026-09-02.json": {
+    "source": "https://www.sefaria.org/api/v3/texts/__missing_component_fixture__",
+    "capturedAt": "2026-09-02",
+    "status": 404,
+    "reduction": "Unmodified deployed documented HTTP 404 error payload."
+  },
+  "ref-invalid-2026-09-02.json": {
+    "source": "https://www.sefaria.org/api/ref/__missing_component_fixture__",
+    "capturedAt": "2026-09-02",
+    "status": 200,
+    "reduction": "Unmodified deployed invalid-reference payload."
   }
 }

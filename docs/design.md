@@ -1,3 +1,5 @@
+> Created/edited by GitHub Copilot; pending human review.
+
 # Design: Generated API Contracts and Request-Free Components
 
 ## Summary
@@ -59,11 +61,14 @@ Each OpenAPI correction starts with the original Sefaria route, handler, respons
 | --- | --- | --- |
 | `@sefaria/client` | Pinned OpenAPI input, checksum, guarded overlay, generated contracts, Zod schemas, TypeScript validators, and thin client | Rendering, component view models, default caches, retries, coalescing, or component methods |
 | `@sefaria/text-transform` | Pure sanitization, vocalization, and footnote operations | Requests, DOM rendering, or API contract correction |
+| `@sefaria-tests/component-fixtures` | Exact test-only component requests, view-model oracles, failure scenarios, browser scenarios, and fixture-harness mechanics | Production component types, factories, elements, or transport ownership |
 | Non-DOM `@sefaria/components` subpaths | Component request types, view-model unions, pure factories, and async factories | Hidden global clients or DOM state |
 | `@sefaria/components` elements | Layout, interaction, accessibility, theming, and DOM rendering | References, raw JSON, clients, hosts, fetch functions, or requests |
 | Integrations | Tool input, host behavior, boundary validation, and factory calls | A second domain model or duplicate rendering implementation |
 | Specifications | Intended behavior and acceptance rules | Mutable issue state |
 | `docs/evidence.md` | Observed source and deployed behavior | Normative product contracts |
+
+The component lab currently has a temporary test-only dependency on `@sefaria-tests/component-fixtures` so it can display the shared planned scenario catalog. This dependency does not enter `@sefaria/components` or the production package diagram, and later component issues replace fixture-local view-model types with their production owners.
 
 ## Package dependency diagram
 
