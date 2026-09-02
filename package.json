@@ -10,9 +10,11 @@
   "scripts": {
     "build": "pnpm -r --if-present build",
     "build:mcp": "pnpm --filter @sefaria-demo/mcp-app build && pnpm stage:mcp",
-    "check": "pnpm openapi:check && pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm check:python:staged",
+    "check": "pnpm openapi:check && pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm compatibility:qualify && pnpm build && pnpm check:python:staged",
     "check:python": "pnpm install:python && pnpm --filter @sefaria-demo/mcp-app build && pnpm check:python:staged",
     "check:python:staged": "pnpm stage:mcp && uv run --no-sync --directory demos/mcp/fixture-server ruff format --check . && uv run --no-sync --directory demos/mcp/fixture-server ruff check . && uv run --no-sync --directory demos/mcp/fixture-server mypy src tests && uv run --no-sync --directory demos/mcp/fixture-server pytest",
+    "client:fixture:capture-candidate": "pnpm --filter @sefaria/client fixture:capture-candidate",
+    "compatibility:qualify": "pnpm --filter @sefaria-tests/compatibility qualify",
     "dev": "pnpm --filter @sefaria-demo/component-lab dev",
     "dev:linker": "pnpm --filter @sefaria-demo/linker-userscript dev",
     "dev:mcp": "pnpm build:mcp && uv run --no-sync --directory demos/mcp/fixture-server sefaria-mcp-app-fixture",

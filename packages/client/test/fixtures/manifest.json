@@ -4,6 +4,11 @@
     "capturedAt": "2026-08-29",
     "reduction": "Retains deployed metadata and the observed two-level recursive text shape; text strings and optional collections are minimized for a stable focused fixture."
   },
+  "index-genesis-2026-09-01.json": {
+    "source": "https://www.sefaria.org/api/v2/index/Genesis",
+    "capturedAt": "2026-09-01",
+    "reduction": "Retains the generated required title, categories, and schema fields; retains the deployed root schema structural fields and only its primary English and Hebrew titles; retains only alts.Parasha.nodes[0] as the nested schema node; omits all other top-level metadata and alternate nodes."
+  },
   "versions-nullable-2026-08-30.json": {
     "source": "https://www.sefaria.org/api/texts/versions/Rashi%20on%20Genesis",
     "capturedAt": "2026-08-30",

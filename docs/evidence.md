@@ -75,7 +75,50 @@ Two documentation corrections also use the local Sefaria API audit as supporting
 
 These source facts constrain the overlay. Deployed fixtures must still cover representative data-dependent branches.
 
-The dated captures under `packages/client/test/fixtures` preserve the deployed v3 spanning-text, nullable version metadata, versions error, simple shape, shape error, Targum link, links error, and Sheet reference branches. `packages/client/test/fixtures/manifest.json` records the exact request URL and any reduction for each capture.
+The dated captures under `packages/client/test/fixtures` preserve the deployed v3 spanning-text, Genesis index, nullable version metadata, versions error, simple shape, shape error, Targum link, links error, and Sheet reference branches. `packages/client/test/fixtures/manifest.json` records the exact request URL and any reduction for each capture.
+
+### September 1, 2026 Genesis index capture
+
+`packages/client/test/fixtures/index-genesis-2026-09-01.json` was captured from the deployed `https://www.sefaria.org/api/v2/index/Genesis` response on September 1, 2026. The committed fixture retains top-level `title` and `categories`; the root schema's `nodeType`, `depth`, `addressTypes`, `sectionNames`, `lengths`, `title`, `heTitle`, `heSectionNames`, and `key`; exactly the primary Hebrew and English root-schema titles; and only `alts.Parasha.nodes[0]`. That alternate node retains `nodeType`, `depth`, `wholeRef`, `addressTypes`, `sectionNames`, `refs`, reduced `match_templates`, `isMapReferenceable`, `sharedTitle`, all deployed titles in that node, `title`, and `heTitle`. All other top-level metadata and alternate nodes are omitted.
+
+The September 1 capture is immutable. The current candidate-capture implementation requires exactly `--write --capture-date YYYY-MM-DD`, reads the source URL from this fixture's manifest declaration, refuses an invalid date or existing dated target before fetching, validates the unknown response with `validateGetIndexV2200`, applies the same deterministic reduction, and stages a newly dated candidate beside the fixture directory. It verifies the candidate target is still absent and publishes with one same-filesystem rename; it does not update the manifest, tests, or references. `packages/client/test/refresh-fixtures.test.ts` proves argument refusal, candidate naming, exact URL use, deterministic bytes, existing-target refusal, unchanged evidence on source or validation failures, successful creation, failed-publication behavior, and one-rename replacement semantics. Reviewers manually retain a candidate and update its provenance and references in a reviewed change.
+
+## Current focused compatibility qualification
+
+The current qualification is a small, pinned, offline suite. It is not an exhaustive comparison of Sefaria corpora, endpoints, versions, markup, or consumer code paths, and it does not claim broad compatibility publication. Broader corpus qualification remains planned.
+
+### Criterion-to-proof map
+
+| Issue #14 criterion | Existing and current proof |
+| --- | --- |
+| Six representative Core endpoints with provenance | `packages/client/test/validation.test.ts` validates the dated v3, versions, ref, shape, and links fixtures; `packages/client/test/payload-agreement.test.ts` proves the manifest covers all six operations and validates the September 1 Genesis index fixture statically and at runtime. |
+| Overlay scope and guarded preconditions | Existing `packages/client/test/generation.test.ts` cases prove extraction of only six Core operations, mutation failure at every co-located guard, deterministic offline generation, stale-output detection, and each reviewed correction. |
+| Generated TypeScript and public validator agreement | Existing `packages/client/test/type-contract.test.ts` and `packages/client/test/validation.test.ts` cover generated public types and validators; `packages/client/test/payload-agreement.test.ts` adds shared accepted and rejected fixture expressions. |
+| Negative required-field and old-shape fixtures | `packages/client/test/payload-agreement.test.ts` rejects an index response without required `categories` and the pre-overlay uppercase shape fields. Existing `packages/client/test/validation.test.ts` also enforces required, strict, and `minProperties` constraints. |
+| Character and structural transform comparison | Existing `packages/text-transform/test/vocalization.test.ts`, `sanitize.test.ts`, and `footnotes.test.ts` cover the pure operations. New `tests/compatibility/src/index.test.ts`, `text-transform.test.ts`, and `cross-package-smoke.test.ts` add bounded code-point differences, pinned source comparisons, structural comparisons, and a full validate-to-transform path. |
+| Explicit, reviewable capture | `packages/client/test/refresh-fixtures.test.ts` proves the Genesis-only network command requires exact write and capture-date arguments, creates only a new dated candidate, reduces deterministically, refuses existing targets, and leaves committed evidence unchanged on source, validation, or publication failure. |
+| Evidence and parser interpretation preservation | This document remains the provenance record. Existing `packages/text-transform/test/sanitize.test.ts` characterizes standards-parser recovery without inventing malformed attributes; the focused qualification adds no alternate model or parser interpretation to supersede that result. |
+| Separate result classes and no exhaustive claim | `tests/compatibility/src/qualification.test.ts` proves grouped `passed`, `failed`, `unavailable`, and `intentional-difference` output and nonzero exit only for unexpected failures. This section states the qualification's representative, non-exhaustive scope. |
+
+### Composed v3 smoke fixture
+
+`tests/compatibility/src/v3-source-backed.fixture.ts` is an intentionally composed fixture, not a verbatim deployed response. Its v3 field set and nesting follow the August 29, 2026 deployed `https://www.sefaria.org/api/v3/texts/Genesis%201%3A31-2%3A2` capture, while its citation-identifying metadata was authored as a non-spanning `Genesis 1:1` response for this focused case. Its single text string combines the MAM span `<span class="mam-kq-trivial">שְׁעָרָ֗ו</span>` hand-extracted from the August 30, 2026 Miqra according to the Masorah `Obadiah 1` response with the footnote marker, body, and nested bold text hand-extracted from the August 30, 2026 Contemporary Torah `Genesis 1:1` response; short connecting prose and punctuation make the two reviewed fragments one executable string. The fixture retains one `versions` record and only enough response metadata to exercise the generated v3 validator before sanitation, HTML text-node vocalization, and structured footnote extraction. Because the metadata, fragments, and connecting prose are manually composed, refresh remains a manual source-review operation.
+
+### Executable PASEQ references
+
+The compatibility input is exactly `א ׀ ב׀ג`.
+
+| Reference implementation | Pinned source-derived policy | Expected output | Current executable comparison |
+| --- | --- | --- | --- |
+| [Sefaria Web `TextRange.jsx:263-278`](https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/static/js/TextRange.jsx#L263-L278) | Remove every PASEQ while preserving surrounding whitespace (`always`) | `א  בג` | `applyVocalization(..., { paseq: "always" })` matches. |
+| [Sefaria Mobile `sefaria.js:1286-1292`](https://github.com/Sefaria/Sefaria-Mobile/blob/925420dcf7dd00a16f8dc4c4191284792fc3f9fa/sefaria.js#L1286-L1292) | Remove PASEQ only after whitespace and remove that whitespace (`after-space`) | `א ב׀ג` | `applyVocalization(..., { paseq: "after-space" })` matches. |
+| [Sefaria Linker `popup.js:308-319`](https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/static/js/linker.v3/popup.js#L308-L319) | Remove every PASEQ while preserving surrounding whitespace (`always`) | `א  בג` | `applyVocalization(..., { paseq: "always" })` matches. |
+
+The current project default is `after-space`, so its output `א ב׀ג` intentionally differs from the Web reference output `א  בג`. The qualification labels that exact pair as `intentional-difference`; it is neither a pass nor an unexpected failure.
+
+### Qualification result semantics
+
+The current command emits one grouped count line and one detail line for every non-passing case. `passed` means the focused executable comparison matched. `failed` means an unexpected mismatch and produces exit code 1. `unavailable` means required pinned evidence could not be evaluated and remains visible but does not by itself produce a nonzero exit. `intentional-difference` means the exact documented project/reference divergence was reproduced and also does not by itself produce a nonzero exit. The current pinned suite expects `passed=9 failed=0 unavailable=0 intentional-difference=1`; this result qualifies only the named cases above.
 
 ## Text markup evidence
 
@@ -197,15 +240,7 @@ Live probes showed that `return_format=text_only` removes footnote content, not 
 
 ### Vocalization differences
 
-The implementations disagree on U+05C0 PASEQ.
-
-| Implementation | Behavior |
-| --- | --- |
-| [Web `TextRange.jsx:263-278`](https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/static/js/TextRange.jsx#L263-L278) | Its cantillation-removal expression includes every PASEQ |
-| Mobile `sefaria.js:1286-1292` at `925420dcf7dd00a16f8dc4c4191284792fc3f9fa` | Removes PASEQ only after whitespace and removes that whitespace |
-| [Linker `popup.js:308-319`](https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/static/js/linker.v3/popup.js#L308-L319) | Removes every PASEQ and exposes no reader control |
-
-The project exposes both behaviors. `after-space` is the provisional default. Compatibility reports keep the selected policy and code-point differences visible.
+The implementations disagree on U+05C0 PASEQ. The executable comparison and exact outputs are recorded under [Executable PASEQ references](#executable-paseq-references). The project exposes both source-derived policies, and `after-space` is the current default.
 
 Sefaria Web's full vocalization-removal expression and the server's `strip_cantillation(..., strip_vowels=True)` range include U+05C3 SOF PASUQ, while the cantillation-only ranges do not. The local `none` mode therefore removes U+05C3 and `nikkud` preserves it.
 

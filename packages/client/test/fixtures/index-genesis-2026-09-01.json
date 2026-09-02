@@ -1,0 +1,107 @@
+{
+  "title": "Genesis",
+  "categories": ["Tanakh", "Torah"],
+  "schema": {
+    "nodeType": "JaggedArrayNode",
+    "depth": 2,
+    "addressTypes": ["Perek", "Pasuk"],
+    "sectionNames": ["Chapter", "Verse"],
+    "lengths": [50, 1533],
+    "titles": [
+      {
+        "text": "בראשית",
+        "lang": "he",
+        "primary": true
+      },
+      {
+        "text": "Genesis",
+        "lang": "en",
+        "primary": true
+      }
+    ],
+    "title": "Genesis",
+    "heTitle": "בראשית",
+    "heSectionNames": ["פרק", "פסוק"],
+    "key": "Genesis"
+  },
+  "alts": {
+    "Parasha": {
+      "nodes": [
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Genesis 1:1-6:8",
+          "addressTypes": ["Aliyah"],
+          "sectionNames": ["Aliyah"],
+          "refs": [
+            "Genesis 1:1-2:3",
+            "Genesis 2:4-2:19",
+            "Genesis 2:20-3:21",
+            "Genesis 3:22-4:18",
+            "Genesis 4:19-4:22",
+            "Genesis 4:23-5:24",
+            "Genesis 5:25-6:8"
+          ],
+          "match_templates": [
+            {
+              "term_slugs": ["parasha", "bereshit"],
+              "scope": "any"
+            },
+            {
+              "term_slugs": ["bereshit"],
+              "scope": "any"
+            }
+          ],
+          "isMapReferenceable": false,
+          "sharedTitle": "Bereshit",
+          "titles": [
+            {
+              "primary": true,
+              "text": "Bereshit",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "בראשית",
+              "lang": "he"
+            },
+            {
+              "text": "Parashat Bereshit",
+              "lang": "en"
+            },
+            {
+              "text": "פרשת בראשית",
+              "lang": "he"
+            },
+            {
+              "text": "Parashat Bereishit",
+              "lang": "en"
+            },
+            {
+              "text": "Parashat Genesis",
+              "lang": "en"
+            },
+            {
+              "text": "Genesis",
+              "lang": "en"
+            },
+            {
+              "text": "Bereishit",
+              "lang": "en"
+            },
+            {
+              "text": "Breishit",
+              "lang": "en"
+            },
+            {
+              "text": "Bereshis",
+              "lang": "en"
+            }
+          ],
+          "title": "Bereshit",
+          "heTitle": "בראשית"
+        }
+      ]
+    }
+  }
+}
