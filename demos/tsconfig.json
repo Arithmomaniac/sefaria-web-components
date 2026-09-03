@@ -1,0 +1,4 @@
+{
+  "extends": "../tsconfig.base.json",
+  "include": ["live-demo-core.ts", "live-demo-core.browser.test.ts"]
+}

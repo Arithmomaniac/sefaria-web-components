@@ -7,6 +7,12 @@ import type {
 } from "@sefaria/components";
 import { loadTextSegmentViewModel } from "@sefaria/components/text-segment";
 
+import {
+  createLiveDemoRunner,
+  requireElement,
+  requireNamedInput,
+} from "../../live-demo-core.js";
+
 /** One host-owned text-segment request operation. */
 export type TextSegmentLoader = (
   request: TextSegmentRequest,
@@ -35,52 +41,28 @@ export function startTextSegmentLiveDemo(
   const requestState = requireElement<HTMLElement>(root, "#request-state");
   const hostError = requireElement<HTMLElement>(root, "#host-error");
   const result = requireElement<SefariaTextSegment>(root, "#text-result");
-  let activeController: AbortController | undefined;
-  let activeOperation = 0;
+  const runner = createLiveDemoRunner({
+    loader,
+    createLoadingViewModel: (request): TextSegmentViewModel => ({
+      state: "loading",
+      message: `Loading ${request.tref}.`,
+    }),
+    setViewModel: (viewModel) => {
+      result.viewModel = viewModel;
+    },
+    formatRequest,
+    requestState,
+    hostError,
+    submitButton,
+  });
 
   const loadCurrentRequest = async (): Promise<void> => {
-    activeController?.abort();
-    const controller = new AbortController();
-    activeController = controller;
-    const operation = ++activeOperation;
     const request = createRequest(
       trefInput.value,
       languageInput.value,
       versionTitleInput.value,
     );
-
-    result.viewModel = {
-      state: "loading",
-      message: `Loading ${request.tref}.`,
-    };
-    requestState.dataset.state = "loading";
-    requestState.textContent = `Loading ${formatRequest(request)} from Sefaria.`;
-    hostError.hidden = true;
-    hostError.textContent = "";
-    submitButton.disabled = true;
-
-    try {
-      const viewModel = await loader(request, controller.signal);
-      if (operation !== activeOperation) {
-        return;
-      }
-      result.viewModel = viewModel;
-      requestState.dataset.state = viewModel.state;
-      requestState.textContent = `${formatRequest(request)} produced ${viewModel.state}.`;
-    } catch (error) {
-      if (controller.signal.aborted || operation !== activeOperation) {
-        return;
-      }
-      requestState.dataset.state = "error";
-      requestState.textContent = `${formatRequest(request)} could not complete.`;
-      hostError.hidden = false;
-      hostError.textContent =
-        error instanceof Error ? error.message : String(error);
-    } finally {
-      if (operation === activeOperation) {
-        submitButton.disabled = false;
-      }
-    }
+    await runner.run(request);
   };
 
   form.addEventListener("submit", (event) => {
@@ -132,26 +114,4 @@ function formatRequest(request: TextSegmentRequest): string {
       ? request.version.language
       : `${request.version.language} | ${request.version.versionTitle}`;
   return `${request.tref} (${version})`;
-}
-
-function requireNamedInput(
-  form: HTMLFormElement,
-  name: string,
-): HTMLInputElement {
-  const input = form.elements.namedItem(name);
-  if (!(input instanceof HTMLInputElement)) {
-    throw new Error(`The ${name} input is missing.`);
-  }
-  return input;
-}
-
-function requireElement<T extends Element>(
-  root: ParentNode,
-  selector: string,
-): T {
-  const element = root.querySelector<T>(selector);
-  if (!element) {
-    throw new Error(`The demo requires ${selector}.`);
-  }
-  return element;
 }

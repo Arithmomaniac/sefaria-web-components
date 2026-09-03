@@ -8,6 +8,12 @@ import type {
 } from "@sefaria/components";
 import { loadRefLabelViewModel } from "@sefaria/components/ref-label";
 
+import {
+  createLiveDemoRunner,
+  requireElement,
+  requireNamedInput,
+} from "../../live-demo-core.js";
+
 /** One host-owned reference-label request operation. */
 export type RefLabelLoader = (
   request: RefLabelRequest,
@@ -36,50 +42,27 @@ export function startRefLabelLiveDemo(
   const requestState = requireElement<HTMLElement>(root, "#request-state");
   const hostError = requireElement<HTMLElement>(root, "#host-error");
   const result = requireElement<SefariaRefLabel>(root, "#ref-result");
-  let activeController: AbortController | undefined;
-  let activeOperation = 0;
+  const runner = createLiveDemoRunner({
+    loader,
+    createLoadingViewModel: (request): RefLabelViewModel => ({
+      state: "loading",
+      message: `Loading ${request.tref}.`,
+    }),
+    setViewModel: (viewModel) => {
+      result.viewModel = viewModel;
+    },
+    formatRequest: (request) => request.tref,
+    requestState,
+    hostError,
+    submitButton,
+  });
 
   const loadCurrentRequest = async (): Promise<void> => {
-    activeController?.abort();
-    const controller = new AbortController();
-    activeController = controller;
-    const operation = ++activeOperation;
     const request = { tref: trefInput.value.trim() };
 
     result.labelLanguage = requireLabelLanguage(languageInput.value);
     result.linked = linkedInput.checked;
-    result.viewModel = {
-      state: "loading",
-      message: `Loading ${request.tref}.`,
-    };
-    requestState.dataset.state = "loading";
-    requestState.textContent = `Loading ${request.tref} from Sefaria.`;
-    hostError.hidden = true;
-    hostError.textContent = "";
-    submitButton.disabled = true;
-
-    try {
-      const viewModel = await loader(request, controller.signal);
-      if (operation !== activeOperation) {
-        return;
-      }
-      result.viewModel = viewModel;
-      requestState.dataset.state = viewModel.state;
-      requestState.textContent = `${request.tref} produced ${viewModel.state}.`;
-    } catch (error) {
-      if (controller.signal.aborted || operation !== activeOperation) {
-        return;
-      }
-      requestState.dataset.state = "error";
-      requestState.textContent = `${request.tref} could not complete.`;
-      hostError.hidden = false;
-      hostError.textContent =
-        error instanceof Error ? error.message : String(error);
-    } finally {
-      if (operation === activeOperation) {
-        submitButton.disabled = false;
-      }
-    }
+    await runner.run(request);
   };
 
   form.addEventListener("submit", (event) => {
@@ -119,17 +102,6 @@ function requireLabelLanguage(value: string): RefLabelLanguage {
   throw new TypeError(`Unsupported label language "${value}".`);
 }
 
-function requireNamedInput(
-  form: HTMLFormElement,
-  name: string,
-): HTMLInputElement {
-  const input = form.elements.namedItem(name);
-  if (!(input instanceof HTMLInputElement)) {
-    throw new Error(`The ${name} input is missing.`);
-  }
-  return input;
-}
-
 function requireNamedSelect(
   form: HTMLFormElement,
   name: string,
@@ -139,15 +111,4 @@ function requireNamedSelect(
     throw new Error(`The ${name} select is missing.`);
   }
   return select;
-}
-
-function requireElement<T extends Element>(
-  root: ParentNode,
-  selector: string,
-): T {
-  const element = root.querySelector<T>(selector);
-  if (!element) {
-    throw new Error(`The demo requires ${selector}.`);
-  }
-  return element;
 }

@@ -1,6 +1,5 @@
 import type {
   RefLabelDataViewModel,
-  RefLabelViewModel,
   SefariaRefLabel,
 } from "@sefaria/components";
 import { beforeEach, expect, test, vi } from "vitest";
@@ -8,7 +7,6 @@ import { beforeEach, expect, test, vi } from "vitest";
 import { startRefLabelLiveDemo, type RefLabelLoader } from "./app.js";
 
 const FIRST_RESULT = createDataViewModel("Genesis 1:1");
-const SECOND_RESULT = createDataViewModel("Genesis 1:2");
 
 beforeEach(() => {
   document.body.innerHTML = `
@@ -44,41 +42,7 @@ test("loads a preset and supplies presentation plus view-model state", async () 
   expect(requestState().dataset.state).toBe("data");
 });
 
-test("aborts the old operation and ignores its stale result", async () => {
-  let resolveFirst!: (value: RefLabelViewModel) => void;
-  let resolveSecond!: (value: RefLabelViewModel) => void;
-  const first = new Promise<RefLabelViewModel>((resolve) => {
-    resolveFirst = resolve;
-  });
-  const second = new Promise<RefLabelViewModel>((resolve) => {
-    resolveSecond = resolve;
-  });
-  const signals: AbortSignal[] = [];
-  const loader = vi.fn<RefLabelLoader>(async (_request, signal) => {
-    signals.push(signal);
-    return signals.length === 1 ? await first : await second;
-  });
-  startRefLabelLiveDemo(document, loader);
-
-  const presets = document.querySelectorAll<HTMLButtonElement>(
-    "[data-demo-request]",
-  );
-  presets[0]?.click();
-  await vi.waitFor(() => expect(loader).toHaveBeenCalledTimes(1));
-  presets[1]?.click();
-  await vi.waitFor(() => expect(loader).toHaveBeenCalledTimes(2));
-  expect(signals[0]?.aborted).toBe(true);
-
-  resolveSecond(SECOND_RESULT);
-  await vi.waitFor(() =>
-    expect(resultElement().viewModel).toEqual(SECOND_RESULT),
-  );
-  resolveFirst(FIRST_RESULT);
-  await Promise.resolve();
-  expect(resultElement().viewModel).toEqual(SECOND_RESULT);
-});
-
-test("shows a network failure outside the component view model", async () => {
+test("binds rejected operations to the host error element", async () => {
   const loader = vi.fn<RefLabelLoader>(async () => {
     throw new Error("Network unavailable");
   });
@@ -89,8 +53,7 @@ test("shows a network failure outside the component view model", async () => {
 
   const hostError = document.querySelector<HTMLElement>("#host-error");
   expect(hostError?.hidden).toBe(false);
-  expect(hostError?.textContent).toContain("Network unavailable");
-  expect(resultElement().viewModel.state).toBe("loading");
+  expect(hostError?.textContent).toBe("Network unavailable");
 });
 
 function resultElement(): SefariaRefLabel {
