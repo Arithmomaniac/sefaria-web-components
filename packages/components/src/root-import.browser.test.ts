@@ -11,6 +11,7 @@ test("imports the browser root without factory runtime dependencies", async () =
   vi.resetModules();
 
   await expect(import("./index.js")).resolves.toMatchObject({
+    SefariaRefLabel: expect.any(Function),
     SefariaTextSegment: expect.any(Function),
   });
 });

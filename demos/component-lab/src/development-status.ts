@@ -1,6 +1,7 @@
 import { SefariaElement } from "@sefaria/components";
 import { css, html } from "lit";
 
+import { refLabelScenarios } from "./ref-label.scenarios.js";
 import { textSegmentScenarios } from "./text-segment.scenarios.js";
 
 class SefariaDevelopmentStatus extends SefariaElement {
@@ -48,10 +49,21 @@ class SefariaDevelopmentStatus extends SefariaElement {
     return html`
       <h1>Sefaria Web Components</h1>
       <p>
-        The text segment examples use authored view models. The element makes no
-        API request.
+        The examples use authored view models. The elements make no API request.
       </p>
       <div class="states">
+        ${refLabelScenarios.map(
+          ({ title, viewModel }) => html`
+            <section>
+              <h2>${title}</h2>
+              <sefaria-ref-label
+                linked
+                label-language="both"
+                .viewModel=${viewModel}
+              ></sefaria-ref-label>
+            </section>
+          `,
+        )}
         ${textSegmentScenarios.map(
           ({ title, viewModel }) => html`
             <section>

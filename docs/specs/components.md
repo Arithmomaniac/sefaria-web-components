@@ -4,7 +4,7 @@
 
 ## Status
 
-The text-segment vertical slice is current. The remaining component surfaces and composite behavior are planned.
+The text-segment and reference-label vertical slices are current. The remaining component surfaces and composite behavior are planned.
 
 ## Boundary
 
@@ -49,7 +49,7 @@ Planned names follow this pattern:
 | Popup | `PopupRequest` | `PopupViewModel` | `createPopupViewModel` | `loadPopupViewModel` |
 | Connections panel | `ConnectionsPanelRequest` | `ConnectionsPanelViewModel` | `createConnectionsPanelViewModel` | `loadConnectionsPanelViewModel` |
 
-The text-segment names are current. The remaining names are planned and can be refined by their first implementation slice without changing ownership or request boundaries.
+The text-segment and reference-label names are current. The remaining names are planned and can be refined by their first implementation slice without changing ownership or request boundaries.
 
 ## View-model states
 
@@ -235,7 +235,7 @@ Task lifecycle state and component view-model state must not compete for the sam
 | --- | --- | --- | --- | --- |
 | `<sefaria-text-segment>` | Current | `/api/v3/texts/{tref}` payload or parent payload slice | Safe text, direction, language, attribution, and static footnote data | None in the current contract |
 | `<sefaria-bilingual-segment>` | Planned | `/api/v3/texts/{tref}` payload or parent payload slice | Source and translation sides, missing-side state, and attribution | `layout` and primary-side presentation |
-| `<sefaria-ref-label>` | Planned | `/api/ref/{tref}` payload or parent payload slice | Human label, Hebrew label, canonical URL, and unavailable-label state | Link behavior and display form |
+| `<sefaria-ref-label>` | Current | `/api/ref/{tref}` payload or parent payload slice | Canonical English and Hebrew labels, URL forms, owning index, node type, and unresolvable-reference state | `labelLanguage` and `linked` |
 | `<sefaria-text-range>` | Planned | `/api/v3/texts/{tref}` payload | Bounded segment view models and range-level partial state | Layout, numbering, selection, and highlights |
 | `<sefaria-source-card>` | Planned | `/api/v3/texts/{tref}` payload | Reference header, bounded text view, attribution, and missing-content state | Layout and host actions |
 | `<sefaria-popup>` | Planned | Source-card payload or parent payload | Popup content view model and recoverable error state | Anchor, open state, placement, and focus behavior |
@@ -272,6 +272,22 @@ String text passes through `sanitize`, full-mark HTML vocalization, and `extract
 `<sefaria-text-segment>` renders static footnote markers and available note bodies. Interactive footnote activation and word selection remain outside the current contract because no consumer defines their action or event payload.
 
 The element supports mixed scripts, punctuation, and long unbroken text without inferring direction from language. Poetry- and paragraph-specific presentation remain outside the current contract until an exact behavior is defined.
+
+## Reference label contract [Current]
+
+The reference-label request contains only the `tref` path input for `GET /api/ref/{tref}`. Both factories reject a blank reference with `TypeError`; the async factory rejects before making a request.
+
+The pure factory accepts a validated `CoreRefResponse`, the request, and an optional deterministic `siteOrigin`. A successful result preserves the API's `normalized`, `hebrew`, `url_ref`, `index_title`, and `node_type` fields as `normalized`, `hebrew`, `urlRef`, `indexTitle`, and `nodeType`. It also produces an absolute `url` from `urlRef` and an HTTP(S) site origin that defaults to `https://www.sefaria.org`.
+
+Sefaria's `url_ref` is a canonical Sefaria path form, not a fully encoded URL path. The factory preserves valid `%XX` escapes and valid path characters, percent-encodes characters such as `#` and non-ASCII code points, and does not double-encode the `%3F` produced by Sefaria. A non-HTTP(S) site origin is invalid and causes `TypeError`.
+
+The HTTP 200 `{ "is_ref": false }` branch produces an `empty` view model containing the requested reference and a message. The documented HTTP 404 payload produces an `error` view model. Network failures, aborts, malformed runtime payloads, and undocumented statuses reject rather than becoming view-model states.
+
+The `hebrew` field is always present in a successful corrected payload. The upstream implementation falls back to the English normal form when no Hebrew title exists, so the current view model does not claim that equality between `hebrew` and `normalized` proves that Hebrew is unavailable.
+
+`<sefaria-ref-label>` accepts only its view model, `labelLanguage`, and `linked`. `labelLanguage` is `english`, `hebrew`, or `both`; the default is `english`. English and Hebrew labels render in separate `lang` and `dir` boundaries, without script detection. When `linked` is true, the element renders a keyboard-operable anchor whose target is the view model's absolute `url` and whose accessible name is its visible label. The element does not accept or construct a site origin.
+
+Range labels, navigation references, and a display form based on raw `urlRef` remain outside the current view model until a concrete consumer requires them.
 
 ## Bilingual alignment
 

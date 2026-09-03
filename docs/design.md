@@ -4,7 +4,7 @@
 
 ## Summary
 
-This design defines a generated API foundation with corrections and component-owned view models. Elements render view models and never request data. The client, text-processing packages, and text-segment vertical slice are current; the remaining component and integration contracts are planned.
+This design defines a generated API foundation with corrections and component-owned view models. Elements render view models and never request data. The client, text-processing packages, text-segment vertical slice, and reference-label vertical slice are current; the remaining component and integration contracts are planned.
 
 ## Scope
 
@@ -119,7 +119,7 @@ Unknown inputs from MCP or another external boundary receive validation before c
 
 ## Component boundary
 
-Each component has a non-DOM public subpath. This subpath owns its request type, view-model union, pure projection factory, and async request factory. The pure factory converts a corrected API payload into one component view model. The async factory obtains the payload through a supplied client and passes it to the pure factory. `@sefaria/components/text-segment` is the current first implementation of this boundary.
+Each component has a non-DOM public subpath. This subpath owns its request type, view-model union, pure projection factory, and async request factory. The pure factory converts a corrected API payload into one component view model. The async factory obtains the payload through a supplied client and passes it to the pure factory. `@sefaria/components/text-segment` and `@sefaria/components/ref-label` are current implementations of this boundary.
 
 A composite can resolve a child input by payload role before projection. The child subpath owns the pure resolved-input projection, so the composite does not repeat child transformation logic.
 
@@ -207,4 +207,4 @@ Correct text, direction, sanitization, attribution, and accessible interaction h
 
 The exact generator packages, validator generator, and committed artifact paths remain implementation choices. Each choice must satisfy the offline, deterministic, and stale-output contracts.
 
-The text-segment export names are established by the first vertical slice. Names for later component subpaths remain open until their implementation. The ownership and request-free element boundaries are not open.
+The text-segment and reference-label export names are established by their vertical slices. Names for later component subpaths remain open until their implementation. The ownership and request-free element boundaries are not open.

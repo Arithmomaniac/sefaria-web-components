@@ -1,0 +1,9 @@
+{
+  "extends": "../tsconfig.base.json",
+  "include": [
+    "capture-live-demo.ts",
+    "live-demo-core.ts",
+    "live-demo-core.browser.test.ts",
+    "live-demo-styles.d.ts"
+  ]
+}

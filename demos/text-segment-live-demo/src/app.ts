@@ -7,6 +7,8 @@ import type {
 } from "@sefaria/components";
 import { loadTextSegmentViewModel } from "@sefaria/components/text-segment";
 
+import { startLiveDemo, requireNamedInput } from "../../live-demo-core.js";
+
 /** One host-owned text-segment request operation. */
 export type TextSegmentLoader = (
   request: TextSegmentRequest,
@@ -24,82 +26,90 @@ export function startTextSegmentLiveDemo(
   root: Document,
   loader: TextSegmentLoader = createDefaultLoader(),
 ): TextSegmentLiveDemo {
-  const form = requireElement<HTMLFormElement>(root, "#text-request-form");
-  const trefInput = requireNamedInput(form, "tref");
-  const languageInput = requireNamedInput(form, "language");
-  const versionTitleInput = requireNamedInput(form, "versionTitle");
-  const submitButton = requireElement<HTMLButtonElement>(
-    form,
-    'button[type="submit"]',
-  );
-  const requestState = requireElement<HTMLElement>(root, "#request-state");
-  const hostError = requireElement<HTMLElement>(root, "#host-error");
-  const result = requireElement<SefariaTextSegment>(root, "#text-result");
-  let activeController: AbortController | undefined;
-  let activeOperation = 0;
-
-  const loadCurrentRequest = async (): Promise<void> => {
-    activeController?.abort();
-    const controller = new AbortController();
-    activeController = controller;
-    const operation = ++activeOperation;
-    const request = createRequest(
-      trefInput.value,
-      languageInput.value,
-      versionTitleInput.value,
-    );
-
-    result.viewModel = {
+  return startLiveDemo(root, {
+    title: "Live text-segment demo",
+    description:
+      "This page calls the deployed Sefaria API and supplies each result to the request-free Web Component.",
+    requestHeading: "Choose a request",
+    presetsLabel: "Example requests",
+    controls: [
+      {
+        kind: "text",
+        name: "tref",
+        label: "Sefaria reference",
+        value: "Genesis 1:1",
+        required: true,
+      },
+      {
+        kind: "text",
+        name: "language",
+        label: "Language",
+        value: "hebrew",
+        required: true,
+      },
+      {
+        kind: "text",
+        name: "versionTitle",
+        label: "Exact version title",
+        value: "",
+        placeholder: "Optional exact version title",
+      },
+    ],
+    presets: [
+      {
+        id: "hebrew",
+        label: "Hebrew segment",
+        values: { tref: "Genesis 1:1", language: "hebrew", versionTitle: "" },
+      },
+      {
+        id: "english-footnote",
+        label: "English static footnote",
+        values: {
+          tref: "Genesis 1:1",
+          language: "english",
+          versionTitle:
+            "The Contemporary Torah, Jewish Publication Society, 2006",
+        },
+      },
+      {
+        id: "hebrew-markup",
+        label: "Retained Hebrew markup",
+        values: {
+          tref: "Obadiah 1:1",
+          language: "hebrew",
+          versionTitle: "Miqra according to the Masorah",
+        },
+      },
+      {
+        id: "missing",
+        label: "Missing language",
+        values: { tref: "Genesis 1:1", language: "klingon", versionTitle: "" },
+      },
+      {
+        id: "range",
+        label: "Wrong granularity",
+        values: { tref: "Genesis 1", language: "hebrew", versionTitle: "" },
+      },
+    ],
+    submitLabel: "Load from Sefaria",
+    createResultElement: (document) =>
+      document.createElement("sefaria-text-segment") as SefariaTextSegment,
+    loader,
+    createRequest: (form) =>
+      createRequest(
+        requireNamedInput(form, "tref").value,
+        requireNamedInput(form, "language").value,
+        requireNamedInput(form, "versionTitle").value,
+      ),
+    createLoadingViewModel: (request): TextSegmentViewModel => ({
       state: "loading",
       message: `Loading ${request.tref}.`,
-    };
-    requestState.dataset.state = "loading";
-    requestState.textContent = `Loading ${formatRequest(request)} from Sefaria.`;
-    hostError.hidden = true;
-    hostError.textContent = "";
-    submitButton.disabled = true;
-
-    try {
-      const viewModel = await loader(request, controller.signal);
-      if (operation !== activeOperation) {
-        return;
-      }
+    }),
+    setViewModel: (result, viewModel) => {
       result.viewModel = viewModel;
-      requestState.dataset.state = viewModel.state;
-      requestState.textContent = `${formatRequest(request)} produced ${viewModel.state}.`;
-    } catch (error) {
-      if (controller.signal.aborted || operation !== activeOperation) {
-        return;
-      }
-      requestState.dataset.state = "error";
-      requestState.textContent = `${formatRequest(request)} could not complete.`;
-      hostError.hidden = false;
-      hostError.textContent =
-        error instanceof Error ? error.message : String(error);
-    } finally {
-      if (operation === activeOperation) {
-        submitButton.disabled = false;
-      }
-    }
-  };
-
-  form.addEventListener("submit", (event) => {
-    event.preventDefault();
-    void loadCurrentRequest();
+    },
+    formatRequest,
   });
-
-  for (const preset of root.querySelectorAll<HTMLButtonElement>(
-    "[data-demo-request]",
-  )) {
-    preset.addEventListener("click", () => {
-      trefInput.value = preset.dataset.tref ?? "";
-      languageInput.value = preset.dataset.language ?? "";
-      versionTitleInput.value = preset.dataset.versionTitle ?? "";
-      form.requestSubmit();
-    });
-  }
-
-  return { loadCurrentRequest };
 }
 
 function createDefaultLoader(): TextSegmentLoader {
@@ -132,26 +142,4 @@ function formatRequest(request: TextSegmentRequest): string {
       ? request.version.language
       : `${request.version.language} | ${request.version.versionTitle}`;
   return `${request.tref} (${version})`;
-}
-
-function requireNamedInput(
-  form: HTMLFormElement,
-  name: string,
-): HTMLInputElement {
-  const input = form.elements.namedItem(name);
-  if (!(input instanceof HTMLInputElement)) {
-    throw new Error(`The ${name} input is missing.`);
-  }
-  return input;
-}
-
-function requireElement<T extends Element>(
-  root: ParentNode,
-  selector: string,
-): T {
-  const element = root.querySelector<T>(selector);
-  if (!element) {
-    throw new Error(`The demo requires ${selector}.`);
-  }
-  return element;
 }
