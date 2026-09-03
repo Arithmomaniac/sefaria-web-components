@@ -173,6 +173,27 @@ test.each([
   },
 );
 
+test.each(["primary", "translation"] as const)(
+  "gives the single visible $contentLanguage side the full width",
+  async (contentLanguage) => {
+    const { wrapper, host } = mountInWrapper("900px", DATA);
+    host.contentLanguage = contentLanguage;
+    host.layout = "side-by-side";
+    await host.updateComplete;
+
+    const pair = host.shadowRoot?.querySelector<HTMLElement>(".pair");
+    const visibleSide = sides(host)[0];
+    expect(visibleSide?.getBoundingClientRect().width).toBeCloseTo(
+      pair?.getBoundingClientRect().width ?? 0,
+      0,
+    );
+    expect(pair?.getBoundingClientRect().width).toBeCloseTo(
+      wrapper.getBoundingClientRect().width,
+      0,
+    );
+  },
+);
+
 test("switches layout in both directions as the container resizes", async () => {
   const { wrapper, host } = mountInWrapper("900px", DATA);
   await host.updateComplete;
@@ -245,12 +266,62 @@ test("announces the partial state and still renders the present side", async () 
     },
   );
 
-  expect(sides(host).map((side) => side.dataset.side)).toEqual(["primary"]);
+  expect(
+    host.shadowRoot?.querySelector("sefaria-text-segment")?.dataset.side,
+  ).toBe("primary");
   expect(host.shadowRoot?.textContent).toContain(
     "No translation is available.",
   );
   expect(host.shadowRoot?.querySelector('[role="status"]')).not.toBeNull();
 });
+
+test.each([
+  {
+    state: "partial",
+    viewModel: {
+      state: "partial",
+      ref: "Genesis 1:1",
+      heRef: "בראשית א׳:א׳",
+      present: { side: "translation", view: TRANSLATION },
+      absent: { side: "primary", message: "No primary text." },
+    },
+  },
+  {
+    state: "empty",
+    viewModel: {
+      state: "empty",
+      ref: "Genesis 1:1",
+      heRef: "בראשית א׳:א׳",
+      absent: [
+        { side: "primary", message: "No primary text." },
+        { side: "translation", message: "No translation." },
+      ],
+    },
+  },
+] as const)(
+  "applies sideOrder by role in the $state state",
+  async ({ viewModel }) => {
+    for (const [sideOrder, expectedFirst] of [
+      ["primary-first", "primary"],
+      ["translation-first", "translation"],
+    ] as const) {
+      const host = await renderData(
+        { layout: "side-by-side", sideOrder },
+        viewModel,
+      );
+      const visualOrder = [...sides(host)]
+        .sort(
+          (left, right) =>
+            left.getBoundingClientRect().left -
+            right.getBoundingClientRect().left,
+        )
+        .map((side) => side.dataset.side);
+
+      expect(visualOrder[0]).toBe(expectedFirst);
+      host.remove();
+    }
+  },
+);
 
 test("announces both absent sides in the empty state", async () => {
   const host = await renderData(

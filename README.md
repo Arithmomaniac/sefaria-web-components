@@ -26,6 +26,7 @@ The client, text-transform package, text-segment component, bilingual-segment co
 | Implement component factories and elements | [Component specification](docs/specs/components.md) |
 | Replay the text-segment demonstration | [Text segment demonstration](docs/text-segment-demo.md) |
 | Replay the reference-label demonstration | [Reference label demonstration](docs/ref-label-demo.md) |
+| Replay the bilingual-segment demonstration | [Bilingual segment demonstration](docs/bilingual-segment-demo.md) |
 | Implement the MCP App or Linker demonstration | [Integration specification](docs/specs/integrations.md) |
 | Install tools and run the repository | [Development guide](docs/development.md) |
 | Review generated contracts and request boundaries | [Review guide](docs/review.md) |

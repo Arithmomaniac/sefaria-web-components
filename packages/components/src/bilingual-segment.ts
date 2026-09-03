@@ -139,7 +139,7 @@ export function createBilingualSegmentViewModel(
 ): BilingualSegmentViewModel {
   serializeSelectors(request);
 
-  const resolved = resolveSides(payload.versions);
+  const resolved = resolveSides(payload.versions, request);
   if (resolved.ambiguousSide !== undefined) {
     return {
       state: "error",
@@ -248,31 +248,75 @@ export async function loadBilingualSegmentViewModel(
   throw new Error("The v3 texts request returned no data or documented error.");
 }
 
-function resolveSides(versions: readonly CoreV3Version[]): {
+function resolveSides(
+  versions: readonly CoreV3Version[],
+  request: BilingualSegmentRequest,
+): {
   readonly versions: Partial<Record<BilingualSegmentSide, CoreV3Version>>;
   readonly ambiguousSide?: BilingualSegmentSide;
 } {
-  const primaryMatches = versions.filter((version) => version.isPrimary);
-  if (primaryMatches.length > 1) {
+  const exactPrimaryMatches = exactSideMatches(versions, request, "primary");
+  if (exactPrimaryMatches.length > 1) {
     return { versions: {}, ambiguousSide: "primary" };
   }
 
-  const primary = primaryMatches[0];
-  const translationMatches = versions.filter(
-    (version) => version !== primary && !version.isSource,
+  const exactTranslationMatches = exactSideMatches(
+    versions,
+    request,
+    "translation",
   );
-  if (translationMatches.length > 1) {
+  if (exactTranslationMatches.length > 1) {
     return { versions: {}, ambiguousSide: "translation" };
+  }
+
+  const exactTranslation = exactTranslationMatches[0];
+  let primary = exactPrimaryMatches[0];
+  if (primary === undefined && request.primary === undefined) {
+    const primaryMatches = versions.filter(
+      (version) => version !== exactTranslation && version.isPrimary,
+    );
+    if (primaryMatches.length > 1) {
+      return { versions: {}, ambiguousSide: "primary" };
+    }
+    primary = primaryMatches[0];
+  }
+
+  let translation = exactTranslation;
+  if (translation === undefined && request.translation === undefined) {
+    const translationMatches = versions.filter(
+      (version) => version !== primary && !version.isSource,
+    );
+    if (translationMatches.length > 1) {
+      return { versions: {}, ambiguousSide: "translation" };
+    }
+    translation = translationMatches[0];
   }
 
   const resolved: Partial<Record<BilingualSegmentSide, CoreV3Version>> = {};
   if (primary !== undefined) {
     resolved.primary = primary;
   }
-  if (translationMatches[0] !== undefined) {
-    resolved.translation = translationMatches[0];
+  if (translation !== undefined) {
+    resolved.translation = translation;
   }
   return { versions: resolved };
+}
+
+function exactSideMatches(
+  versions: readonly CoreV3Version[],
+  request: BilingualSegmentRequest,
+  side: BilingualSegmentSide,
+): CoreV3Version[] {
+  const versionTitle = request[side]?.versionTitle;
+  if (versionTitle === undefined) {
+    return [];
+  }
+  const normalizedTitle = versionTitle.replaceAll("_", " ");
+  return versions.filter(
+    (version) =>
+      version.versionTitle === normalizedTitle &&
+      (side === "primary" ? version.isPrimary : !version.isSource),
+  );
 }
 
 function describeAbsentSide(

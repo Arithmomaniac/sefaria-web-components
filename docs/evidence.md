@@ -286,6 +286,10 @@ Sefaria Web commit [`52e00f8bef430cba25a091f4443345ee1890e6c8`](https://github.c
 
 [`sefaria.js:632-647`](https://github.com/Sefaria/Sefaria-Project/blob/52e00f8bef430cba25a091f4443345ee1890e6c8/static/js/sefaria/sefaria.js#L632-L647) sorts serialized version parameters before the request. Query order cannot identify the primary and translation sides.
 
+The pinned [`text_request_adapter.py:70-90`](https://github.com/Sefaria/Sefaria-Project/blob/52e00f8bef430cba25a091f4443345ee1890e6c8/sefaria/model/text_request_adapter.py#L70-L90) evaluates each selector against its own role predicate and optional exact version title. It can return a version with `isPrimary: true` for a `translation|versionTitle` selector when that version is not a source, and it de-duplicates a version selected by both parameters.
+
+On September 3, 2026, the deployed request `Kuzari 1:1?version=primary&version=translation|Yehudah Even Shmuel, 1973` returned `Sefer haKuzari - Project Ben-Yehuda` and `Yehudah Even Shmuel, 1973`. Both versions had `isPrimary: true` and `isSource: false`, with no warnings. `isPrimary` therefore cannot identify one unique side across the complete response. An exact selector must claim its matching version before the opposite bare selector falls back to role flags.
+
 [`text_request_adapter.py:88-92`](https://github.com/Sefaria/Sefaria-Project/blob/52e00f8bef430cba25a091f4443345ee1890e6c8/sefaria/model/text_request_adapter.py#L88-L92) records a missing `(language, versionTitle)` selector only when no version matches it.
 
 [`api/views.py:47-60`](https://github.com/Sefaria/Sefaria-Project/blob/52e00f8bef430cba25a091f4443345ee1890e6c8/api/views.py#L47-L60) converts each missing selector into one warning keyed by its language, or by `language|versionTitle` when the selector carried a version title. The warning describes request selection, not an existing returned version.

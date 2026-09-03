@@ -17,6 +17,8 @@ export type BilingualSegmentLayout = "auto" | "stacked" | "side-by-side";
 /** Which role occupies the first side-by-side track. */
 export type BilingualSegmentSideOrder = "primary-first" | "translation-first";
 
+const SIDES: readonly BilingualSegmentSide[] = ["primary", "translation"];
+
 /** Request-free custom element that renders one bilingual-segment view model. */
 export class SefariaBilingualSegment extends SefariaElement {
   /** Lit property metadata for the view model and presentation properties. */
@@ -56,16 +58,26 @@ export class SefariaBilingualSegment extends SefariaElement {
        * threshold selects the paired layout here, without any measurement.
        */
       @container (min-width: 500px) {
-        .pair[data-layout="auto"] {
+        .pair[data-content="both"][data-layout="auto"] {
           grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .pair[data-content="both"][data-layout="auto"][data-order="primary-first"]
+          [data-side="primary"],
+        .pair[data-content="both"][data-layout="auto"][data-order="translation-first"]
+          [data-side="translation"] {
+          order: -1;
         }
       }
 
-      .pair[data-layout="side-by-side"] {
+      .pair[data-content="both"][data-layout="side-by-side"] {
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
-      .pair[data-order="translation-first"] [data-side="translation"] {
+      .pair[data-content="both"][data-layout="side-by-side"][data-order="primary-first"]
+        [data-side="primary"],
+      .pair[data-content="both"][data-layout="side-by-side"][data-order="translation-first"]
+        [data-side="translation"] {
         order: -1;
       }
 
@@ -116,10 +128,13 @@ export class SefariaBilingualSegment extends SefariaElement {
           ),
         );
       case "partial":
-        return this.#renderPair([
-          this.#renderSide(viewModel.present.side, viewModel.present.view),
-          this.#renderAbsent(viewModel.absent.side, viewModel.absent.message),
-        ]);
+        return this.#renderPair(
+          SIDES.map((side) =>
+            side === viewModel.present.side
+              ? this.#renderSide(side, viewModel.present.view)
+              : this.#renderAbsent(side, viewModel.absent.message),
+          ),
+        );
       case "data":
         return this.#renderPair([
           this.#renderSide("primary", viewModel.primary),
@@ -131,6 +146,7 @@ export class SefariaBilingualSegment extends SefariaElement {
   #renderPair(parts: readonly unknown[]) {
     return html`<div
       class="pair"
+      data-content=${this.contentLanguage}
       data-layout=${this.layout}
       data-order=${this.sideOrder}
     >
@@ -152,7 +168,12 @@ export class SefariaBilingualSegment extends SefariaElement {
     if (!this.#shows(side)) {
       return nothing;
     }
-    return html`<p class="absent" role="status" aria-live="polite">
+    return html`<p
+      class="absent"
+      data-side=${side}
+      role="status"
+      aria-live="polite"
+    >
       ${message}
     </p>`;
   }

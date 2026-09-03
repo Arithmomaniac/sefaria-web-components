@@ -104,6 +104,39 @@ describe("createBilingualSegmentViewModel role resolution", () => {
     expect(reversed).toEqual(forward);
   });
 
+  it("lets a normalized exact translation claim a second isPrimary version", () => {
+    const requestedTranslation = translationVersion({
+      versionTitle: "Yehudah Even Shmuel, 1973",
+      language: "he",
+      actualLanguage: "he",
+      languageFamilyName: "hebrew",
+      isPrimary: true,
+      direction: "rtl",
+    });
+    const result = createBilingualSegmentViewModel(
+      payloadWith([
+        primaryVersion({
+          versionTitle: "Sefer haKuzari - Project Ben-Yehuda",
+          isSource: false,
+        }),
+        requestedTranslation,
+      ]),
+      {
+        tref: "Kuzari 1:1",
+        translation: { versionTitle: "Yehudah_Even_Shmuel,_1973" },
+      },
+    );
+
+    expect(result.state).toBe("data");
+    if (result.state !== "data") return;
+    expect(result.primary.attribution.versionTitle).toBe(
+      "Sefer haKuzari - Project Ben-Yehuda",
+    );
+    expect(result.translation.attribution.versionTitle).toBe(
+      "Yehudah Even Shmuel, 1973",
+    );
+  });
+
   it("drops a version that fills neither role", () => {
     const surplus = primaryVersion({
       versionTitle: "Unselected source edition",

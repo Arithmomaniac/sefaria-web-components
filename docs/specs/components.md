@@ -309,9 +309,11 @@ The current request does not support `source`, `all`, `fill_in_missing_segments`
 
 `createBilingualSegmentViewModel` resolves each side from the payload rather than from array order, because a v3 request cannot guarantee response order for its version parameters.
 
-The primary side is the single version whose `isPrimary` is `true`. The translation side is the single remaining version whose `isSource` is `false`.
+An exact side selector first claims the version whose normalized `versionTitle` matches and whose role predicate is satisfied. Title matching replaces `_` with a space, as the API does when it parses the selector. A claimed exact version is excluded from the opposite side's bare-selector fallback.
 
-A version that fills neither role is dropped. More than one candidate for either role is a projection error; the composite does not choose a version silently.
+For a bare selector, the primary side is the single remaining version whose `isPrimary` is `true`. The translation side is the single remaining version whose `isSource` is `false`, excluding the resolved primary side.
+
+A version that fills neither selector is dropped. More than one candidate for either side after exact-selector claims and opposite-side exclusion is a projection error; the composite does not choose a version silently. `isPrimary` is not assumed to be unique across the complete payload.
 
 A side with no resolved version is absent. The composite owns that absent-side state and does not call `projectTextSegmentVersion` for it.
 
@@ -345,9 +347,11 @@ Visible sides and layout are separate element properties, because a host chooses
 
 `auto` selects a stacked or side-by-side layout from container inline size through a CSS container query. The element performs no measurement and holds no resize state.
 
-`sideOrder` chooses which side comes first in a side-by-side layout. It names roles rather than directions, so it stays correct when the primary side is left-to-right.
+`sideOrder` chooses which role comes first in a side-by-side layout, including when one or both roles are absent. It names roles rather than directions, so it stays correct when the primary side is left-to-right.
 
 Side-by-side layout must preserve paired alignment without assuming equal text lengths. Both sides share a block start, and the pair grows to the taller side.
+
+A single visible role uses the full available inline size rather than retaining an empty second track.
 
 The component does not need to copy Sefaria Web's private layout mechanism or pixel geometry.
 

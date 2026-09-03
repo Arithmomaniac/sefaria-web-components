@@ -119,7 +119,8 @@ Review the initial corrections for:
 
 - [ ] One request carries both the `primary` and `translation` selectors.
 - [ ] Blank references and blank exact version titles make zero requests.
-- [ ] Role resolution reads `isPrimary` and `isSource` rather than response order.
+- [ ] Exact selectors claim their matching role version before bare selectors fall back to `isPrimary` and `isSource`.
+- [ ] `isPrimary` is not assumed to be unique across versions returned for both selectors.
 - [ ] Reversing the payload `versions` array produces an identical view model.
 - [ ] A version that fills neither role is dropped.
 - [ ] More than one candidate for either role is a projection error.
@@ -129,6 +130,8 @@ Review the initial corrections for:
 - [ ] One absent side gives the partial state; two give the empty state.
 - [ ] A child projection error surfaces as a bilingual error rather than an absent side.
 - [ ] `contentLanguage`, `layout`, and `sideOrder` remain independent element properties.
+- [ ] `sideOrder` applies by role when either side is absent.
+- [ ] One visible side uses the full available inline size.
 - [ ] `auto` layout responds to container width in both directions without measurement script.
 - [ ] Unequal side lengths share a block start without overlap.
 
