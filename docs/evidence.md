@@ -104,6 +104,12 @@ The current qualification is a small, pinned, offline suite. It is not an exhaus
 
 `tests/compatibility/src/v3-source-backed.fixture.ts` is an intentionally composed fixture, not a verbatim deployed response. Its v3 field set and nesting follow the August 29, 2026 deployed `https://www.sefaria.org/api/v3/texts/Genesis%201%3A31-2%3A2` capture, while its citation-identifying metadata was authored as a non-spanning `Genesis 1:1` response for this focused case. Its single text string combines the MAM span `<span class="mam-kq-trivial">שְׁעָרָ֗ו</span>` hand-extracted from the August 30, 2026 Miqra according to the Masorah `Obadiah 1` response with the footnote marker, body, and nested bold text hand-extracted from the August 30, 2026 Contemporary Torah `Genesis 1:1` response; short connecting prose and punctuation make the two reviewed fragments one executable string. The fixture retains one `versions` record and only enough response metadata to exercise the generated v3 validator before sanitation, HTML text-node vocalization, and structured footnote extraction. Because the metadata, fragments, and connecting prose are manually composed, refresh remains a manual source-review operation.
 
+### Text-segment evidence reuse
+
+The current text-segment tests reuse evidence that already supports the behavior under test rather than collecting another API capture. The composed v3 smoke fixture supplies a validated single-segment payload with mixed Hebrew and English text, retained vocalization, and a static footnote. `packages/client/test/fixtures/v3-text-spanning-2026-08-29.json` supplies a validated deployed array-valued response that proves the segment factory reports wrong granularity instead of silently choosing the first child.
+
+Missing-version warnings, exact-version selection, ambiguous matches, `null`, blank content, invalid selectors, network rejection, and abort rejection are authored unit cases. They test the component contract directly and are not presented as deployed corpus evidence. The component-lab states are also authored view models for visual development; they are not API captures or independent behavior oracles.
+
 ### Executable PASEQ references
 
 The compatibility input is exactly `א ׀ ב׀ג`.

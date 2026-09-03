@@ -1,8 +1,10 @@
+> Created/edited by GitHub Copilot; pending human review.
+
 # Design: Generated API Contracts and Request-Free Components
 
 ## Summary
 
-This design defines a generated API foundation with corrections and component-owned view models. Elements render view models and never request data. All production contracts in this document are planned until their implementation lands.
+This design defines a generated API foundation with corrections and component-owned view models. Elements render view models and never request data. The client, text-processing packages, and text-segment vertical slice are current; the remaining component and integration contracts are planned.
 
 ## Scope
 
@@ -117,7 +119,7 @@ Unknown inputs from MCP or another external boundary receive validation before c
 
 ## Component boundary
 
-Each component has a non-DOM public subpath. This subpath owns its request type, view-model union, pure projection factory, and async request factory. The pure factory converts a corrected API payload into one component view model. The async factory obtains the payload through a supplied client and passes it to the pure factory.
+Each component has a non-DOM public subpath. This subpath owns its request type, view-model union, pure projection factory, and async request factory. The pure factory converts a corrected API payload into one component view model. The async factory obtains the payload through a supplied client and passes it to the pure factory. `@sefaria/components/text-segment` is the current first implementation of this boundary.
 
 Raw HTML can enter the pure factory only as a field of a validated API payload. The factory uses `@sefaria/text-transform` to sanitize, extract structure from, and vocalize that field before constructing the view model. A view model can contain sanitized render-ready HTML fragments and typed text parts. It must not contain raw API HTML for the element to interpret.
 
@@ -126,6 +128,22 @@ An integration can provide a payload-to-component operation. This operation is a
 Data state belongs in the view model. The request-free element accepts no reference, raw JSON, client, host, or fetch function. It owns only layout, theme, focus behavior, and other interaction state.
 
 See the [component specification](specs/components.md) for the three-layer contract and composition rules.
+
+## Interactive task ownership
+
+An element emits a composed event when a user action requests different data. The event describes the action and target. It does not select a transport.
+
+The host owns the active selection, loading state, data-source choice, cancellation, and stale-result suppression. An async component factory owns only one request operation.
+
+The host can use authoritative captured data, validated server-provided data, or a supplied client. The first two paths call a pure factory. The client path calls an async factory.
+
+The captured-data owner declares which targets the payload covers. An empty pure-factory result does not prove that the payload covered the target.
+
+If the host has no permitted data source, the integration shows its unavailable state outside the target element. It must not construct an unsupported component state.
+
+A Lit host can use `@lit/task` or a reactive controller. A non-Lit host can use `AbortController` and equivalent local state. These mechanisms do not change the component contract.
+
+The host must not use task rendering and component view-model rendering as two state owners for one surface. The target element receives one loading or terminal view model.
 
 ## Server and client convergence
 
@@ -183,4 +201,4 @@ Correct text, direction, sanitization, attribution, and accessible interaction h
 
 The exact generator packages, validator generator, and committed artifact paths remain implementation choices. Each choice must satisfy the offline, deterministic, and stale-output contracts.
 
-The exact export names for component subpaths remain open until the first vertical slice. The ownership and request-free element boundaries are not open.
+The text-segment export names are established by the first vertical slice. Names for later component subpaths remain open until their implementation. The ownership and request-free element boundaries are not open.

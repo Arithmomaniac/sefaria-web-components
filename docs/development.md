@@ -10,7 +10,9 @@ This guide describes current commands and remaining planned architecture work.
 | --- | --- | --- |
 | `packages/client` | Generates six named Core SDK functions, contracts, Zod validators, and a status-aware fetch client from a pinned corrected OpenAPI document | Expand only when a reviewed contract adds another operation |
 | `packages/text-transform` | Implements parser-backed sanitization, Hebrew vocalization modes, and structured footnote extraction without browser DOM globals | Broader corpus comparison remains planned |
-| `packages/components` | Exports the base element and token defaults | Add component factories and request-free elements |
+| `packages/components` | Exports the base element, token defaults, `<sefaria-text-segment>`, and the `@sefaria/components/text-segment` pure and async factories | Add later component-specific vertical slices as their consumers require them |
+| `demos/component-lab` | Shows authored loading, data, empty, and error view models for `<sefaria-text-segment>` | Add states and interactions with each production component |
+| `demos/text-segment-live-demo` | Provides an interactive HTML form and presets that call the deployed Sefaria API and render `<sefaria-text-segment>` | Add live examples only when a production component needs them |
 | `demos/mcp` | Packages an App shell and returns a text-only tool result | Add corrected payload validation and component projection |
 | `tests/compatibility` | Runs focused pinned client/transform comparisons, a composed v3 validate-to-transform smoke case, and grouped qualification output without network access | Broader corpus comparison and compatibility publication remain planned |
 
@@ -39,6 +41,7 @@ TypeScript emits reusable ES modules. Vite builds the browser demonstrations and
 | `packages/components` | Non-DOM component factories and request-free Lit elements |
 | `tests/compatibility` | Pinned compatibility evidence for retained pure behavior |
 | `demos/component-lab` | Browser development for view-model states and interactions |
+| `demos/text-segment-live-demo` | Interactive live API page for the text-segment component |
 | `demos/mcp` | Corrected-payload MCP boundary and FastMCP fixture |
 | `demos/linker-userscript` | Third-party popup integration |
 
@@ -191,7 +194,15 @@ Do not edit generated declarations by hand.
 pnpm dev
 ```
 
-The current page shows workspace status and the current components. Planned component-lab states will supply view models rather than references or raw payloads.
+The current page shows authored loading, data, empty, and error view models for `<sefaria-text-segment>`. These examples exercise the production element without making requests or defining a generic fixture catalog.
+
+## Run the interactive text-segment page
+
+```powershell
+pnpm dev:text-segment
+```
+
+The page uses ordinary HTML controls and the production client. It calls the deployed Sefaria API, owns cancellation and host errors, and supplies each result to `<sefaria-text-segment>`.
 
 ## Run the MCP fixture
 

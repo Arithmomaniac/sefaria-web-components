@@ -1,3 +1,5 @@
+> Created/edited by GitHub Copilot; pending human review.
+
 # Integration specification [Planned]
 
 ## Status
@@ -13,6 +15,22 @@ An integration can accept a reference or host input. It calls a non-DOM componen
 An integration must not give a reference, raw payload, client, host, or `fetch` function to an element.
 
 Unknown JSON must pass a generated `@sefaria/client` validator before component projection. Validation failures report structured paths.
+
+## Interaction task flow
+
+An integration owns the task lifecycle for user-triggered data changes. It selects authoritative captured data, validated server data, or a supplied client.
+
+If the required data is already available, the integration calls the owning pure factory. If a client request is required, it calls the async factory with cancellation.
+
+The captured-data owner declares which targets the payload covers. The integration must not infer coverage from an empty pure-factory result.
+
+For a component data path, the integration supplies the target component's loading and terminal view models. It does not give task state, a client, or a raw payload to the element.
+
+If a newer action supersedes an older operation, the integration aborts the old operation when possible. It ignores an obsolete result even when cancellation cannot stop the work.
+
+If no permitted data source exists, the integration shows its own unavailable state outside the target element. It does not construct an unsupported component state.
+
+An integration can use `@lit/task`, a reactive controller, or an equivalent task mechanism. The component package does not require one task framework.
 
 ## MCP App purpose
 
@@ -197,7 +215,7 @@ Popup dragging is not in Core scope.
 
 - The built file installs in Tampermonkey or a compatible engine.
 - The default build runs only on approved fixture hosts.
-- A detected citation calls the popup async factory.
+- A detected citation calls the popup async factory when the integration selects the client path.
 - The popup element receives only a view model and interaction properties.
 - Host styles do not enter the popup.
 - Popup styles do not enter the host page.
@@ -212,6 +230,8 @@ Popup dragging is not in Core scope.
 - Invalid unknown JSON reports structured paths.
 - A documented HTTP error becomes a component-specific error view model.
 - A network failure or abort rejects the async factory operation.
+- An obsolete abort does not replace the current view model with an error.
+- A host without a permitted data source shows integration-owned unavailable UI, not empty API content.
 - Missing content becomes the owning component's partial or empty state.
 - Missing build output stops staging.
 - A packaged App must not reference a development server.

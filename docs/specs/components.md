@@ -1,8 +1,10 @@
-# Component specification [Planned]
+> Created/edited by GitHub Copilot; pending human review.
+
+# Component specification
 
 ## Status
 
-This specification defines the planned component architecture.
+The text-segment vertical slice is current. The remaining component surfaces and composite behavior are planned.
 
 ## Boundary
 
@@ -31,7 +33,7 @@ Every component has a non-DOM `@sefaria/components` subpath. The subpath owns:
 - one component-specific view-model union
 - a deterministic pure API-payload-to-view-model factory
 - an async request-and-client factory
-- component-specific loading, empty, partial, and error construction
+- component-specific construction for the states that component supports
 
 The package does not define a generalized normalized client result or shared domain model.
 
@@ -47,7 +49,7 @@ Planned names follow this pattern:
 | Popup | `PopupRequest` | `PopupViewModel` | `createPopupViewModel` | `loadPopupViewModel` |
 | Connections panel | `ConnectionsPanelRequest` | `ConnectionsPanelViewModel` | `createConnectionsPanelViewModel` | `loadConnectionsPanelViewModel` |
 
-These names are planned. The first implementation slice can refine them without changing ownership or request boundaries.
+The text-segment names are current. The remaining names are planned and can be refined by their first implementation slice without changing ownership or request boundaries.
 
 ## View-model states
 
@@ -92,6 +94,8 @@ The factory:
 
 The same input must produce the same view model.
 
+If a component contract rejects an invalid request, both factories reject it before projection. The async factory must reject before it makes a request.
+
 ## Async factories
 
 An async factory accepts a component request and a supplied `@sefaria/client`. It performs the smallest operation set needed for that component.
@@ -103,6 +107,10 @@ The host sets a component-specific loading view model before it awaits the async
 An async factory returns its component error view model for a documented HTTP error payload. It must not return a transport error object.
 
 A network failure or abort rejects the async factory operation. An abort used to cancel obsolete work remains an abort.
+
+An async factory owns one operation. It does not own the active selection, loading state, task history, available data sources, retries, or stale-result suppression.
+
+The host owns the task lifecycle. A Lit host can use `@lit/task`, a reactive controller, or an equivalent local mechanism. This choice is not part of the public component contract.
 
 ## Client and server convergence
 
@@ -166,7 +174,7 @@ Every public element:
 - accepts one component-specific view model
 - accepts only visual or interaction properties in addition to that view model
 - emits composed events for host actions
-- renders loading, data, partial, empty, and error states that its view model supports
+- renders the loading, data, partial, empty, and error states that its view model supports
 - preserves available attribution
 - supports keyboard operation
 - uses `--sefaria-*` custom properties
@@ -194,21 +202,64 @@ Visual and interaction state remains on the element. This includes layout, expan
 
 If an interaction changes requested data, the element emits an event. The host calls a factory and supplies a new view model.
 
-## Planned component surfaces
+## Interaction-triggered data [Planned]
 
-| Element | Primary payload source | View-model responsibility | Element properties |
-| --- | --- | --- | --- |
-| `<sefaria-text-segment>` | `/api/v3/texts/{tref}` payload or parent payload slice | Safe text, direction, language, attribution, and footnote data | Footnote display and word-selection interaction |
-| `<sefaria-bilingual-segment>` | `/api/v3/texts/{tref}` payload or parent payload slice | Source and translation sides, missing-side state, and attribution | `layout` and primary-side presentation |
-| `<sefaria-ref-label>` | `/api/ref/{tref}` payload or parent payload slice | Human label, Hebrew label, canonical URL, and unavailable-label state | Link behavior and display form |
-| `<sefaria-text-range>` | `/api/v3/texts/{tref}` payload | Bounded segment view models and range-level partial state | Layout, numbering, selection, and highlights |
-| `<sefaria-source-card>` | `/api/v3/texts/{tref}` payload | Reference header, bounded text view, attribution, and missing-content state | Layout and host actions |
-| `<sefaria-popup>` | Source-card payload or parent payload | Popup content view model and recoverable error state | Anchor, open state, placement, and focus behavior |
-| `<sefaria-connections-panel>` | `/api/links/{tref}` payload | Category and link view models with bounded paging | Selected category and expanded state |
+An interactive element emits a semantic composed event. The event identifies the user action and its target. It does not contain a client or raw payload.
+
+The host selects one explicit data path:
+
+| Available host input | Host action | Request count |
+| --- | --- | --- |
+| The captured corrected payload is authoritative for the target data | Call the owning pure factory | Zero |
+| Validated server-provided data contains the target data | Call the owning pure factory | Zero |
+| A supplied client can retrieve the target data | Supply a loading view model, then call the owning async factory with cancellation | One operation-specific request |
+| No permitted data source exists | The integration shows its unavailable state outside the target element | Zero |
+
+The host must not hide a fallback request behind the element or pure factory. The host must not treat missing capability as empty API content.
+
+The captured-payload owner must declare that the payload covers the requested target. The host must not use an empty factory result to infer payload coverage.
+
+If a newer interaction supersedes an older operation, the host aborts the older operation when possible. The host must ignore an obsolete result in all cases.
+
+The originating element usually keeps its current data. For a component data path, the host supplies loading and terminal view models to the target component.
+
+If no data source exists, the integration owns the unavailable presentation. It does not construct an unsupported component view-model state.
+
+Task lifecycle state and component view-model state must not compete for the same rendering surface. The host can use task state for execution, but the target element renders only its supplied view model.
+
+## Component surfaces
+
+| Element | Status | Primary payload source | View-model responsibility | Element properties |
+| --- | --- | --- | --- | --- |
+| `<sefaria-text-segment>` | Current | `/api/v3/texts/{tref}` payload or parent payload slice | Safe text, direction, language, attribution, and static footnote data | None in the current contract |
+| `<sefaria-bilingual-segment>` | Planned | `/api/v3/texts/{tref}` payload or parent payload slice | Source and translation sides, missing-side state, and attribution | `layout` and primary-side presentation |
+| `<sefaria-ref-label>` | Planned | `/api/ref/{tref}` payload or parent payload slice | Human label, Hebrew label, canonical URL, and unavailable-label state | Link behavior and display form |
+| `<sefaria-text-range>` | Planned | `/api/v3/texts/{tref}` payload | Bounded segment view models and range-level partial state | Layout, numbering, selection, and highlights |
+| `<sefaria-source-card>` | Planned | `/api/v3/texts/{tref}` payload | Reference header, bounded text view, attribution, and missing-content state | Layout and host actions |
+| `<sefaria-popup>` | Planned | Source-card payload or parent payload | Popup content view model and recoverable error state | Anchor, open state, placement, and focus behavior |
+| `<sefaria-connections-panel>` | Planned | `/api/links/{tref}` payload | Category and link view models with bounded paging | Selected category and expanded state |
 
 The `/api/texts/versions/{index}`, `/api/v2/index/{title}`, and `/api/shape/{title}` operations can support component requests that need those payloads. A component must not request them without a concrete need.
 
 All listed elements except `<sefaria-connections-panel>` are Core. The connections panel remains outside Core.
+
+## Text segment contract [Current]
+
+The first text-segment implementation accepts a segment reference plus either a language-family name or a language-family name and exact version title. It maps that selection to one v3 `version` query value and requests `return_format=default`.
+
+The current request does not support `source`, `translation`, `primary`, `all`, `fill_in_missing_segments`, or alternate return formats. Add one of these inputs only when a concrete consumer requires its behavior.
+
+Both text-segment factories reject a blank or reserved selector with `TypeError`. The async factory rejects before it makes a request.
+
+The pure factory matches `languageFamilyName` case-insensitively and matches `versionTitle` exactly when the request supplies one. No matching version produces `empty`. `null`, empty, or transformed non-renderable text also produces `empty`.
+
+Text segment has no `partial` state. More than one matching version or an array-valued selected text produces a projection `error`; the factory does not choose a version or child segment silently.
+
+String text passes through `sanitize`, full-mark HTML vocalization, and `extractFootnotes` before entering the view model. The data view model preserves the payload-provided `language`, `actualLanguage`, `direction`, `versionTitle`, and `versionSource`. The source remains text in this contract and is not converted into an unvalidated link.
+
+`<sefaria-text-segment>` renders static footnote markers and available note bodies. Interactive footnote activation and word selection remain outside the current contract because no consumer defines their action or event payload.
+
+The element supports mixed scripts, punctuation, and long unbroken text without inferring direction from language. Poetry- and paragraph-specific presentation remain outside the current contract until an exact behavior is defined.
 
 ## Bilingual alignment
 
@@ -257,7 +308,7 @@ Core interaction works with a keyboard.
 
 Required behavior includes:
 
-- real buttons for close and footnote actions
+- real buttons for close and footnote actions when those actions exist
 - visible focus
 - Tab and Shift+Tab cycling in modal popups
 - Escape closes a popup
@@ -287,7 +338,7 @@ Browser tests must cover:
 - browser structure
 - accessible names and roles
 - direction and language
-- focus and keyboard behavior
+- focus and keyboard behavior for interactive elements
 - responsive containers
 - event composition
 - token inheritance
@@ -306,5 +357,5 @@ A planned component is complete when:
 - the element accepts no request input and makes no request
 - text is safe before it reaches the element
 - direction and attribution come from the view model
-- keyboard and browser checks pass
+- applicable keyboard and browser checks pass
 - a clean checkout passes `pnpm check`

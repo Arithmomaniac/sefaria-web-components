@@ -1,3 +1,5 @@
+> Created/edited by GitHub Copilot; pending human review.
+
 # Sefaria Web Components
 
 > **Experimental.** This Microsoft Global Hackathon 2026 project has no support or stability guarantee. It is not an official Sefaria product.
@@ -12,7 +14,7 @@ The Web Components render component-specific view models. They never accept refe
 
 ## Implementation status
 
-The documents define the planned architecture. The [development guide](docs/development.md) describes the current implementation and migration work.
+The client, text-transform package, and first text-segment component are implemented. The remaining documents define the planned architecture. The [development guide](docs/development.md) distinguishes current behavior from remaining work.
 
 ## Documentation
 
@@ -22,6 +24,7 @@ The documents define the planned architecture. The [development guide](docs/deve
 | Implement the OpenAPI supply chain and thin client | [Client specification](docs/specs/client.md) |
 | Implement sanitization, vocalization, and footnotes | [Text-processing specification](docs/specs/text-processing.md) |
 | Implement component factories and elements | [Component specification](docs/specs/components.md) |
+| Replay the first component demonstration | [Text segment demonstration](docs/text-segment-demo.md) |
 | Implement the MCP App or Linker demonstration | [Integration specification](docs/specs/integrations.md) |
 | Install tools and run the repository | [Development guide](docs/development.md) |
 | Review generated contracts and request boundaries | [Review guide](docs/review.md) |
@@ -38,6 +41,7 @@ The specifications are normative. `docs/evidence.md` records observations and so
 | `packages/components` | Non-DOM component factories and request-free Lit elements |
 | `tests/compatibility` | Focused compatibility evidence for retained pure behavior |
 | `demos/component-lab` | Browser states for component view models and interactions |
+| `demos/text-segment-live-demo` | Interactive live Sefaria request page for the text-segment component |
 | `demos/mcp` | MCP corrected-payload boundary and self-contained App |
 | `demos/linker-userscript` | Third-party integration through an async component factory |
 
@@ -58,11 +62,12 @@ If Corepack is unavailable, use `npx --yes pnpm@11.22.0` instead of `pnpm`. The 
 
 ## Demonstrations
 
-| Demonstration                  | Command           |
-| ------------------------------ | ----------------- |
-| Component lab                  | `pnpm dev`        |
-| MCP App with a FastMCP fixture | `pnpm dev:mcp`    |
-| Linker userscript              | `pnpm dev:linker` |
+| Demonstration                  | Command                 |
+| ------------------------------ | ----------------------- |
+| Component lab                  | `pnpm dev`              |
+| Interactive text-segment page  | `pnpm dev:text-segment` |
+| MCP App with a FastMCP fixture | `pnpm dev:mcp`          |
+| Linker userscript              | `pnpm dev:linker`       |
 
 The [integration specification](docs/specs/integrations.md) defines the planned contracts for these demonstrations.
 
