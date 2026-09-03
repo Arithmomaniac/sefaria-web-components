@@ -12,6 +12,7 @@ import { v3SourceBackedPayload } from "../../../tests/compatibility/src/v3-sourc
 import {
   createTextSegmentViewModel,
   loadTextSegmentViewModel,
+  projectTextSegmentVersion,
   type TextSegmentRequest,
 } from "./text-segment.js";
 
@@ -58,6 +59,81 @@ function jsonResponse(body: unknown, status = 200): Response {
     headers: { "content-type": "application/json" },
   });
 }
+
+describe("projectTextSegmentVersion", () => {
+  it("projects the role-selected version without reselecting its language family", () => {
+    const payload = sourcePayload();
+    const selectedVersion = englishVersion({
+      versionTitle: "Role-selected translation",
+      text: "Selected translation.",
+    });
+    payload.versions = [
+      englishVersion({
+        versionTitle: "Other translation",
+        text: "Other translation.",
+      }),
+      selectedVersion,
+    ];
+
+    const result = projectTextSegmentVersion(payload, selectedVersion);
+
+    expect(result.state).toBe("data");
+    if (result.state === "data") {
+      expect(result.body).toEqual([
+        { kind: "html", html: "Selected translation." },
+      ]);
+      expect(result.attribution.versionTitle).toBe("Role-selected translation");
+    }
+  });
+
+  it("owns the same text transformation as request-based projection", () => {
+    const payload = sourcePayload();
+    const version = payload.versions[0];
+    if (!version) {
+      throw new Error("Source-backed payload must contain one version.");
+    }
+
+    expect(projectTextSegmentVersion(payload, version)).toEqual(
+      createTextSegmentViewModel(payload, SOURCE_REQUEST),
+    );
+  });
+
+  it("does not attribute request warnings to an already-selected version", () => {
+    const payload = sourcePayload();
+    const version = englishVersion({ text: null });
+    payload.versions = [version];
+    payload.warnings = [
+      {
+        primary: {
+          warning_code: 103,
+          message: "The requested primary text is unavailable.",
+        },
+      },
+    ];
+
+    expect(projectTextSegmentVersion(payload, version)).toEqual({
+      state: "empty",
+      ref: "Genesis 1:1",
+      heRef: "בראשית א׳:א׳",
+      message: 'No english version "Example English" text is available.',
+      warnings: [],
+    });
+  });
+
+  it("returns a projection error for selected array text", () => {
+    const payload = validatedPayload(spanningFixture);
+    const version = payload.versions[0];
+    if (!version) {
+      throw new Error("Spanning payload must contain one version.");
+    }
+
+    expect(projectTextSegmentVersion(payload, version)).toEqual({
+      state: "error",
+      errorKind: "projection",
+      message: "Text segment requires string or null text; received an array.",
+    });
+  });
+});
 
 describe("createTextSegmentViewModel", () => {
   it("selects the requested language instead of the first version", () => {
@@ -178,6 +254,24 @@ describe("createTextSegmentViewModel", () => {
       ).toBe("empty");
     },
   );
+
+  it("preserves the request-specific empty message after delegation", () => {
+    const payload = sourcePayload();
+    payload.versions = [englishVersion({ versionTitle: "Exact", text: null })];
+
+    expect(
+      createTextSegmentViewModel(payload, {
+        tref: "Genesis 1:1",
+        version: { language: "english", versionTitle: "Exact" },
+      }),
+    ).toEqual({
+      state: "empty",
+      ref: "Genesis 1:1",
+      heRef: "בראשית א׳:א׳",
+      message: 'No english version "Exact" text is available.',
+      warnings: [],
+    });
+  });
 
   it("returns a projection error instead of choosing an ambiguous version", () => {
     const payload = sourcePayload();

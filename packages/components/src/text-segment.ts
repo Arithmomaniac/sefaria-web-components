@@ -1,6 +1,7 @@
 import {
   getV3Texts,
   type CoreV3TextsResponse,
+  type CoreV3Version,
   type GetV3TextsData,
   type SefariaClient,
 } from "@sefaria/client";
@@ -134,7 +135,7 @@ export function createTextSegmentViewModel(
   );
 
   if (matches.length === 0) {
-    return createEmptyViewModel(payload, request);
+    return createEmptyViewModel(payload, createRequestEmptyMessage(request));
   }
 
   if (matches.length > 1) {
@@ -150,6 +151,23 @@ export function createTextSegmentViewModel(
     throw new Error("A single version match was not available.");
   }
 
+  const projected = projectTextSegmentVersion(payload, version);
+  if (projected.state === "empty") {
+    return createEmptyViewModel(payload, createRequestEmptyMessage(request));
+  }
+  return projected;
+}
+
+/**
+ * Projects one already-selected version into render-ready segment data.
+ */
+export function projectTextSegmentVersion(
+  payload: CoreV3TextsResponse,
+  version: CoreV3Version,
+):
+  | TextSegmentDataViewModel
+  | TextSegmentEmptyViewModel
+  | TextSegmentProjectionErrorViewModel {
   if (Array.isArray(version.text)) {
     return {
       state: "error",
@@ -159,12 +177,12 @@ export function createTextSegmentViewModel(
   }
 
   if (version.text === null) {
-    return createEmptyViewModel(payload, request);
+    return createSelectedVersionEmptyViewModel(payload, version);
   }
 
   const sanitized = sanitize(version.text);
   if (sanitized.trim().length === 0) {
-    return createEmptyViewModel(payload, request);
+    return createSelectedVersionEmptyViewModel(payload, version);
   }
 
   const vocalized = applyVocalizationToHtml(sanitized, "taamim_and_nikkud");
@@ -224,22 +242,43 @@ export async function loadTextSegmentViewModel(
 
 function createEmptyViewModel(
   payload: CoreV3TextsResponse,
-  request: TextSegmentRequest,
+  fallbackMessage: string,
 ): TextSegmentEmptyViewModel {
   const warnings = payload.warnings.flatMap((warning) =>
     Object.values(warning).map((detail) => detail.message),
   );
-  const requestedVersion =
-    request.version.versionTitle === undefined
-      ? request.version.language
-      : `${request.version.language} version "${request.version.versionTitle}"`;
 
   return {
     state: "empty",
     ref: payload.ref,
     heRef: payload.heRef,
-    message: warnings[0] ?? `No ${requestedVersion} text is available.`,
+    message: warnings[0] ?? fallbackMessage,
     warnings,
+  };
+}
+
+function createRequestEmptyMessage(request: TextSegmentRequest): string {
+  const requestedVersion =
+    request.version.versionTitle === undefined
+      ? request.version.language
+      : `${request.version.language} version "${request.version.versionTitle}"`;
+  return `No ${requestedVersion} text is available.`;
+}
+
+function createSelectedVersionEmptyMessage(version: CoreV3Version): string {
+  return `No ${version.languageFamilyName} version "${version.versionTitle}" text is available.`;
+}
+
+function createSelectedVersionEmptyViewModel(
+  payload: CoreV3TextsResponse,
+  version: CoreV3Version,
+): TextSegmentEmptyViewModel {
+  return {
+    state: "empty",
+    ref: payload.ref,
+    heRef: payload.heRef,
+    message: createSelectedVersionEmptyMessage(version),
+    warnings: [],
   };
 }
 

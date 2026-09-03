@@ -41,7 +41,7 @@ Planned names follow this pattern:
 
 | Component | Request | View model | Pure factory | Async factory |
 | --- | --- | --- | --- | --- |
-| Text segment | `TextSegmentRequest` | `TextSegmentViewModel` | `createTextSegmentViewModel` | `loadTextSegmentViewModel` |
+| Text segment | `TextSegmentRequest` | `TextSegmentViewModel` | `createTextSegmentViewModel`; `projectTextSegmentVersion` after role resolution | `loadTextSegmentViewModel` |
 | Bilingual segment | `BilingualSegmentRequest` | `BilingualSegmentViewModel` | `createBilingualSegmentViewModel` | `loadBilingualSegmentViewModel` |
 | Reference label | `RefLabelRequest` | `RefLabelViewModel` | `createRefLabelViewModel` | `loadRefLabelViewModel` |
 | Text range | `TextRangeRequest` | `TextRangeViewModel` | `createTextRangeViewModel` | `loadTextRangeViewModel` |
@@ -80,6 +80,8 @@ Non-DOM factories consume the request type. It is never an element property.
 ## Pure factories
 
 A pure factory accepts a corrected API payload and deterministic component inputs. It returns a component view model.
+
+A composite can resolve a child input by payload role before projection. In this case, the child subpath can expose a pure projection that accepts the resolved input without repeating selection.
 
 The factory:
 
@@ -252,6 +254,16 @@ The current request does not support `source`, `translation`, `primary`, `all`, 
 Both text-segment factories reject a blank or reserved selector with `TypeError`. The async factory rejects before it makes a request.
 
 The pure factory matches `languageFamilyName` case-insensitively and matches `versionTitle` exactly when the request supplies one. No matching version produces `empty`. `null`, empty, or transformed non-renderable text also produces `empty`.
+
+`projectTextSegmentVersion` accepts one already-selected `CoreV3Version`. It does not select by language, title, array position, `isPrimary`, or `isSource`.
+
+`createTextSegmentViewModel` owns language-family selection and delegates the selected version to `projectTextSegmentVersion`. This keeps one owner for sanitization, vocalization, footnote extraction, direction, language, and attribution projection.
+
+Payload warnings describe missing request selectors. `createTextSegmentViewModel` preserves them because it owns one selector. `projectTextSegmentVersion` does not assign request warnings to an existing selected version.
+
+Role-based composites resolve a primary, source, or translation version from the captured payload. They call `projectTextSegmentVersion` for each resolved side and do not call the request-based text-segment factory.
+
+If a requested role has no selected version, the composite owns that missing-side state and its matching warning. It does not call `projectTextSegmentVersion` for the missing side.
 
 Text segment has no `partial` state. More than one matching version or an array-valued selected text produces a projection `error`; the factory does not choose a version or child segment silently.
 

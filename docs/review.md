@@ -101,6 +101,13 @@ Review the initial corrections for:
 - [ ] Invalid or reserved selectors reject both factories with `TypeError`.
 - [ ] Language matching does not depend on response order.
 - [ ] More than one matching version is a projection error.
+- [ ] `projectTextSegmentVersion` projects an already-selected `CoreV3Version` without language-family reselection.
+- [ ] Request-based text-segment projection delegates post-selection work to `projectTextSegmentVersion`.
+- [ ] Role-based composites resolve sides before they call `projectTextSegmentVersion`.
+- [ ] The resolved-version projection owns sanitization, vocalization, footnotes, direction, language, and attribution.
+- [ ] Request warnings remain with the selector-owning factory or composite.
+- [ ] The resolved-version projection does not assign payload warnings to an existing selected version.
+- [ ] A composite maps a missing role and its warning without calling the resolved-version projection.
 - [ ] Array-valued text is a projection error rather than a first-child fallback.
 - [ ] `null`, blank, and sanitized-empty text produce the empty state.
 - [ ] Empty states preserve server warning messages.

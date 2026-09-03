@@ -121,6 +121,12 @@ Unknown inputs from MCP or another external boundary receive validation before c
 
 Each component has a non-DOM public subpath. This subpath owns its request type, view-model union, pure projection factory, and async request factory. The pure factory converts a corrected API payload into one component view model. The async factory obtains the payload through a supplied client and passes it to the pure factory. `@sefaria/components/text-segment` is the current first implementation of this boundary.
 
+A composite can resolve a child input by payload role before projection. The child subpath owns the pure resolved-input projection, so the composite does not repeat child transformation logic.
+
+Text segment exposes `projectTextSegmentVersion` for this case. A bilingual composite can resolve primary, source, and translation roles from one payload, then project each selected `CoreV3Version`.
+
+Request warnings remain with the selector-owning factory or composite. A resolved-version projection cannot assign a warning for another request selector.
+
 Raw HTML can enter the pure factory only as a field of a validated API payload. The factory uses `@sefaria/text-transform` to sanitize, extract structure from, and vocalize that field before constructing the view model. A view model can contain sanitized render-ready HTML fragments and typed text parts. It must not contain raw API HTML for the element to interpret.
 
 An integration can provide a payload-to-component operation. This operation is a facade over the same pure factory and request-free element. It does not create a second projection path or move payload interpretation into the element.

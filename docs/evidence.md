@@ -266,6 +266,22 @@ Targeted live `/api/v3/texts` probes on August 27, 2026 showed that text content
 
 `Genesis 1:1` returned a string. `Genesis 1:1-3` returned an array. `Genesis 1:31-2:2` returned nested arrays for the spanning range.
 
+### Bilingual version roles
+
+Sefaria Web commit [`52e00f8bef430cba25a091f4443345ee1890e6c8`](https://github.com/Sefaria/Sefaria-Project/tree/52e00f8bef430cba25a091f4443345ee1890e6c8) treats reader sides as source or primary text and translation text, not fixed Hebrew and English families.
+
+[`Hooks.jsx:13`](https://github.com/Sefaria/Sefaria-Project/blob/52e00f8bef430cba25a091f4443345ee1890e6c8/static/js/Hooks.jsx#L13) states that the reader's `hebrew` interface value means the source text. It uses `primaryLang` or `translationLang` as the shown content language.
+
+[`sefaria.js:790-829`](https://github.com/Sefaria/Sefaria-Project/blob/52e00f8bef430cba25a091f4443345ee1890e6c8/static/js/sefaria/sefaria.js#L790-L829) resolves primary and translation versions through `isPrimary`, `isSource`, saved preferences, and the translation-language preference. If no concrete version is found, it uses the reserved `primary` or `translation` selector.
+
+[`sefaria.js:632-647`](https://github.com/Sefaria/Sefaria-Project/blob/52e00f8bef430cba25a091f4443345ee1890e6c8/static/js/sefaria/sefaria.js#L632-L647) sorts serialized version parameters before the request. Query order cannot identify the primary and translation sides.
+
+[`text_request_adapter.py:88-92`](https://github.com/Sefaria/Sefaria-Project/blob/52e00f8bef430cba25a091f4443345ee1890e6c8/sefaria/model/text_request_adapter.py#L88-L92) records a missing `(language, versionTitle)` selector only when no version matches it.
+
+[`api/views.py:47-60`](https://github.com/Sefaria/Sefaria-Project/blob/52e00f8bef430cba25a091f4443345ee1890e6c8/api/views.py#L47-L60) converts each missing selector into one warning keyed by its original language or `language|versionTitle` query value. The warning describes request selection, not an existing returned version.
+
+This evidence supports a text-segment projection that accepts one already-resolved `CoreV3Version`. The bilingual composite owns role resolution, and text segment remains the single owner of segment transformation.
+
 ### Current front-end cache
 
 The current front-end text cache grows for the lifetime of the page. It has no eviction and no expiry.
