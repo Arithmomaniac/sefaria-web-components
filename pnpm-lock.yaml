@@ -54,6 +54,15 @@ importers:
         specifier: ^1.0.1
         version: 1.0.1(lit@3.3.3)(vitest@4.1.11)
 
+  demos/bilingual-segment-live-demo:
+    dependencies:
+      '@sefaria/client':
+        specifier: workspace:*
+        version: link:../../packages/client
+      '@sefaria/components':
+        specifier: workspace:*
+        version: link:../../packages/components
+
   demos/component-lab:
     dependencies:
       '@sefaria/components':

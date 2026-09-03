@@ -115,6 +115,23 @@ Review the initial corrections for:
 - [ ] Static footnote markers and available bodies render without adding interaction.
 - [ ] Version source remains inert text rather than an unvalidated link.
 
+### Bilingual segment
+
+- [ ] One request carries both the `primary` and `translation` selectors.
+- [ ] Blank references and blank exact version titles make zero requests.
+- [ ] Role resolution reads `isPrimary` and `isSource` rather than response order.
+- [ ] Reversing the payload `versions` array produces an identical view model.
+- [ ] A version that fills neither role is dropped.
+- [ ] More than one candidate for either role is a projection error.
+- [ ] The resolved-version projection is never called for an absent role.
+- [ ] Each side's message comes from the warning whose key matches that side's serialized selector.
+- [ ] Warning-key matching substitutes a space for each underscore in a requested version title.
+- [ ] One absent side gives the partial state; two give the empty state.
+- [ ] A child projection error surfaces as a bilingual error rather than an absent side.
+- [ ] `contentLanguage`, `layout`, and `sideOrder` remain independent element properties.
+- [ ] `auto` layout responds to container width in both directions without measurement script.
+- [ ] Unequal side lengths share a block start without overlap.
+
 ## Composite request counts
 
 - [ ] The composite async factory owns the outer request.

@@ -288,7 +288,27 @@ Sefaria Web commit [`52e00f8bef430cba25a091f4443345ee1890e6c8`](https://github.c
 
 [`text_request_adapter.py:88-92`](https://github.com/Sefaria/Sefaria-Project/blob/52e00f8bef430cba25a091f4443345ee1890e6c8/sefaria/model/text_request_adapter.py#L88-L92) records a missing `(language, versionTitle)` selector only when no version matches it.
 
-[`api/views.py:47-60`](https://github.com/Sefaria/Sefaria-Project/blob/52e00f8bef430cba25a091f4443345ee1890e6c8/api/views.py#L47-L60) converts each missing selector into one warning keyed by its original language or `language|versionTitle` query value. The warning describes request selection, not an existing returned version.
+[`api/views.py:47-60`](https://github.com/Sefaria/Sefaria-Project/blob/52e00f8bef430cba25a091f4443345ee1890e6c8/api/views.py#L47-L60) converts each missing selector into one warning keyed by its language, or by `language|versionTitle` when the selector carried a version title. The warning describes request selection, not an existing returned version.
+
+The warning key is not the original query value. [`api/views.py:39-45`](https://github.com/Sefaria/Sefaria-Project/blob/52e00f8bef430cba25a091f4443345ee1890e6c8/api/views.py#L39-L45) splits a piped `version` parameter and replaces `_` with a space in the version title before the key is built:
+
+```python
+params[1] = params[1].replace('_', ' ')
+```
+
+A request for `primary|The_Title` therefore returns the warning key `primary|The Title`. A consumer that matches a warning to its originating selector must apply the same substitution. Exact string equality against the sent value silently fails to match whenever a requested version title contains an underscore.
+
+Sefaria's own reader does not depend on this. It requests the bare `primary` and `translation` selectors, whose keys carry no version title and need no substitution.
+
+### Bilingual layout and alignment
+
+The reader keeps visible languages and bilingual layout as two independent settings. [`ReaderApp.jsx:974-993`](https://github.com/Sefaria/Sefaria-Project/blob/52e00f8bef430cba25a091f4443345ee1890e6c8/static/js/ReaderApp.jsx#L974-L993) defaults `language` to `bilingual` and `biLayout` to `stacked`, and [`LayoutButtons.jsx:36`](https://github.com/Sefaria/Sefaria-Project/blob/52e00f8bef430cba25a091f4443345ee1890e6c8/static/js/LayoutButtons.jsx#L36) writes whichever of the two the current mode owns.
+
+[`ReaderPanel.jsx:637-641`](https://github.com/Sefaria/Sefaria-Project/blob/52e00f8bef430cba25a091f4443345ee1890e6c8/static/js/ReaderPanel.jsx#L637-L641) forces a stacked layout below 500 pixels.
+
+Side-by-side alignment is CSS only. [`s2.css:7056-7110`](https://github.com/Sefaria/Sefaria-Project/blob/52e00f8bef430cba25a091f4443345ee1890e6c8/static/css/s2.css#L7056-L7110) sets each side to half width and floats it, and each segment emits its own clearing element. No script measures or synchronizes the two sides, so unequal lengths need no measurement.
+
+The reader's `heLeft` and `heRight` layout values are labelled in direction terms but implemented as primary-side placement. [`LayoutButtons.jsx:19-31`](https://github.com/Sefaria/Sefaria-Project/blob/52e00f8bef430cba25a091f4443345ee1890e6c8/static/js/LayoutButtons.jsx#L19-L31) treats `heLeft` as primary on the left, while [`constants.js:8-11`](https://github.com/Sefaria/Sefaria-Project/blob/52e00f8bef430cba25a091f4443345ee1890e6c8/static/js/constants.js#L8-L11) labels it as right-to-left text left of left-to-right text. The two agree only when the primary side is right-to-left. This project names the equivalent property by role for that reason.
 
 This evidence supports a text-segment projection that accepts one already-resolved `CoreV3Version`. The bilingual composite owns role resolution, and text segment remains the single owner of segment transformation.
 

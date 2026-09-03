@@ -10,10 +10,11 @@ This guide describes current commands and remaining planned architecture work.
 | --- | --- | --- |
 | `packages/client` | Generates six named Core SDK functions, contracts, Zod validators, and a status-aware fetch client from a pinned corrected OpenAPI document | Expand only when a reviewed contract adds another operation |
 | `packages/text-transform` | Implements parser-backed sanitization, Hebrew vocalization modes, and structured footnote extraction without browser DOM globals | Broader corpus comparison remains planned |
-| `packages/components` | Exports the base element, token defaults, `<sefaria-text-segment>`, `<sefaria-ref-label>`, and their component-specific pure and async factory subpaths | Add later component-specific vertical slices as their consumers require them |
-| `demos/component-lab` | Shows authored loading, data, empty, and error view models for the current text-segment and reference-label elements | Add states and interactions with each production component |
+| `packages/components` | Exports the base element, token defaults, `<sefaria-text-segment>`, `<sefaria-bilingual-segment>`, `<sefaria-ref-label>`, and their component-specific pure and async factory subpaths | Add later component-specific vertical slices as their consumers require them |
+| `demos/component-lab` | Shows authored view models for the current text-segment, bilingual-segment, and reference-label elements | Add states and interactions with each production component |
 | `demos/ref-label-live-demo` | Provides an interactive HTML form and presets that call the deployed reference endpoint and render `<sefaria-ref-label>` | Add live examples only when the production component needs them |
 | `demos/text-segment-live-demo` | Provides an interactive HTML form and presets that call the deployed Sefaria API and render `<sefaria-text-segment>` | Add live examples only when a production component needs them |
+| `demos/bilingual-segment-live-demo` | Provides an interactive HTML form, presets, and display controls that make one deployed Sefaria API request and render `<sefaria-bilingual-segment>` | Add live examples only when a production component needs them |
 | `demos/mcp` | Packages an App shell and returns a text-only tool result | Add corrected payload validation and component projection |
 | `tests/compatibility` | Runs focused pinned client/transform comparisons, a composed v3 validate-to-transform smoke case, and grouped qualification output without network access | Broader corpus comparison and compatibility publication remain planned |
 
@@ -44,6 +45,7 @@ TypeScript emits reusable ES modules. Vite builds the browser demonstrations and
 | `demos/component-lab` | Browser development for view-model states and interactions |
 | `demos/ref-label-live-demo` | Interactive live API page for the reference-label component |
 | `demos/text-segment-live-demo` | Interactive live API page for the text-segment component |
+| `demos/bilingual-segment-live-demo` | Interactive live API page for the bilingual-segment component |
 | `demos/mcp` | Corrected-payload MCP boundary and FastMCP fixture |
 | `demos/linker-userscript` | Third-party popup integration |
 
@@ -196,7 +198,7 @@ Do not edit generated declarations by hand.
 pnpm dev
 ```
 
-The current page shows authored loading, data, empty, and error view models for `<sefaria-text-segment>`. These examples exercise the production element without making requests or defining a generic fixture catalog.
+The current page shows authored view models for `<sefaria-text-segment>`, `<sefaria-bilingual-segment>`, and `<sefaria-ref-label>`. These examples exercise the production elements without making requests or defining a generic fixture catalog.
 
 ## Run the interactive text-segment page
 
@@ -205,6 +207,14 @@ pnpm dev:text-segment
 ```
 
 The page uses ordinary HTML controls and the production client. It calls the deployed Sefaria API, owns cancellation and host errors, and supplies each result to `<sefaria-text-segment>`.
+
+## Run the interactive bilingual-segment page
+
+```powershell
+pnpm dev:bilingual-segment
+```
+
+The page makes one request for the source and translation versions of a segment. Its display controls change the visible sides, the layout, and the side order without making another request.
 
 ## Run the MCP fixture
 

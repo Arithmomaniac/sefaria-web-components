@@ -4,7 +4,7 @@
 
 ## Status
 
-The text-segment and reference-label vertical slices are current. The remaining component surfaces and composite behavior are planned.
+The text-segment, bilingual-segment, and reference-label vertical slices are current. The remaining component surfaces are planned.
 
 ## Boundary
 
@@ -234,7 +234,7 @@ Task lifecycle state and component view-model state must not compete for the sam
 | Element | Status | Primary payload source | View-model responsibility | Element properties |
 | --- | --- | --- | --- | --- |
 | `<sefaria-text-segment>` | Current | `/api/v3/texts/{tref}` payload or parent payload slice | Safe text, direction, language, attribution, and static footnote data | None in the current contract |
-| `<sefaria-bilingual-segment>` | Planned | `/api/v3/texts/{tref}` payload or parent payload slice | Source and translation sides, missing-side state, and attribution | `layout` and primary-side presentation |
+| `<sefaria-bilingual-segment>` | Current | `/api/v3/texts/{tref}` payload or parent payload slice | Primary and translation sides, absent-side state, and attribution | `contentLanguage`, `layout`, and `sideOrder` |
 | `<sefaria-ref-label>` | Current | `/api/ref/{tref}` payload or parent payload slice | Canonical English and Hebrew labels, URL forms, owning index, node type, and unresolvable-reference state | `labelLanguage` and `linked` |
 | `<sefaria-text-range>` | Planned | `/api/v3/texts/{tref}` payload | Bounded segment view models and range-level partial state | Layout, numbering, selection, and highlights |
 | `<sefaria-source-card>` | Planned | `/api/v3/texts/{tref}` payload | Reference header, bounded text view, attribution, and missing-content state | Layout and host actions |
@@ -289,15 +289,69 @@ The `hebrew` field is always present in a successful corrected payload. The upst
 
 Range labels, navigation references, and a display form based on raw `urlRef` remain outside the current view model until a concrete consumer requires them.
 
-## Bilingual alignment
+## Bilingual segment contract [Current]
 
-`<sefaria-bilingual-segment>` supports `auto`, `stacked`, `side-by-side`, `hebrew-only`, and `english-only` layouts.
+### Two sides are roles
 
-`auto` selects a stacked or side-by-side layout from container width. Side-by-side layout must preserve paired segment alignment without assuming equal text lengths.
+The two sides are the primary version and the translation version. They are not fixed Hebrew and English families.
+
+`BilingualSegmentRequest` carries a segment reference and an optional exact version title for each side. It serializes to one request with two reserved selectors:
+
+```
+GET /api/v3/texts/{tref}?version=primary&version=translation&return_format=default
+```
+
+An optional exact edition serializes as `primary|versionTitle` or `translation|versionTitle`. Both factories reject a blank reference or a blank version title with `TypeError`, and the async factory rejects before it makes a request.
+
+The current request does not support `source`, `all`, `fill_in_missing_segments`, alternate return formats, a third side, or per-side version pickers. Add one of these inputs only when a concrete consumer requires its behavior.
+
+### Role resolution
+
+`createBilingualSegmentViewModel` resolves each side from the payload rather than from array order, because a v3 request cannot guarantee response order for its version parameters.
+
+The primary side is the single version whose `isPrimary` is `true`. The translation side is the single remaining version whose `isSource` is `false`.
+
+A version that fills neither role is dropped. More than one candidate for either role is a projection error; the composite does not choose a version silently.
+
+A side with no resolved version is absent. The composite owns that absent-side state and does not call `projectTextSegmentVersion` for it.
+
+### Warning attribution
+
+Payload warnings describe missing request selectors, and each warning key is the selector it describes. The composite attributes a warning to the side whose serialized selector matches that key.
+
+A key match must replace `_` with a space in the requested version title before comparison. The API applies that substitution when it parses a piped `version` parameter, so a requested `primary|The_Title` returns the warning key `primary|The Title`. A side with no matching key uses a component-authored message.
+
+### States
+
+| Situation | State |
+| --- | --- |
+| Both sides resolve to renderable text | `data` |
+| Exactly one side resolves, and the other is absent or projects empty | `partial`, naming the absent side |
+| Neither side resolves | `empty` |
+| A resolved side returns a projection error | `error` |
+| A documented HTTP failure occurs | `error` |
+
+A `partial` state carries the present side's child view model. The composite must not substitute one side for the other.
+
+### Layout and visible sides
+
+Visible sides and layout are separate element properties, because a host chooses them independently.
+
+| Property          | Values                               | Default         |
+| ----------------- | ------------------------------------ | --------------- |
+| `contentLanguage` | `primary`, `translation`, `both`     | `both`          |
+| `layout`          | `auto`, `stacked`, `side-by-side`    | `auto`          |
+| `sideOrder`       | `primary-first`, `translation-first` | `primary-first` |
+
+`auto` selects a stacked or side-by-side layout from container inline size through a CSS container query. The element performs no measurement and holds no resize state.
+
+`sideOrder` chooses which side comes first in a side-by-side layout. It names roles rather than directions, so it stays correct when the primary side is left-to-right.
+
+Side-by-side layout must preserve paired alignment without assuming equal text lengths. Both sides share a block start, and the pair grows to the taller side.
 
 The component does not need to copy Sefaria Web's private layout mechanism or pixel geometry.
 
-Browser tests cover unequal Hebrew and English lengths, one missing side, narrow containers, and live container resizing.
+Browser tests cover unequal side lengths, one missing side, each visible-side and layout combination, narrow containers, and live container resizing in both directions.
 
 ## Text and attribution
 
