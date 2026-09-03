@@ -75,7 +75,17 @@ Two documentation corrections also use the local Sefaria API audit as supporting
 
 These source facts constrain the overlay. Deployed fixtures must still cover representative data-dependent branches.
 
-The dated captures under `packages/client/test/fixtures` preserve the deployed v3 spanning-text, Genesis index, nullable version metadata, versions error, simple shape, shape error, Targum link, links error, and Sheet reference branches. `packages/client/test/fixtures/manifest.json` records the exact request URL and any reduction for each capture.
+The dated captures under `packages/client/test/fixtures` preserve the deployed v3 spanning-text, Genesis index, nullable version metadata, versions error, simple shape, shape error, Targum link, links error, Sheet reference, segment reference, same-section range, spanning range, commentary reference, and unresolvable-reference branches. `packages/client/test/fixtures/manifest.json` records the exact request URL and any reduction for each capture.
+
+### September 3, 2026 reference captures
+
+The unmodified deployed captures `ref-genesis-segment-2026-09-03.json`, `ref-genesis-range-2026-09-03.json`, `ref-genesis-spanning-2026-09-03.json`, `ref-rashi-commentary-2026-09-03.json`, and `ref-unresolved-2026-09-03.json` establish the payloads consumed by the current reference-label factory. They cover `Genesis 1:1`, `Genesis 1:1-3`, `Genesis 1:31-2:2`, `Rashi on Genesis 1:1:1`, and `__missing_ref_label_probe__`. The first four return `CoreRefSuccess`; the last returns HTTP 200 with `{ "is_ref": false }`.
+
+The pinned [`RefView.dispatch`](https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/api/views.py#L93-L101) catches `InputError` and `DictionaryEntryNotFoundError` as `{ "is_ref": false }`, while other exceptions produce an HTTP 404 error payload. The empty and error reference-label states preserve that distinction.
+
+The pinned [`Ref.he_normal`](https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/sefaria/model/text.py#L4739-L4748) delegates to `normal("he")`. [`Ref._get_normal`](https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/sefaria/model/text.py#L4683-L4691) falls back to `self.normal()` when the Hebrew full title is absent. A successful `hebrew` value therefore cannot distinguish a true Hebrew form from an English fallback without unsupported heuristics.
+
+The pinned [`Ref.url`](https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/sefaria/model/text.py#L4780-L4801) replaces spaces with underscores, colons with periods, and question marks with `%3F`; it does not fully percent-encode a URL path. The reference-label factory preserves existing valid escapes and encodes remaining unsafe path characters before it creates an absolute URL.
 
 ### September 1, 2026 Genesis index capture
 

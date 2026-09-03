@@ -18,6 +18,7 @@
     "dev": "pnpm --filter @sefaria-demo/component-lab dev",
     "dev:linker": "pnpm --filter @sefaria-demo/linker-userscript dev",
     "dev:mcp": "pnpm build:mcp && uv run --no-sync --directory demos/mcp/fixture-server sefaria-mcp-app-fixture",
+    "dev:ref-label": "pnpm --filter @sefaria-demo/ref-label-live-demo dev",
     "dev:text-segment": "pnpm --filter @sefaria-demo/text-segment-live-demo dev",
     "format": "prettier --write .",
     "format:check": "prettier --check .",

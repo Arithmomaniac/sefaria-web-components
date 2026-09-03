@@ -78,6 +78,15 @@ importers:
         specifier: ^1.7.5
         version: 1.7.5(@modelcontextprotocol/sdk@1.30.0(zod@4.4.3))(zod@4.4.3)
 
+  demos/ref-label-live-demo:
+    dependencies:
+      '@sefaria/client':
+        specifier: workspace:*
+        version: link:../../packages/client
+      '@sefaria/components':
+        specifier: workspace:*
+        version: link:../../packages/components
+
   demos/text-segment-live-demo:
     dependencies:
       '@sefaria/client':

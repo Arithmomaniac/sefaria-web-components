@@ -1,0 +1,25 @@
+{
+  "is_ref": true,
+  "normalized": "Rashi on Genesis 1:1:1",
+  "hebrew": "רש\"י על בראשית א׳:א׳:א׳",
+  "url_ref": "Rashi_on_Genesis.1.1.1",
+  "index_title": "Rashi on Genesis",
+  "node_type": "JaggedArrayNode",
+  "navigation_refs": {
+    "shortest_path_to_root": [
+      "Rashi on Genesis",
+      "Rashi on Genesis 1",
+      "Rashi on Genesis 1:1"
+    ],
+    "first_available_section_ref": "Rashi on Genesis 1:1:1",
+    "prev_segment_ref": null,
+    "next_segment_ref": "Rashi on Genesis 1:1:2"
+  },
+  "depth": 3,
+  "address_types": ["Perek", "Pasuk", "Integer"],
+  "section_names": ["Chapter", "Verse", "Comment"],
+  "start_indexes": [1, 1, 1],
+  "start_labels": ["1", "1", "1"],
+  "end_indexes": [1, 1, 1],
+  "end_labels": ["1", "1", "1"]
+}

@@ -43,5 +43,30 @@
     "source": "https://www.sefaria.org/api/ref/Sheet%20643492",
     "capturedAt": "2026-08-30",
     "reduction": "Unmodified deployed SheetNode payload with conditional navigation fields."
+  },
+  "ref-genesis-segment-2026-09-03.json": {
+    "source": "https://www.sefaria.org/api/ref/Genesis%201%3A1",
+    "capturedAt": "2026-09-03",
+    "reduction": "Unmodified deployed segment-level JaggedArrayNode payload."
+  },
+  "ref-genesis-range-2026-09-03.json": {
+    "source": "https://www.sefaria.org/api/ref/Genesis%201%3A1-3",
+    "capturedAt": "2026-09-03",
+    "reduction": "Unmodified deployed same-section range payload."
+  },
+  "ref-genesis-spanning-2026-09-03.json": {
+    "source": "https://www.sefaria.org/api/ref/Genesis%201%3A31-2%3A2",
+    "capturedAt": "2026-09-03",
+    "reduction": "Unmodified deployed spanning-range payload."
+  },
+  "ref-rashi-commentary-2026-09-03.json": {
+    "source": "https://www.sefaria.org/api/ref/Rashi%20on%20Genesis%201%3A1%3A1",
+    "capturedAt": "2026-09-03",
+    "reduction": "Unmodified deployed three-level commentary payload."
+  },
+  "ref-unresolved-2026-09-03.json": {
+    "source": "https://www.sefaria.org/api/ref/__missing_ref_label_probe__",
+    "capturedAt": "2026-09-03",
+    "reduction": "Unmodified deployed HTTP 200 payload for an unparseable reference."
   }
 }

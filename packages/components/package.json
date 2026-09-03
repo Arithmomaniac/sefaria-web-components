@@ -5,6 +5,7 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
+    "./ref-label": "./src/ref-label.ts",
     "./text-segment": "./src/text-segment.ts"
   },
   "dependencies": {

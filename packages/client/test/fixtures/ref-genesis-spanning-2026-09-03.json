@@ -1,0 +1,21 @@
+{
+  "is_ref": true,
+  "normalized": "Genesis 1:31-2:2",
+  "hebrew": "בראשית א׳:ל״א-ב׳:ב׳",
+  "url_ref": "Genesis.1.31-2.2",
+  "index_title": "Genesis",
+  "node_type": "JaggedArrayNode",
+  "navigation_refs": {
+    "shortest_path_to_root": ["Genesis", "Genesis 1-2"],
+    "first_available_section_ref": "Genesis 1:31-2:2",
+    "prev_segment_ref": "Genesis 1:30",
+    "next_segment_ref": "Genesis 2:3"
+  },
+  "depth": 2,
+  "address_types": ["Perek", "Pasuk"],
+  "section_names": ["Chapter", "Verse"],
+  "start_indexes": [1, 31],
+  "start_labels": ["1", "31"],
+  "end_indexes": [2, 2],
+  "end_labels": ["2", "2"]
+}
