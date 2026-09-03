@@ -9,9 +9,9 @@ import type {
 import { loadRefLabelViewModel } from "@sefaria/components/ref-label";
 
 import {
-  createLiveDemoRunner,
-  requireElement,
+  startLiveDemo,
   requireNamedInput,
+  requireNamedSelect,
 } from "../../live-demo-core.js";
 
 /** One host-owned reference-label request operation. */
@@ -31,62 +31,88 @@ export function startRefLabelLiveDemo(
   root: Document,
   loader: RefLabelLoader = createDefaultLoader(),
 ): RefLabelLiveDemo {
-  const form = requireElement<HTMLFormElement>(root, "#ref-request-form");
-  const trefInput = requireNamedInput(form, "tref");
-  const languageInput = requireNamedSelect(form, "labelLanguage");
-  const linkedInput = requireNamedInput(form, "linked");
-  const submitButton = requireElement<HTMLButtonElement>(
-    form,
-    'button[type="submit"]',
-  );
-  const requestState = requireElement<HTMLElement>(root, "#request-state");
-  const hostError = requireElement<HTMLElement>(root, "#host-error");
-  const result = requireElement<SefariaRefLabel>(root, "#ref-result");
-  const runner = createLiveDemoRunner({
+  return startLiveDemo(root, {
+    title: "Live reference-label demo",
+    description:
+      "The host calls the deployed Sefaria API and supplies the result to a request-free Web Component.",
+    requestHeading: "Choose a reference",
+    presetsLabel: "Example references",
+    controls: [
+      {
+        kind: "text",
+        name: "tref",
+        label: "Sefaria reference",
+        value: "Genesis 1:1",
+        required: true,
+      },
+      {
+        kind: "select",
+        name: "labelLanguage",
+        label: "Label language",
+        value: "both",
+        options: [
+          { value: "english", label: "English" },
+          { value: "hebrew", label: "Hebrew" },
+          { value: "both", label: "Both" },
+        ],
+      },
+      {
+        kind: "checkbox",
+        name: "linked",
+        label: "Link behavior",
+        description: "Render a canonical link",
+        checked: true,
+      },
+    ],
+    presets: [
+      {
+        id: "segment",
+        label: "Segment",
+        values: { tref: "Genesis 1:1" },
+      },
+      {
+        id: "range",
+        label: "Range",
+        values: { tref: "Genesis 1:1-3" },
+      },
+      {
+        id: "spanning",
+        label: "Spanning range",
+        values: { tref: "Genesis 1:31-2:2" },
+      },
+      {
+        id: "commentary",
+        label: "Commentary",
+        values: { tref: "Rashi on Genesis 1:1:1" },
+      },
+      {
+        id: "empty",
+        label: "Unresolvable",
+        values: { tref: "__missing_ref_label_probe__" },
+      },
+    ],
+    submitLabel: "Load from Sefaria",
+    createResultElement: (document) =>
+      document.createElement("sefaria-ref-label") as SefariaRefLabel,
     loader,
+    createRequest: (form) => ({
+      tref: requireNamedInput(form, "tref").value.trim(),
+    }),
     createLoadingViewModel: (request): RefLabelViewModel => ({
       state: "loading",
       message: `Loading ${request.tref}.`,
     }),
-    setViewModel: (viewModel) => {
+    setViewModel: (result, viewModel) => {
       result.viewModel = viewModel;
     },
     formatRequest: (request) => request.tref,
-    requestState,
-    hostError,
-    submitButton,
+    configureResult: (result, form) => {
+      result.labelLanguage = requireLabelLanguage(
+        requireNamedSelect(form, "labelLanguage").value,
+      );
+      result.linked = requireNamedInput(form, "linked").checked;
+    },
   });
-
-  const loadCurrentRequest = async (): Promise<void> => {
-    const request = { tref: trefInput.value.trim() };
-
-    result.labelLanguage = requireLabelLanguage(languageInput.value);
-    result.linked = linkedInput.checked;
-    await runner.run(request);
-  };
-
-  form.addEventListener("submit", (event) => {
-    event.preventDefault();
-    void loadCurrentRequest();
-  });
-
-  for (const preset of root.querySelectorAll<HTMLButtonElement>(
-    "[data-demo-request]",
-  )) {
-    preset.addEventListener("click", () => {
-      trefInput.value = preset.dataset.tref ?? "";
-      form.requestSubmit();
-    });
-  }
-
-  languageInput.addEventListener("change", () => {
-    result.labelLanguage = requireLabelLanguage(languageInput.value);
-  });
-  linkedInput.addEventListener("change", () => {
-    result.linked = linkedInput.checked;
-  });
-
-  return { loadCurrentRequest };
 }
 
 function createDefaultLoader(): RefLabelLoader {
@@ -100,15 +126,4 @@ function requireLabelLanguage(value: string): RefLabelLanguage {
     return value;
   }
   throw new TypeError(`Unsupported label language "${value}".`);
-}
-
-function requireNamedSelect(
-  form: HTMLFormElement,
-  name: string,
-): HTMLSelectElement {
-  const select = form.elements.namedItem(name);
-  if (!(select instanceof HTMLSelectElement)) {
-    throw new Error(`The ${name} select is missing.`);
-  }
-  return select;
 }

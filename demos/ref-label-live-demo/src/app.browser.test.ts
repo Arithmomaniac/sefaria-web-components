@@ -9,37 +9,34 @@ import { startRefLabelLiveDemo, type RefLabelLoader } from "./app.js";
 const FIRST_RESULT = createDataViewModel("Genesis 1:1");
 
 beforeEach(() => {
-  document.body.innerHTML = `
-    <form id="ref-request-form">
-      <input name="tref" value="Genesis 1:1">
-      <select name="labelLanguage">
-        <option value="english">English</option>
-        <option value="hebrew">Hebrew</option>
-        <option value="both" selected>Both</option>
-      </select>
-      <input name="linked" type="checkbox" checked>
-      <button type="submit">Load reference</button>
-    </form>
-    <button type="button" data-demo-request data-tref="Genesis 1:2">Preset</button>
-    <button type="button" data-demo-request data-tref="Genesis 1:3">Second</button>
-    <p id="request-state"></p>
-    <p id="host-error" hidden></p>
-    <sefaria-ref-label id="ref-result"></sefaria-ref-label>
-  `;
+  document.body.innerHTML = '<div id="live-demo-root"></div>';
 });
 
 test("loads a preset and supplies presentation plus view-model state", async () => {
   const loader = vi.fn<RefLabelLoader>(async () => FIRST_RESULT);
   startRefLabelLiveDemo(document, loader);
 
-  document.querySelector<HTMLButtonElement>("[data-demo-request]")?.click();
+  document.querySelector<HTMLButtonElement>('[data-demo-id="range"]')?.click();
   await vi.waitFor(() => expect(loader).toHaveBeenCalledOnce());
 
-  expect(loader.mock.calls[0]?.[0]).toEqual({ tref: "Genesis 1:2" });
+  expect(loader.mock.calls[0]?.[0]).toEqual({ tref: "Genesis 1:1-3" });
   expect(resultElement().viewModel).toEqual(FIRST_RESULT);
   expect(resultElement().labelLanguage).toBe("both");
   expect(resultElement().linked).toBe(true);
   expect(requestState().dataset.state).toBe("data");
+});
+
+test("renders the reference-label controls and presets from its configuration", () => {
+  startRefLabelLiveDemo(document, async () => FIRST_RESULT);
+
+  expect(document.querySelector("h1")?.textContent).toBe(
+    "Live reference-label demo",
+  );
+  expect(document.querySelectorAll("[data-demo-request]")).toHaveLength(5);
+  expect(
+    document.querySelector<HTMLSelectElement>('[name="labelLanguage"]')?.value,
+  ).toBe("both");
+  expect(resultElement().localName).toBe("sefaria-ref-label");
 });
 
 test("binds rejected operations to the host error element", async () => {
@@ -48,7 +45,9 @@ test("binds rejected operations to the host error element", async () => {
   });
   startRefLabelLiveDemo(document, loader);
 
-  document.querySelector<HTMLButtonElement>("[data-demo-request]")?.click();
+  document
+    .querySelector<HTMLButtonElement>('[data-demo-id="segment"]')
+    ?.click();
   await vi.waitFor(() => expect(requestState().dataset.state).toBe("error"));
 
   const hostError = document.querySelector<HTMLElement>("#host-error");
@@ -57,7 +56,7 @@ test("binds rejected operations to the host error element", async () => {
 });
 
 function resultElement(): SefariaRefLabel {
-  const element = document.querySelector<SefariaRefLabel>("#ref-result");
+  const element = document.querySelector<SefariaRefLabel>("sefaria-ref-label");
   if (!element) {
     throw new Error("The reference result element is missing.");
   }

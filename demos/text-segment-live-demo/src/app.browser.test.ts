@@ -9,37 +9,16 @@ import { startTextSegmentLiveDemo, type TextSegmentLoader } from "./app.js";
 const FIRST_RESULT = createDataViewModel("First result");
 
 beforeEach(() => {
-  document.body.innerHTML = `
-    <form id="text-request-form">
-      <input name="tref" value="Genesis 1:1">
-      <input name="language" value="hebrew">
-      <input name="versionTitle" value="">
-      <button type="submit">Load text</button>
-    </form>
-    <button
-      type="button"
-      data-demo-request
-      data-tref="Genesis 1:1"
-      data-language="english"
-      data-version-title="The Contemporary Torah, Jewish Publication Society, 2006"
-    >English footnote</button>
-    <button
-      type="button"
-      data-demo-request
-      data-tref="Genesis 1"
-      data-language="hebrew"
-    >Wrong granularity</button>
-    <p id="request-state"></p>
-    <p id="host-error" hidden></p>
-    <sefaria-text-segment id="text-result"></sefaria-text-segment>
-  `;
+  document.body.innerHTML = '<div id="live-demo-root"></div>';
 });
 
 test("loads a preset through the host and supplies its view model to the element", async () => {
   const loader = vi.fn<TextSegmentLoader>(async () => FIRST_RESULT);
   startTextSegmentLiveDemo(document, loader);
 
-  document.querySelector<HTMLButtonElement>("[data-demo-request]")?.click();
+  document
+    .querySelector<HTMLButtonElement>('[data-demo-id="english-footnote"]')
+    ?.click();
   await vi.waitFor(() => expect(loader).toHaveBeenCalledOnce());
 
   expect(loader.mock.calls[0]?.[0]).toEqual({
@@ -53,13 +32,26 @@ test("loads a preset through the host and supplies its view model to the element
   expect(requestState().dataset.state).toBe("data");
 });
 
+test("renders the text-segment controls and presets from its configuration", () => {
+  startTextSegmentLiveDemo(document, async () => FIRST_RESULT);
+
+  expect(document.querySelector("h1")?.textContent).toBe(
+    "Live text-segment demo",
+  );
+  expect(document.querySelectorAll("[data-demo-request]")).toHaveLength(5);
+  expect(
+    document.querySelector<HTMLInputElement>('[name="language"]')?.value,
+  ).toBe("hebrew");
+  expect(resultElement().localName).toBe("sefaria-text-segment");
+});
+
 test("binds rejected operations to the host error element", async () => {
   const loader = vi.fn<TextSegmentLoader>(async () => {
     throw new Error("Network unavailable");
   });
   startTextSegmentLiveDemo(document, loader);
 
-  document.querySelector<HTMLButtonElement>("[data-demo-request]")?.click();
+  document.querySelector<HTMLButtonElement>('[data-demo-id="hebrew"]')?.click();
   await vi.waitFor(() => expect(requestState().dataset.state).toBe("error"));
 
   const hostError = document.querySelector<HTMLElement>("#host-error");
@@ -68,7 +60,9 @@ test("binds rejected operations to the host error element", async () => {
 });
 
 function resultElement(): SefariaTextSegment {
-  const element = document.querySelector<SefariaTextSegment>("#text-result");
+  const element = document.querySelector<SefariaTextSegment>(
+    "sefaria-text-segment",
+  );
   if (!element) {
     throw new Error("The text result element is missing.");
   }
