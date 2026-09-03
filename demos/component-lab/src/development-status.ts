@@ -1,13 +1,15 @@
 import { SefariaElement } from "@sefaria/components";
 import { css, html } from "lit";
 
+import { textSegmentScenarios } from "./text-segment.scenarios.js";
+
 class SefariaDevelopmentStatus extends SefariaElement {
   static override styles = [
     ...SefariaElement.styles,
     css`
       :host {
-        max-width: 48rem;
-        margin: 4rem auto;
+        max-width: 64rem;
+        margin: 2rem auto;
         padding: 2rem;
         border: 1px solid var(--sefaria-border);
         border-radius: 0.75rem;
@@ -21,16 +23,46 @@ class SefariaDevelopmentStatus extends SefariaElement {
       code {
         color: var(--sefaria-link);
       }
+
+      .states {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(20rem, 100%), 1fr));
+        gap: 1rem;
+      }
+
+      section {
+        min-width: 0;
+        padding: 1rem;
+        border: 1px solid var(--sefaria-border);
+        border-radius: 0.5rem;
+      }
+
+      h2 {
+        margin-block-start: 0;
+        font-size: 1rem;
+      }
     `,
   ];
 
   protected override render() {
     return html`
       <h1>Sefaria Web Components</h1>
-      <p>The Lit workspace, token contract, and browser toolchain are ready.</p>
       <p>
-        Begin the first red-green slice in <code>packages/text-transform</code>.
+        The text segment examples use authored view models. The element makes no
+        API request.
       </p>
+      <div class="states">
+        ${textSegmentScenarios.map(
+          ({ title, viewModel }) => html`
+            <section>
+              <h2>${title}</h2>
+              <sefaria-text-segment
+                .viewModel=${viewModel}
+              ></sefaria-text-segment>
+            </section>
+          `,
+        )}
+      </div>
     `;
   }
 }

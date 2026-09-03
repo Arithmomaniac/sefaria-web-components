@@ -78,6 +78,15 @@ importers:
         specifier: ^1.7.5
         version: 1.7.5(@modelcontextprotocol/sdk@1.30.0(zod@4.4.3))(zod@4.4.3)
 
+  demos/text-segment-live-demo:
+    dependencies:
+      '@sefaria/client':
+        specifier: workspace:*
+        version: link:../../packages/client
+      '@sefaria/components':
+        specifier: workspace:*
+        version: link:../../packages/components
+
   packages/client:
     dependencies:
       '@hey-api/client-fetch':
@@ -96,6 +105,12 @@ importers:
 
   packages/components:
     dependencies:
+      '@sefaria/client':
+        specifier: workspace:*
+        version: link:../client
+      '@sefaria/text-transform':
+        specifier: workspace:*
+        version: link:../text-transform
       lit:
         specifier: ^3.3.3
         version: 3.3.3

@@ -18,6 +18,7 @@
     "dev": "pnpm --filter @sefaria-demo/component-lab dev",
     "dev:linker": "pnpm --filter @sefaria-demo/linker-userscript dev",
     "dev:mcp": "pnpm build:mcp && uv run --no-sync --directory demos/mcp/fixture-server sefaria-mcp-app-fixture",
+    "dev:text-segment": "pnpm --filter @sefaria-demo/text-segment-live-demo dev",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "install:python": "uv venv --allow-existing --directory demos/mcp/fixture-server && uv pip sync --directory demos/mcp/fixture-server requirements.lock",

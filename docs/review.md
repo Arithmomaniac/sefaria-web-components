@@ -1,3 +1,5 @@
+> Created/edited by GitHub Copilot; pending human review.
+
 # Review guide
 
 This guide defines review gates for the planned architecture.
@@ -90,6 +92,29 @@ Review the initial corrections for:
 - [ ] Unsafe HTML passes through `@sefaria/text-transform`.
 - [ ] An abort does not become a data state.
 
+### Text segment
+
+- [ ] A language-family selector serializes as one `version` value.
+- [ ] An exact edition serializes as one `language|versionTitle` value.
+- [ ] Every request uses `return_format=default`.
+- [ ] Invalid or reserved selectors make zero requests.
+- [ ] Invalid or reserved selectors reject both factories with `TypeError`.
+- [ ] Language matching does not depend on response order.
+- [ ] More than one matching version is a projection error.
+- [ ] `projectTextSegmentVersion` projects an already-selected `CoreV3Version` without language-family reselection.
+- [ ] Request-based text-segment projection delegates post-selection work to `projectTextSegmentVersion`.
+- [ ] Role-based composites resolve sides before they call `projectTextSegmentVersion`.
+- [ ] The resolved-version projection owns sanitization, vocalization, footnotes, direction, language, and attribution.
+- [ ] Request warnings remain with the selector-owning factory or composite.
+- [ ] The resolved-version projection does not assign payload warnings to an existing selected version.
+- [ ] A composite maps a missing role and its warning without calling the resolved-version projection.
+- [ ] Array-valued text is a projection error rather than a first-child fallback.
+- [ ] `null`, blank, and sanitized-empty text produce the empty state.
+- [ ] Empty states preserve server warning messages.
+- [ ] Direction comes from the selected version even when it differs from language expectations.
+- [ ] Static footnote markers and available bodies render without adding interaction.
+- [ ] Version source remains inert text rather than an unvalidated link.
+
 ## Composite request counts
 
 - [ ] The composite async factory owns the outer request.
@@ -110,8 +135,25 @@ Review the initial corrections for:
 - [ ] The element imports no client at runtime.
 - [ ] The element calls no async factory.
 - [ ] A browser test fails if any request occurs.
-- [ ] Loading, data, partial, empty, and error states come from the view model.
+- [ ] Every state the component supports comes from the view model.
 - [ ] Layout and interaction remain element properties.
+
+## Interaction-triggered data
+
+- [ ] An element emits a semantic composed event for a user action.
+- [ ] The event contains no client or raw payload.
+- [ ] The host selects the captured-payload, server-provided, client, or unavailable path explicitly.
+- [ ] The captured-data owner declares that the payload covers the requested target.
+- [ ] An empty pure-factory result does not establish captured-payload coverage.
+- [ ] Captured and server-provided data call the pure factory without a request.
+- [ ] Client mode supplies loading state and calls one async factory operation.
+- [ ] The integration shows missing host capability outside the target element.
+- [ ] The integration does not invent an unsupported component state.
+- [ ] A newer action aborts the older operation when possible.
+- [ ] An obsolete result cannot replace the current view model.
+- [ ] The async factory does not own task history, retries, or active selection.
+- [ ] Task state and component view-model state do not render the same surface independently.
+- [ ] For a component data path, the target element receives loading and terminal view models from the host.
 
 ## MCP integration
 

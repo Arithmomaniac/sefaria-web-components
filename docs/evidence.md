@@ -104,6 +104,12 @@ The current qualification is a small, pinned, offline suite. It is not an exhaus
 
 `tests/compatibility/src/v3-source-backed.fixture.ts` is an intentionally composed fixture, not a verbatim deployed response. Its v3 field set and nesting follow the August 29, 2026 deployed `https://www.sefaria.org/api/v3/texts/Genesis%201%3A31-2%3A2` capture, while its citation-identifying metadata was authored as a non-spanning `Genesis 1:1` response for this focused case. Its single text string combines the MAM span `<span class="mam-kq-trivial">שְׁעָרָ֗ו</span>` hand-extracted from the August 30, 2026 Miqra according to the Masorah `Obadiah 1` response with the footnote marker, body, and nested bold text hand-extracted from the August 30, 2026 Contemporary Torah `Genesis 1:1` response; short connecting prose and punctuation make the two reviewed fragments one executable string. The fixture retains one `versions` record and only enough response metadata to exercise the generated v3 validator before sanitation, HTML text-node vocalization, and structured footnote extraction. Because the metadata, fragments, and connecting prose are manually composed, refresh remains a manual source-review operation.
 
+### Text-segment evidence reuse
+
+The current text-segment tests reuse evidence that already supports the behavior under test rather than collecting another API capture. The composed v3 smoke fixture supplies a validated single-segment payload with mixed Hebrew and English text, retained vocalization, and a static footnote. `packages/client/test/fixtures/v3-text-spanning-2026-08-29.json` supplies a validated deployed array-valued response that proves the segment factory reports wrong granularity instead of silently choosing the first child.
+
+Missing-version warnings, exact-version selection, ambiguous matches, `null`, blank content, invalid selectors, network rejection, and abort rejection are authored unit cases. They test the component contract directly and are not presented as deployed corpus evidence. The component-lab states are also authored view models for visual development; they are not API captures or independent behavior oracles.
+
 ### Executable PASEQ references
 
 The compatibility input is exactly `א ׀ ב׀ג`.
@@ -259,6 +265,22 @@ Generic and category links are intentionally unwrapped. The decision prevents un
 Targeted live `/api/v3/texts` probes on August 27, 2026 showed that text content lives under each item in `versions`.
 
 `Genesis 1:1` returned a string. `Genesis 1:1-3` returned an array. `Genesis 1:31-2:2` returned nested arrays for the spanning range.
+
+### Bilingual version roles
+
+Sefaria Web commit [`52e00f8bef430cba25a091f4443345ee1890e6c8`](https://github.com/Sefaria/Sefaria-Project/tree/52e00f8bef430cba25a091f4443345ee1890e6c8) treats reader sides as source or primary text and translation text, not fixed Hebrew and English families.
+
+[`Hooks.jsx:13`](https://github.com/Sefaria/Sefaria-Project/blob/52e00f8bef430cba25a091f4443345ee1890e6c8/static/js/Hooks.jsx#L13) states that the reader's `hebrew` interface value means the source text. It uses `primaryLang` or `translationLang` as the shown content language.
+
+[`sefaria.js:790-829`](https://github.com/Sefaria/Sefaria-Project/blob/52e00f8bef430cba25a091f4443345ee1890e6c8/static/js/sefaria/sefaria.js#L790-L829) resolves primary and translation versions through `isPrimary`, `isSource`, saved preferences, and the translation-language preference. If no concrete version is found, it uses the reserved `primary` or `translation` selector.
+
+[`sefaria.js:632-647`](https://github.com/Sefaria/Sefaria-Project/blob/52e00f8bef430cba25a091f4443345ee1890e6c8/static/js/sefaria/sefaria.js#L632-L647) sorts serialized version parameters before the request. Query order cannot identify the primary and translation sides.
+
+[`text_request_adapter.py:88-92`](https://github.com/Sefaria/Sefaria-Project/blob/52e00f8bef430cba25a091f4443345ee1890e6c8/sefaria/model/text_request_adapter.py#L88-L92) records a missing `(language, versionTitle)` selector only when no version matches it.
+
+[`api/views.py:47-60`](https://github.com/Sefaria/Sefaria-Project/blob/52e00f8bef430cba25a091f4443345ee1890e6c8/api/views.py#L47-L60) converts each missing selector into one warning keyed by its original language or `language|versionTitle` query value. The warning describes request selection, not an existing returned version.
+
+This evidence supports a text-segment projection that accepts one already-resolved `CoreV3Version`. The bilingual composite owns role resolution, and text segment remains the single owner of segment transformation.
 
 ### Current front-end cache
 
