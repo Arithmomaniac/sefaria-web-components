@@ -276,6 +276,20 @@ Targeted live `/api/v3/texts` probes on August 27, 2026 showed that text content
 
 `Genesis 1:1` returned a string. `Genesis 1:1-3` returned an array. `Genesis 1:31-2:2` returned nested arrays for the spanning range.
 
+### Recursive text shape and side alignment
+
+Targeted deployed `/api/v3/texts` probes on September 4, 2026 showed that recursive text shape is not determined by `isSpanning`.
+
+`Likutei Moharan 1` returned nested arrays while `isSpanning` was `false`. `Genesis 1:31-2:2` returned nested arrays while `isSpanning` was `true`. A consumer must therefore follow the recursive `text` value itself rather than choosing a flattening rule from `isSpanning`.
+
+The `Genesis 1:31-2:2` response returned `spanningRefs: ["Genesis 1:31", "Genesis 2:1-2"]` for two top-level groups while the text contained three leaf segments. `spanningRefs` labels groups rather than every leaf.
+
+`Zohar, Bereshit 1-5` returned a Hebrew first group containing two strings while the corresponding English first group was an empty array. The two sides can therefore disagree in which position paths exist. Intersection alignment would discard returned source text.
+
+`Tosafot on Shabbat 2a` returned one version shaped as `[[s,s,s],[],[],[s],[],[],[s]]` plus one missing-selector warning. Empty inner arrays occur as holes, and an entire requested side can be absent.
+
+These observations do not establish a general reference-construction algorithm. The payload exposes address types that vary by work, and its group-level references do not identify every leaf. The source-card specification consequently uses positional item identity and does not synthesize leaf references.
+
 ### Bilingual version roles
 
 Sefaria Web commit [`52e00f8bef430cba25a091f4443345ee1890e6c8`](https://github.com/Sefaria/Sefaria-Project/tree/52e00f8bef430cba25a091f4443345ee1890e6c8) treats reader sides as source or primary text and translation text, not fixed Hebrew and English families.

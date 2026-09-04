@@ -7,6 +7,7 @@
     ".": "./src/index.ts",
     "./bilingual-segment": "./src/bilingual-segment.ts",
     "./ref-label": "./src/ref-label.ts",
+    "./source-card": "./src/source-card.ts",
     "./text-segment": "./src/text-segment.ts"
   },
   "dependencies": {

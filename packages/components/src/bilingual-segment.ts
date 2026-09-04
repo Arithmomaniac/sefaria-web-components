@@ -10,9 +10,14 @@ import {
   projectTextSegmentVersion,
   type TextSegmentDataViewModel,
 } from "./text-segment.js";
+import type {
+  BilingualPairAbsentSide,
+  BilingualPairPresentSide,
+  BilingualPairSide,
+} from "./bilingual-pair.js";
 
 /** Payload role rendered on one bilingual side. */
-export type BilingualSegmentSide = "primary" | "translation";
+export type BilingualSegmentSide = BilingualPairSide;
 
 /** Exact edition requested for one bilingual side. */
 export interface BilingualSegmentEditionSelection {
@@ -39,20 +44,10 @@ export interface BilingualSegmentLoadingViewModel {
 }
 
 /** One side that the payload did not supply as renderable text. */
-export interface BilingualSegmentAbsentSide {
-  /** Role that has no renderable version. */
-  readonly side: BilingualSegmentSide;
-  /** Attributed server warning, or a component-authored message. */
-  readonly message: string;
-}
+export type BilingualSegmentAbsentSide = BilingualPairAbsentSide;
 
 /** One side that the payload supplied as renderable text. */
-export interface BilingualSegmentPresentSide {
-  /** Role that produced the child view model. */
-  readonly side: BilingualSegmentSide;
-  /** Render-ready child text-segment data. */
-  readonly view: TextSegmentDataViewModel;
-}
+export type BilingualSegmentPresentSide = BilingualPairPresentSide;
 
 /** Both sides resolved to renderable text. */
 export interface BilingualSegmentDataViewModel {
@@ -139,7 +134,7 @@ export function createBilingualSegmentViewModel(
 ): BilingualSegmentViewModel {
   serializeSelectors(request);
 
-  const resolved = resolveSides(payload.versions, request);
+  const resolved = resolveBilingualSides(payload.versions, request);
   if (resolved.ambiguousSide !== undefined) {
     return {
       state: "error",
@@ -190,7 +185,7 @@ export function createBilingualSegmentViewModel(
       ref: payload.ref,
       heRef: payload.heRef,
       present: { side: "primary", view: primary },
-      absent: describeAbsentSide(payload, request, "translation"),
+      absent: describeAbsentBilingualSide(payload, request, "translation"),
     };
   }
 
@@ -200,7 +195,7 @@ export function createBilingualSegmentViewModel(
       ref: payload.ref,
       heRef: payload.heRef,
       present: { side: "translation", view: translation },
-      absent: describeAbsentSide(payload, request, "primary"),
+      absent: describeAbsentBilingualSide(payload, request, "primary"),
     };
   }
 
@@ -209,8 +204,8 @@ export function createBilingualSegmentViewModel(
     ref: payload.ref,
     heRef: payload.heRef,
     absent: [
-      describeAbsentSide(payload, request, "primary"),
-      describeAbsentSide(payload, request, "translation"),
+      describeAbsentBilingualSide(payload, request, "primary"),
+      describeAbsentBilingualSide(payload, request, "translation"),
     ],
   };
 }
@@ -248,7 +243,8 @@ export async function loadBilingualSegmentViewModel(
   throw new Error("The v3 texts request returned no data or documented error.");
 }
 
-function resolveSides(
+/** Resolves primary and translation roles without projecting their text. */
+export function resolveBilingualSides(
   versions: readonly CoreV3Version[],
   request: BilingualSegmentRequest,
 ): {
@@ -319,7 +315,8 @@ function exactSideMatches(
   );
 }
 
-function describeAbsentSide(
+/** Describes a missing bilingual role using its selector warning when present. */
+export function describeAbsentBilingualSide(
   payload: CoreV3TextsResponse,
   request: BilingualSegmentRequest,
   side: BilingualSegmentSide,

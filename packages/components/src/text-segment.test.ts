@@ -12,6 +12,7 @@ import { v3SourceBackedPayload } from "../../../tests/compatibility/src/v3-sourc
 import {
   createTextSegmentViewModel,
   loadTextSegmentViewModel,
+  projectTextSegmentValue,
   projectTextSegmentVersion,
   type TextSegmentRequest,
 } from "./text-segment.js";
@@ -67,6 +68,7 @@ describe("projectTextSegmentVersion", () => {
       versionTitle: "Role-selected translation",
       text: "Selected translation.",
     });
+
     payload.versions = [
       englishVersion({
         versionTitle: "Other translation",
@@ -118,6 +120,59 @@ describe("projectTextSegmentVersion", () => {
       message: 'No english version "Example English" text is available.',
       warnings: [],
     });
+  });
+
+  describe("projectTextSegmentValue", () => {
+    it("projects one resolved leaf with the selected version metadata", () => {
+      const payload = sourcePayload();
+      const version = englishVersion({
+        versionTitle: "Resolved range translation",
+        text: ["First.", "Second."],
+      });
+
+      expect(projectTextSegmentValue(payload, version, "Second.")).toEqual({
+        state: "data",
+        ref: "Genesis 1:1",
+        heRef: "בראשית א׳:א׳",
+        language: "en",
+        actualLanguage: "en",
+        direction: "ltr",
+        body: [{ kind: "html", html: "Second." }],
+        notes: [],
+        attribution: {
+          versionTitle: "Resolved range translation",
+          versionSource: "Example publisher",
+        },
+      });
+    });
+
+    it("owns the same transformation as selected-version projection", () => {
+      const payload = sourcePayload();
+      const version = payload.versions[0];
+      if (!version || Array.isArray(version.text)) {
+        throw new Error("Source-backed payload must contain scalar text.");
+      }
+
+      expect(projectTextSegmentValue(payload, version, version.text)).toEqual(
+        projectTextSegmentVersion(payload, version),
+      );
+    });
+
+    it.each([null, "", "   ", "<script>unsafe()</script>"])(
+      "returns selected-version empty for non-renderable leaf %#",
+      (text) => {
+        const payload = sourcePayload();
+        const version = englishVersion({ text: ["Range leaf."] });
+
+        expect(projectTextSegmentValue(payload, version, text)).toEqual({
+          state: "empty",
+          ref: "Genesis 1:1",
+          heRef: "בראשית א׳:א׳",
+          message: 'No english version "Example English" text is available.',
+          warnings: [],
+        });
+      },
+    );
   });
 
   it("returns a projection error for selected array text", () => {

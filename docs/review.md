@@ -135,6 +135,24 @@ Review the initial corrections for:
 - [ ] `auto` layout responds to container width in both directions without measurement script.
 - [ ] Unequal side lengths share a block start without overlap.
 
+### Source card
+
+- [ ] Segment, flat range, spanning range, and nested non-spanning payloads use the same factory and element.
+- [ ] A scalar text value produces one item with the root position.
+- [ ] Recursive text is flattened from its own shape rather than from `isSpanning`.
+- [ ] Primary and translation leaves align by the union of position paths.
+- [ ] A one-sided position remains a partial pair instead of being dropped.
+- [ ] Empty inner arrays contribute no blank item.
+- [ ] Scalar-array disagreement at one path is a projection error.
+- [ ] Card items use positional identity and do not synthesize leaf references.
+- [ ] The payload-derived header makes no second request.
+- [ ] An optional host-supplied `RefLabelViewModel` changes only header rendering.
+- [ ] A ten-item card uses one outer request and zero child requests.
+- [ ] Async and pure factories are equal for the captured payload.
+- [ ] The shared pair renderer produces the bilingual element's established layout behavior.
+- [ ] Keyed rendering preserves unchanged item DOM across view-model updates.
+- [ ] A realistic large payload projects every leaf without truncation or quadratic scanning.
+
 ## Composite request counts
 
 - [ ] The composite async factory owns the outer request.

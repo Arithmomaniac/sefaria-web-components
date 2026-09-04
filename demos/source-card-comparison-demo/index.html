@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Single reference: segment versus source card</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --page: light-dark(#f4f1eb, #242321);
+        --surface: light-dark(#ffffff, #302f2d);
+        --surface-soft: light-dark(#faf7f1, #383633);
+        --border: light-dark(#d8d1c5, #55514b);
+        --text: light-dark(#25211d, #f2eee7);
+        --muted: light-dark(#6f675d, #bbb3a8);
+        --accent: light-dark(#a92850, #ff91ad);
+        --good: light-dark(#176b43, #72d6a2);
+        --code: light-dark(#efe9df, #201f1d);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        min-height: 100vh;
+        margin: 0;
+        background:
+          radial-gradient(
+            circle at top left,
+            color-mix(in srgb, var(--accent) 12%, transparent),
+            transparent 34rem
+          ),
+          var(--page);
+        color: var(--text);
+        font-family: "Segoe UI", Aptos, sans-serif;
+      }
+
+      main {
+        width: min(86rem, 100%);
+        margin: 0 auto;
+        padding: clamp(1rem, 4vw, 3rem);
+      }
+
+      h1,
+      h2,
+      p {
+        margin-block-start: 0;
+      }
+
+      .lede {
+        max-width: 70ch;
+        color: var(--muted);
+        font-size: 1.08rem;
+        line-height: 1.55;
+      }
+
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        align-items: end;
+        margin: 1.5rem 0;
+        padding: 1rem;
+        border: 1px solid var(--border);
+        border-radius: 0.75rem;
+        background: var(--surface);
+      }
+
+      label {
+        display: grid;
+        gap: 0.35rem;
+        color: var(--muted);
+        font-size: 0.875rem;
+        font-weight: 600;
+      }
+
+      select {
+        min-width: 12rem;
+        padding: 0.55rem 0.7rem;
+        border: 1px solid var(--border);
+        border-radius: 0.5rem;
+        background: var(--surface-soft);
+        color: var(--text);
+        font: inherit;
+      }
+
+      .comparison {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1.25rem;
+        align-items: start;
+      }
+
+      .column {
+        min-width: 0;
+        padding: 1.25rem;
+        border: 1px solid var(--border);
+        border-radius: 1rem;
+        background: var(--surface);
+      }
+
+      .column > header {
+        min-height: 9rem;
+      }
+
+      .eyebrow {
+        margin-bottom: 0.4rem;
+        color: var(--accent);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .summary {
+        color: var(--muted);
+        line-height: 1.45;
+      }
+
+      .host-header {
+        display: flex;
+        justify-content: space-between;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+        padding: 1rem;
+        border: 1px dashed var(--accent);
+        border-radius: 0.5rem;
+        background: var(--surface-soft);
+        font-weight: 600;
+      }
+
+      .host-header [lang="he"] {
+        font-family: "Times New Roman", serif;
+      }
+
+      sefaria-bilingual-segment,
+      sefaria-source-card {
+        --sefaria-surface: var(--surface);
+        --sefaria-fg: var(--text);
+        --sefaria-fg-muted: var(--muted);
+        --sefaria-border: var(--border);
+        --sefaria-accent: var(--accent);
+        --sefaria-link: var(--accent);
+      }
+
+      .anatomy {
+        display: grid;
+        gap: 0.55rem;
+        margin-top: 1.25rem;
+        padding: 0;
+        list-style: none;
+      }
+
+      .anatomy li {
+        padding: 0.7rem;
+        border-radius: 0.5rem;
+        background: var(--code);
+        font-family: Consolas, "Courier New", monospace;
+        font-size: 0.82rem;
+      }
+
+      .owned {
+        color: var(--good);
+        font-weight: 700;
+      }
+
+      .differences {
+        margin-top: 1.5rem;
+        overflow-x: auto;
+        border: 1px solid var(--border);
+        border-radius: 0.75rem;
+        background: var(--surface);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      th,
+      td {
+        padding: 0.8rem 1rem;
+        border-bottom: 1px solid var(--border);
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        background: var(--surface-soft);
+      }
+
+      tr:last-child td {
+        border-bottom: 0;
+      }
+
+      code {
+        font-family: Consolas, "Courier New", monospace;
+        font-size: 0.88em;
+      }
+
+      @media (max-width: 58rem) {
+        .comparison {
+          grid-template-columns: 1fr;
+        }
+
+        .column > header {
+          min-height: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <p class="eyebrow">Architecture comparison</p>
+      <h1>One reference, two component boundaries</h1>
+      <p class="lede">
+        Both columns render the same bilingual text. The difference is not the
+        pixels: it is which component owns the reference header and whether the
+        text is modeled as one special segment or as a one-item collection.
+      </p>
+
+      <form id="display-controls" class="controls">
+        <label>
+          Pair layout
+          <select name="layout">
+            <option value="auto">Auto</option>
+            <option value="stacked">Stacked</option>
+            <option value="side-by-side" selected>Side by side</option>
+          </select>
+        </label>
+        <label>
+          Side order
+          <select name="sideOrder">
+            <option value="primary-first" selected>Primary first</option>
+            <option value="translation-first">Translation first</option>
+          </select>
+        </label>
+      </form>
+
+      <section class="comparison" aria-label="Component comparison">
+        <article class="column">
+          <header>
+            <p class="eyebrow">Current PR #42 shape</p>
+            <h2>Host header + bilingual segment</h2>
+            <p class="summary">
+              The host owns the reference label. The element owns exactly one
+              aligned pair and carries the range-level reference on that pair.
+            </p>
+          </header>
+          <div class="host-header">
+            <span lang="en" dir="ltr">Genesis 1:1</span>
+            <span lang="he" dir="rtl">בראשית א׳:א׳</span>
+          </div>
+          <sefaria-bilingual-segment
+            id="current-bilingual"
+          ></sefaria-bilingual-segment>
+          <ul class="anatomy">
+            <li><span class="owned">host</span> → reference header</li>
+            <li>
+              <span class="owned">&lt;sefaria-bilingual-segment&gt;</span> → one
+              pair + ref/heRef
+            </li>
+            <li>range → needs another wrapper abstraction</li>
+          </ul>
+        </article>
+
+        <article class="column">
+          <header>
+            <p class="eyebrow">Proposed expanded shape</p>
+            <h2>One source card with a singleton item array</h2>
+            <p class="summary">
+              The card owns the reference header and an ordered collection. This
+              single reference is represented by <code>items: [pair]</code>.
+            </p>
+          </header>
+          <sefaria-source-card id="proposed-source-card"></sefaria-source-card>
+          <ul class="anatomy">
+            <li>
+              <span class="owned">&lt;sefaria-source-card&gt;</span> → header +
+              items[]
+            </li>
+            <li>
+              <span class="owned">shared renderer</span> → pair markup/CSS
+            </li>
+            <li>range → same component, more positional items</li>
+          </ul>
+        </article>
+      </section>
+
+      <section class="differences" aria-labelledby="differences-heading">
+        <table>
+          <thead>
+            <tr>
+              <th id="differences-heading">Concern</th>
+              <th>Current</th>
+              <th>Proposed</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Reference ownership</td>
+              <td>External host plus pair-level <code>ref/heRef</code></td>
+              <td>Card header owns the payload reference</td>
+            </tr>
+            <tr>
+              <td>Single segment</td>
+              <td>Dedicated pair view model</td>
+              <td>Singleton <code>items[]</code></td>
+            </tr>
+            <tr>
+              <td>Range growth</td>
+              <td>Requires a new range wrapper</td>
+              <td>Append positional pairs to the same collection</td>
+            </tr>
+            <tr>
+              <td>DOM boundary</td>
+              <td>Custom element per semantic pair</td>
+              <td>Custom element at the reusable source-card boundary</td>
+            </tr>
+            <tr>
+              <td>Pair implementation</td>
+              <td colspan="2">
+                One shared renderer preserves the same side layout and
+                accessibility behavior.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

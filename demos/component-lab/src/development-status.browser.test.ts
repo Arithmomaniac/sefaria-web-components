@@ -1,6 +1,7 @@
 import type {
   SefariaBilingualSegment,
   SefariaRefLabel,
+  SefariaSourceCard,
   SefariaTextSegment,
 } from "@sefaria/components";
 import { html, type LitElement } from "lit";
@@ -23,6 +24,15 @@ import {
   refLabelLoadingScenario,
   refLabelScenarios,
 } from "./ref-label.scenarios.js";
+import {
+  sourceCardEmptyScenario,
+  sourceCardErrorScenario,
+  sourceCardLoadingScenario,
+  sourceCardManyItemsScenario,
+  sourceCardOneItemScenario,
+  sourceCardOneSidedScenario,
+  sourceCardScenarios,
+} from "./source-card.scenarios.js";
 import {
   textSegmentDataScenario,
   textSegmentEmptyScenario,
@@ -116,6 +126,36 @@ test("shows the five current bilingual-segment states", async () => {
     "data",
     "loading",
     "partial",
+    "empty",
+    "error",
+  ]);
+});
+
+test("shows the six current source-card scenarios", async () => {
+  expect(sourceCardScenarios).toEqual([
+    sourceCardOneItemScenario,
+    sourceCardManyItemsScenario,
+    sourceCardOneSidedScenario,
+    sourceCardLoadingScenario,
+    sourceCardEmptyScenario,
+    sourceCardErrorScenario,
+  ]);
+
+  const lab = await renderLab();
+  const cards = Array.from(
+    lab.shadowRoot?.querySelectorAll<SefariaSourceCard>(
+      "sefaria-source-card",
+    ) ?? [],
+  );
+
+  expect(cards.map((card) => card.viewModel.state)).toEqual(
+    sourceCardScenarios.map((scenario) => scenario.viewModel.state),
+  );
+  expect(sourceCardScenarios.map((scenario) => scenario.id)).toEqual([
+    "one-item",
+    "many-items",
+    "one-sided",
+    "loading",
     "empty",
     "error",
   ]);

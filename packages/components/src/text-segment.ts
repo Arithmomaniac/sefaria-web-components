@@ -176,11 +176,22 @@ export function projectTextSegmentVersion(
     };
   }
 
-  if (version.text === null) {
+  return projectTextSegmentValue(payload, version, version.text);
+}
+
+/**
+ * Projects one resolved recursive-text leaf with its selected version metadata.
+ */
+export function projectTextSegmentValue(
+  payload: CoreV3TextsResponse,
+  version: CoreV3Version,
+  text: string | null,
+): TextSegmentDataViewModel | TextSegmentEmptyViewModel {
+  if (text === null) {
     return createSelectedVersionEmptyViewModel(payload, version);
   }
 
-  const sanitized = sanitize(version.text);
+  const sanitized = sanitize(text);
   if (sanitized.trim().length === 0) {
     return createSelectedVersionEmptyViewModel(payload, version);
   }

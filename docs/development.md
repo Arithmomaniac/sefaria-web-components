@@ -10,11 +10,13 @@ This guide describes current commands and remaining planned architecture work.
 | --- | --- | --- |
 | `packages/client` | Generates six named Core SDK functions, contracts, Zod validators, and a status-aware fetch client from a pinned corrected OpenAPI document | Expand only when a reviewed contract adds another operation |
 | `packages/text-transform` | Implements parser-backed sanitization, Hebrew vocalization modes, and structured footnote extraction without browser DOM globals | Broader corpus comparison remains planned |
-| `packages/components` | Exports the base element, token defaults, `<sefaria-text-segment>`, `<sefaria-bilingual-segment>`, `<sefaria-ref-label>`, and their component-specific pure and async factory subpaths | Add later component-specific vertical slices as their consumers require them |
-| `demos/component-lab` | Shows authored view models for the current text-segment, bilingual-segment, and reference-label elements | Add states and interactions with each production component |
+| `packages/components` | Exports the base element, token defaults, `<sefaria-text-segment>`, `<sefaria-bilingual-segment>`, `<sefaria-ref-label>`, `<sefaria-source-card>`, and their component-specific pure and async factory subpaths | Add later component-specific vertical slices as their consumers require them |
+| `demos/component-lab` | Shows authored view models for the current text-segment, bilingual-segment, reference-label, and source-card elements | Add states and interactions with each production component |
 | `demos/ref-label-live-demo` | Provides an interactive HTML form and presets that call the deployed reference endpoint and render `<sefaria-ref-label>` | Add live examples only when the production component needs them |
 | `demos/text-segment-live-demo` | Provides an interactive HTML form and presets that call the deployed Sefaria API and render `<sefaria-text-segment>` | Add live examples only when a production component needs them |
 | `demos/bilingual-segment-live-demo` | Provides an interactive HTML form, presets, and display controls that make one deployed Sefaria API request and render `<sefaria-bilingual-segment>` | Add live examples only when a production component needs them |
+| `demos/source-card-live-demo` | Makes one deployed v3 text request for segment, range, spanning, nested non-spanning, and one-sided presets and renders `<sefaria-source-card>` | Add live examples only when the production component needs them |
+| `demos/source-card-comparison-demo` | Compares the host-header plus bilingual-segment boundary with the singleton-items source-card boundary | Remove when the architectural comparison is no longer useful |
 | `demos/mcp` | Packages an App shell and returns a text-only tool result | Add corrected payload validation and component projection |
 | `tests/compatibility` | Runs focused pinned client/transform comparisons, a composed v3 validate-to-transform smoke case, and grouped qualification output without network access | Broader corpus comparison and compatibility publication remain planned |
 
@@ -46,6 +48,8 @@ TypeScript emits reusable ES modules. Vite builds the browser demonstrations and
 | `demos/ref-label-live-demo` | Interactive live API page for the reference-label component |
 | `demos/text-segment-live-demo` | Interactive live API page for the text-segment component |
 | `demos/bilingual-segment-live-demo` | Interactive live API page for the bilingual-segment component |
+| `demos/source-card-live-demo` | Interactive live API page for the source-card component |
+| `demos/source-card-comparison-demo` | Static authored comparison of the old and new composition boundaries |
 | `demos/mcp` | Corrected-payload MCP boundary and FastMCP fixture |
 | `demos/linker-userscript` | Third-party popup integration |
 

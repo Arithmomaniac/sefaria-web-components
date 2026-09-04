@@ -9,7 +9,7 @@ export interface BilingualSegmentScenario {
   readonly viewModel: BilingualSegmentViewModel;
 }
 
-const primarySide = {
+export const primarySide = {
   state: "data",
   ref: "Genesis 1:1",
   heRef: "בראשית א׳:א׳",
@@ -33,7 +33,7 @@ const primarySide = {
   },
 } satisfies TextSegmentDataViewModel;
 
-const translationSide = {
+export const translationSide = {
   state: "data",
   ref: "Genesis 1:1",
   heRef: "בראשית א׳:א׳",

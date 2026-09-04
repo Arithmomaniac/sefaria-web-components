@@ -4,7 +4,7 @@
 
 ## Status
 
-The text-segment, bilingual-segment, and reference-label vertical slices are current. The remaining component surfaces are planned.
+The text-segment, bilingual-segment, reference-label, and source-card vertical slices are current. The remaining component surfaces are planned.
 
 ## Boundary
 
@@ -41,15 +41,14 @@ Planned names follow this pattern:
 
 | Component | Request | View model | Pure factory | Async factory |
 | --- | --- | --- | --- | --- |
-| Text segment | `TextSegmentRequest` | `TextSegmentViewModel` | `createTextSegmentViewModel`; `projectTextSegmentVersion` after role resolution | `loadTextSegmentViewModel` |
+| Text segment | `TextSegmentRequest` | `TextSegmentViewModel` | `createTextSegmentViewModel`; `projectTextSegmentVersion` after role resolution; `projectTextSegmentValue` for a resolved leaf | `loadTextSegmentViewModel` |
 | Bilingual segment | `BilingualSegmentRequest` | `BilingualSegmentViewModel` | `createBilingualSegmentViewModel` | `loadBilingualSegmentViewModel` |
 | Reference label | `RefLabelRequest` | `RefLabelViewModel` | `createRefLabelViewModel` | `loadRefLabelViewModel` |
-| Text range | `TextRangeRequest` | `TextRangeViewModel` | `createTextRangeViewModel` | `loadTextRangeViewModel` |
 | Source card | `SourceCardRequest` | `SourceCardViewModel` | `createSourceCardViewModel` | `loadSourceCardViewModel` |
 | Popup | `PopupRequest` | `PopupViewModel` | `createPopupViewModel` | `loadPopupViewModel` |
 | Connections panel | `ConnectionsPanelRequest` | `ConnectionsPanelViewModel` | `createConnectionsPanelViewModel` | `loadConnectionsPanelViewModel` |
 
-The text-segment and reference-label names are current. The remaining names are planned and can be refined by their first implementation slice without changing ownership or request boundaries.
+The text-segment, bilingual-segment, reference-label, and source-card names are current. The remaining names are planned and can be refined by their first implementation slice without changing ownership or request boundaries.
 
 ## View-model states
 
@@ -236,8 +235,7 @@ Task lifecycle state and component view-model state must not compete for the sam
 | `<sefaria-text-segment>` | Current | `/api/v3/texts/{tref}` payload or parent payload slice | Safe text, direction, language, attribution, and static footnote data | None in the current contract |
 | `<sefaria-bilingual-segment>` | Current | `/api/v3/texts/{tref}` payload or parent payload slice | Primary and translation sides, absent-side state, and attribution | `contentLanguage`, `layout`, and `sideOrder` |
 | `<sefaria-ref-label>` | Current | `/api/ref/{tref}` payload or parent payload slice | Canonical English and Hebrew labels, URL forms, owning index, node type, and unresolvable-reference state | `labelLanguage` and `linked` |
-| `<sefaria-text-range>` | Planned | `/api/v3/texts/{tref}` payload | Bounded segment view models and range-level partial state | Layout, numbering, selection, and highlights |
-| `<sefaria-source-card>` | Planned | `/api/v3/texts/{tref}` payload | Reference header, bounded text view, attribution, and missing-content state | Layout and host actions |
+| `<sefaria-source-card>` | Current | `/api/v3/texts/{tref}` payload | Payload-derived reference header, ordered bilingual pairs, attribution, and missing-content state | `referenceLabel`, `contentLanguage`, `layout`, and `sideOrder` |
 | `<sefaria-popup>` | Planned | Source-card payload or parent payload | Popup content view model and recoverable error state | Anchor, open state, placement, and focus behavior |
 | `<sefaria-connections-panel>` | Planned | `/api/links/{tref}` payload | Category and link view models with bounded paging | Selected category and expanded state |
 
@@ -256,6 +254,8 @@ Both text-segment factories reject a blank or reserved selector with `TypeError`
 The pure factory matches `languageFamilyName` case-insensitively and matches `versionTitle` exactly when the request supplies one. No matching version produces `empty`. `null`, empty, or transformed non-renderable text also produces `empty`.
 
 `projectTextSegmentVersion` accepts one already-selected `CoreV3Version`. It does not select by language, title, array position, `isPrimary`, or `isSource`.
+
+`projectTextSegmentValue` accepts one already-selected `CoreV3Version` plus one resolved string or null leaf. It owns the same sanitization, vocalization, footnote extraction, direction, language, and attribution projection as `projectTextSegmentVersion`. A composite that flattens recursive text calls this leaf projection rather than constructing text-segment data itself.
 
 `createTextSegmentViewModel` owns language-family selection and delegates the selected version to `projectTextSegmentVersion`. This keeps one owner for sanitization, vocalization, footnote extraction, direction, language, and attribution projection.
 
@@ -356,6 +356,47 @@ A single visible role uses the full available inline size rather than retaining 
 The component does not need to copy Sefaria Web's private layout mechanism or pixel geometry.
 
 Browser tests cover unequal side lengths, one missing side, each visible-side and layout combination, narrow containers, and live container resizing in both directions.
+
+## Source card contract [Current]
+
+### Request and composition
+
+`SourceCardRequest` carries a reference and an optional exact version title for the primary and translation sides. It serializes to the same single v3 texts request as the bilingual segment. Both factories reject a blank reference or blank version title with `TypeError`, and the async factory rejects before it makes a request.
+
+The async factory owns exactly one outer request. The pure factory resolves both roles from the captured payload, projects every leaf through `projectTextSegmentValue`, and makes no request. It does not call a child async factory.
+
+A source card is the collection boundary for every supported text granularity. A segment is a card with one item. Flat ranges, chapters, spanning ranges, and nested non-spanning references use the same request, factory, view model, and element. There is no separate text-range component contract.
+
+### Recursive text and positional identity
+
+The recursive `CoreV3TextValue` shape is authoritative. The factory walks arrays depth-first and records each string or null leaf by its zero-based position path. It does not use `isSpanning` to decide whether text is nested.
+
+The primary and translation sides are aligned by the union of their leaf position paths. A path present on only one side produces a partial bilingual pair naming the absent role. An empty inner array contributes no item. A scalar on one side and an array at the same path on the other side is a projection error; the factory does not flatten through the disagreement or silently discard either side.
+
+Each card item carries positional identity and a ref-free `BilingualPairViewModel`. It does not carry or synthesize a leaf reference. The payload's `spanningRefs` identifies top-level groups rather than every leaf, and address formats vary by work. Offline reference parsing remains outside the architecture.
+
+### View model and states
+
+The data state carries a payload-derived header and an ordered item array. The header preserves `ref`, `heRef`, `indexTitle`, `heIndexTitle`, `primary_category`, and `categories` from the corrected payload. The factory does not construct a `RefLabelViewModel`, because the v3 texts payload does not contain the reference endpoint's `url_ref` and `node_type` fields.
+
+| Situation | State |
+| --- | --- |
+| At least one position contains renderable text on either side | `data` with ordered items |
+| No position contains renderable text | `empty`, carrying the attributed absent-role messages |
+| A leaf projection fails or the sides disagree structurally | `error` with `errorKind: "projection"` |
+| A documented HTTP failure occurs | `error` with `errorKind: "http"` |
+
+The card has no card-level `partial` state. A one-sided work is `data` whose items are partial bilingual pairs. Network and abort failures reject rather than becoming view-model states.
+
+### Element and rendering
+
+`<sefaria-source-card>` accepts only its view model, an optional host-supplied `RefLabelViewModel`, and the `contentLanguage`, `layout`, and `sideOrder` presentation properties. It performs no request. When `referenceLabel` is absent, it renders the payload-derived header without a link. Supplying `referenceLabel` renders the existing reference-label component and does not change request ownership.
+
+The source card and `<sefaria-bilingual-segment>` use one shared pair renderer for side markup, ordering, absent-side slots, and layout CSS. The bilingual element is a thin public wrapper for one pair. The card renders its keyed item collection inside one shadow root.
+
+The factory projects every leaf returned by the payload. It performs a single depth-first traversal plus keyed position alignment rather than imposing an artificial item cap. Tests use a realistic large payload to prove exact item count and linear work, and browser tests prove keyed DOM reuse across view-model updates.
+
+Numbering gutters, aliyah markers, highlights, selection events, pagination, virtualization, and continuous paragraph layout remain outside the current contract until a concrete consumer defines them.
 
 ## Text and attribution
 
