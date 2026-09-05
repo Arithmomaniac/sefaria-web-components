@@ -17,7 +17,6 @@
     "compatibility:qualify": "pnpm --filter @sefaria-tests/compatibility qualify",
     "dev": "pnpm --filter @sefaria-demo/component-lab dev",
     "dev:bilingual-segment": "pnpm --filter @sefaria-demo/bilingual-segment-live-demo dev",
-    "dev:source-card-comparison": "pnpm --filter @sefaria-demo/source-card-comparison dev",
     "dev:source-card": "pnpm --filter @sefaria-demo/source-card-live-demo dev",
     "dev:linker": "pnpm --filter @sefaria-demo/linker-userscript dev",
     "dev:mcp": "pnpm build:mcp && uv run --no-sync --directory demos/mcp/fixture-server sefaria-mcp-app-fixture",

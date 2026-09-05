@@ -37,14 +37,6 @@ export interface TextSegmentLoadingViewModel {
   readonly message: string;
 }
 
-/** Version attribution retained as inert display text. */
-export interface TextSegmentAttribution {
-  /** Exact Sefaria version title. */
-  readonly versionTitle: string;
-  /** Free-form source text, without URL interpretation. */
-  readonly versionSource: string | null;
-}
-
 /** Safe, render-ready data for one text segment. */
 export interface TextSegmentDataViewModel {
   /** State discriminator. */
@@ -63,8 +55,6 @@ export interface TextSegmentDataViewModel {
   readonly body: readonly FootnoteBodyPart[];
   /** Ordered static footnotes referenced by body markers. */
   readonly notes: readonly ExtractedFootnote[];
-  /** Selected version attribution. */
-  readonly attribution: TextSegmentAttribution;
 }
 
 /** Valid response with no renderable text for the requested selection. */
@@ -208,10 +198,6 @@ export function projectTextSegmentValue(
     direction: version.direction,
     body: footnotes.body,
     notes: footnotes.notes,
-    attribution: {
-      versionTitle: version.versionTitle,
-      versionSource: version.versionSource,
-    },
   };
 }
 

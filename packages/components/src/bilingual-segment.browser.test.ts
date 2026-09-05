@@ -19,10 +19,6 @@ const PRIMARY: TextSegmentDataViewModel = {
   direction: "rtl",
   body: [{ kind: "html", html: "בְּרֵאשִׁית בָּרָא אֱלֹהִים" }],
   notes: [],
-  attribution: {
-    versionTitle: "Miqra according to the Masorah",
-    versionSource: null,
-  },
 };
 
 const TRANSLATION: TextSegmentDataViewModel = {
@@ -34,7 +30,6 @@ const TRANSLATION: TextSegmentDataViewModel = {
   direction: "ltr",
   body: [{ kind: "html", html: "When God began to create heaven and earth." }],
   notes: [],
-  attribution: { versionTitle: "The Contemporary Torah", versionSource: null },
 };
 
 const DATA: BilingualSegmentDataViewModel = {

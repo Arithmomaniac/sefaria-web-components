@@ -86,11 +86,7 @@ describe("createBilingualSegmentViewModel role resolution", () => {
     expect(result.state).toBe("data");
     if (result.state !== "data") return;
     expect(result.ref).toBe("Genesis 1:1");
-    expect(result.primary.attribution.versionTitle).toBe(
-      "Explicit source-backed compatibility composition",
-    );
     expect(result.primary.direction).toBe("rtl");
-    expect(result.translation.attribution.versionTitle).toBe("Example English");
     expect(result.translation.direction).toBe("ltr");
   });
 
@@ -129,12 +125,17 @@ describe("createBilingualSegmentViewModel role resolution", () => {
 
     expect(result.state).toBe("data");
     if (result.state !== "data") return;
-    expect(result.primary.attribution.versionTitle).toBe(
-      "Sefer haKuzari - Project Ben-Yehuda",
-    );
-    expect(result.translation.attribution.versionTitle).toBe(
-      "Yehudah Even Shmuel, 1973",
-    );
+    expect(result.primary.body).toEqual([
+      {
+        kind: "html",
+        html: '<span class="mam-kq-trivial">שְׁעָרָ֗ו</span> — When God began to create',
+      },
+      { kind: "footnote-marker", noteIndex: 0, markerText: "*" },
+      { kind: "html", html: " heaven" },
+    ]);
+    expect(result.translation.body).toEqual([
+      { kind: "html", html: "In the beginning." },
+    ]);
   });
 
   it("drops a version that fills neither role", () => {

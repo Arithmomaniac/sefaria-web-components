@@ -20,7 +20,6 @@ const PRIMARY: TextSegmentDataViewModel = {
   direction: "rtl",
   body: [{ kind: "html", html: "בְּרֵאשִׁית" }],
   notes: [],
-  attribution: { versionTitle: "Primary", versionSource: null },
 };
 
 const TRANSLATION: TextSegmentDataViewModel = {
@@ -29,7 +28,6 @@ const TRANSLATION: TextSegmentDataViewModel = {
   actualLanguage: "en",
   direction: "ltr",
   body: [{ kind: "html", html: "In the beginning." }],
-  attribution: { versionTitle: "Translation", versionSource: null },
 };
 
 const DATA: SourceCardDataViewModel = {
@@ -42,6 +40,14 @@ const DATA: SourceCardDataViewModel = {
     primaryCategory: "Tanakh",
     categories: ["Tanakh", "Torah"],
   },
+  attributions: [
+    { side: "primary", versionTitle: "Primary", versionSource: null },
+    {
+      side: "translation",
+      versionTitle: "Translation",
+      versionSource: "Translation publisher",
+    },
+  ],
   items: [
     {
       position: [0],
@@ -145,6 +151,47 @@ test("renders ordered pairs and preserves a one-sided item", async () => {
   ).toBeNull();
 });
 
+test("renders each edition attribution once outside the repeated pairs", async () => {
+  const host = await renderCard();
+  const attributions = [
+    ...(host.shadowRoot?.querySelectorAll<HTMLElement>(".attribution") ?? []),
+  ];
+  const segments = [
+    ...(host.shadowRoot?.querySelectorAll("sefaria-text-segment") ?? []),
+  ];
+  await Promise.all(segments.map((segment) => segment.updateComplete));
+
+  expect(attributions.map((entry) => entry.dataset.side)).toEqual([
+    "primary",
+    "translation",
+  ]);
+  expect(attributions[0]?.textContent).toContain("Primary");
+  expect(attributions[1]?.textContent).toContain("Translation publisher");
+  expect(
+    segments.some((segment) =>
+      segment.shadowRoot?.querySelector(".attribution"),
+    ),
+  ).toBe(false);
+});
+
+test("renders an untrusted version source as inert text", async () => {
+  const host = await renderCard({
+    ...DATA,
+    attributions: [
+      {
+        side: "primary",
+        versionTitle: "Primary",
+        versionSource: "javascript:still plain text",
+      },
+    ],
+  });
+  const attribution =
+    host.shadowRoot?.querySelector<HTMLElement>(".attribution");
+
+  expect(attribution?.textContent).toContain("javascript:still plain text");
+  expect(attribution?.querySelector("a")).toBeNull();
+});
+
 test("forwards pair presentation properties to every item", async () => {
   const host = await renderCard();
   host.contentLanguage = "translation";
@@ -165,6 +212,33 @@ test("forwards pair presentation properties to every item", async () => {
     ["translation", "side-by-side", "translation-first"],
     ["translation", "side-by-side", "translation-first"],
   ]);
+  expect(
+    [
+      ...(host.shadowRoot?.querySelectorAll<HTMLElement>(".attribution") ?? []),
+    ].map((attribution) => attribution.dataset.side),
+  ).toEqual(["translation"]);
+});
+
+test("contains a long unbroken attribution source", async () => {
+  const host = await renderCard({
+    ...DATA,
+    attributions: [
+      {
+        side: "primary",
+        versionTitle: "Primary",
+        versionSource: `https://example.test/${"%D7%A9".repeat(100)}`,
+      },
+    ],
+  });
+  host.style.width = "320px";
+  await host.updateComplete;
+
+  const attribution =
+    host.shadowRoot?.querySelector<HTMLElement>(".attribution");
+  expect(attribution).not.toBeNull();
+  expect(attribution!.scrollWidth).toBeLessThanOrEqual(
+    attribution!.clientWidth,
+  );
 });
 
 test("preserves keyed item DOM when one pair changes", async () => {
@@ -219,6 +293,7 @@ test("renders the header and empty message for an empty card", async () => {
   const host = await renderCard({
     state: "empty",
     header: DATA.header,
+    attributions: DATA.attributions,
     absent: [
       { side: "primary", message: "No primary." },
       { side: "translation", message: "No translation." },

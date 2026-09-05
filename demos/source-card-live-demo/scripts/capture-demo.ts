@@ -31,7 +31,7 @@ await captureLiveDemo({
     );
     const requestDelta = textRequests - previousTextRequests;
     previousTextRequests = textRequests;
-    return `${preset}|${result.state}|items=${result.items}|partial=${result.partial}|requests=${requestDelta}`;
+    return `${preset}|${result.state}|items=${result.items}|partial=${result.partial}|attributions=${result.attributions}|requests=${requestDelta}`;
   },
   afterPresets: async (page) => {
     await page.locator('[data-demo-id="range"]').click();
@@ -40,7 +40,7 @@ await captureLiveDemo({
     await selectDisplayValue(page, "sideOrder", "translation-first");
     const wide = await inspectCard(page);
     console.log(
-      `advanced|wide|items=${wide.items}|tracks=${wide.tracks}|first=${wide.first}`,
+      `advanced|wide|items=${wide.items}|attributions=${wide.attributions}|tracks=${wide.tracks}|first=${wide.first}`,
     );
     await page.screenshot({ path: WIDE_SCREENSHOT_PATH, fullPage: true });
     console.log("png|wide=true|translation-first=true");
@@ -50,7 +50,7 @@ await captureLiveDemo({
     await page.setViewportSize({ width: 520, height: 1100 });
     const narrow = await inspectCard(page);
     console.log(
-      `advanced|narrow|items=${narrow.items}|tracks=${narrow.tracks}|first=${narrow.first}`,
+      `advanced|narrow|items=${narrow.items}|attributions=${narrow.attributions}|tracks=${narrow.tracks}|first=${narrow.first}`,
     );
     await page.screenshot({ path: NARROW_SCREENSHOT_PATH, fullPage: true });
     console.log("png|narrow=true|auto-stacked=true");
@@ -71,6 +71,7 @@ async function inspectCard(page: Page): Promise<{
   readonly state: string;
   readonly items: number;
   readonly partial: number;
+  readonly attributions: number;
   readonly tracks: number;
   readonly first: string;
 }> {
@@ -94,6 +95,8 @@ async function inspectCard(page: Page): Promise<{
       items: items.length,
       partial: items.filter((item) => item.querySelector(".absent") !== null)
         .length,
+      attributions:
+        component.shadowRoot?.querySelectorAll(".attribution").length ?? 0,
       tracks:
         firstPair === undefined
           ? 0

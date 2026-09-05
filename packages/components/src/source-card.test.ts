@@ -91,6 +91,18 @@ describe("createSourceCardViewModel", () => {
       primaryCategory: "Tanakh",
       categories: ["Tanakh", "Torah"],
     });
+    expect(result.attributions).toEqual([
+      {
+        side: "primary",
+        versionTitle: "Explicit source-backed compatibility composition",
+        versionSource: null,
+      },
+      {
+        side: "translation",
+        versionTitle: "Example English",
+        versionSource: "Example publisher",
+      },
+    ]);
     expect(result.items).toHaveLength(1);
     expect(result.items[0]?.position).toEqual([]);
     expect(result.items[0]?.pair.state).toBe("data");
@@ -144,6 +156,9 @@ describe("createSourceCardViewModel", () => {
 
     expect(result.state).toBe("data");
     if (result.state !== "data") return;
+    expect(result.attributions.map((attribution) => attribution.side)).toEqual([
+      "primary",
+    ]);
     expect(result.items.map((item) => item.position)).toEqual([
       [0, 0],
       [0, 1],
@@ -183,6 +198,7 @@ describe("createSourceCardViewModel", () => {
 
     expect(result.state).toBe("empty");
     if (result.state !== "empty") return;
+    expect(result.attributions).toHaveLength(2);
     expect(result.absent.map((side) => side.side)).toEqual([
       "primary",
       "translation",

@@ -47,8 +47,7 @@ The specifications are normative. `docs/evidence.md` records observations and so
 | `demos/ref-label-live-demo` | Interactive live Sefaria request page for the reference-label component |
 | `demos/text-segment-live-demo` | Interactive live Sefaria request page for the text-segment component |
 | `demos/bilingual-segment-live-demo` | Interactive live Sefaria request page for the bilingual-segment component |
-| `demos/source-card-live-demo` | Interactive live Sefaria request page for segment, range, spanning, nested, and one-sided source cards |
-| `demos/source-card-comparison-demo` | Side-by-side comparison of the single-segment and singleton-source-card boundaries |
+| `demos/source-card-live-demo` | Interactive live Sefaria request page for segment, range, spanning, nested, and one-sided source cards with card-level edition attribution |
 | `demos/mcp` | MCP corrected-payload boundary and self-contained App |
 | `demos/linker-userscript` | Third-party integration through an async component factory |
 
@@ -69,16 +68,15 @@ If Corepack is unavailable, use `npx --yes pnpm@11.22.0` instead of `pnpm`. The 
 
 ## Demonstrations
 
-| Demonstration                      | Command                           |
-| ---------------------------------- | --------------------------------- |
-| Component lab                      | `pnpm dev`                        |
-| Interactive reference-label page   | `pnpm dev:ref-label`              |
-| Interactive text-segment page      | `pnpm dev:text-segment`           |
-| Interactive bilingual-segment page | `pnpm dev:bilingual-segment`      |
-| Interactive source-card page       | `pnpm dev:source-card`            |
-| Source-card boundary comparison    | `pnpm dev:source-card-comparison` |
-| MCP App with a FastMCP fixture     | `pnpm dev:mcp`                    |
-| Linker userscript                  | `pnpm dev:linker`                 |
+| Demonstration                      | Command                      |
+| ---------------------------------- | ---------------------------- |
+| Component lab                      | `pnpm dev`                   |
+| Interactive reference-label page   | `pnpm dev:ref-label`         |
+| Interactive text-segment page      | `pnpm dev:text-segment`      |
+| Interactive bilingual-segment page | `pnpm dev:bilingual-segment` |
+| Interactive source-card page       | `pnpm dev:source-card`       |
+| MCP App with a FastMCP fixture     | `pnpm dev:mcp`               |
+| Linker userscript                  | `pnpm dev:linker`            |
 
 The [integration specification](docs/specs/integrations.md) defines the planned contracts for these demonstrations.
 

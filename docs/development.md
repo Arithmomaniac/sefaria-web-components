@@ -15,8 +15,7 @@ This guide describes current commands and remaining planned architecture work.
 | `demos/ref-label-live-demo` | Provides an interactive HTML form and presets that call the deployed reference endpoint and render `<sefaria-ref-label>` | Add live examples only when the production component needs them |
 | `demos/text-segment-live-demo` | Provides an interactive HTML form and presets that call the deployed Sefaria API and render `<sefaria-text-segment>` | Add live examples only when a production component needs them |
 | `demos/bilingual-segment-live-demo` | Provides an interactive HTML form, presets, and display controls that make one deployed Sefaria API request and render `<sefaria-bilingual-segment>` | Add live examples only when a production component needs them |
-| `demos/source-card-live-demo` | Makes one deployed v3 text request for segment, range, spanning, nested non-spanning, and one-sided presets and renders `<sefaria-source-card>` | Add live examples only when the production component needs them |
-| `demos/source-card-comparison-demo` | Compares the host-header plus bilingual-segment boundary with the singleton-items source-card boundary | Remove when the architectural comparison is no longer useful |
+| `demos/source-card-live-demo` | Makes one deployed v3 text request for segment, range, spanning, nested non-spanning, and one-sided presets, renders `<sefaria-source-card>`, and attributes each selected edition once at card level | Add live examples only when the production component needs them |
 | `demos/mcp` | Packages an App shell and returns a text-only tool result | Add corrected payload validation and component projection |
 | `tests/compatibility` | Runs focused pinned client/transform comparisons, a composed v3 validate-to-transform smoke case, and grouped qualification output without network access | Broader corpus comparison and compatibility publication remain planned |
 
@@ -49,7 +48,6 @@ TypeScript emits reusable ES modules. Vite builds the browser demonstrations and
 | `demos/text-segment-live-demo` | Interactive live API page for the text-segment component |
 | `demos/bilingual-segment-live-demo` | Interactive live API page for the bilingual-segment component |
 | `demos/source-card-live-demo` | Interactive live API page for the source-card component |
-| `demos/source-card-comparison-demo` | Static authored comparison of the old and new composition boundaries |
 | `demos/mcp` | Corrected-payload MCP boundary and FastMCP fixture |
 | `demos/linker-userscript` | Third-party popup integration |
 

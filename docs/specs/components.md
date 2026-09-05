@@ -62,7 +62,7 @@ Each component defines its own discriminated union. The union uses these state c
 | `empty` | The payload is valid, but it contains no renderable content for this component |
 | `error` | The component factory classified a documented request or projection failure |
 
-The common state names do not create a generalized data interface. Each component owns its fields, messages, recovery actions, and attribution data.
+The common state names do not create a generalized data interface. Each component owns its fields, messages, recovery actions, and any attribution data assigned to that rendering surface.
 
 Missing requested content is not always an error. A bilingual component can return a partial state when one language is absent.
 
@@ -89,7 +89,7 @@ The factory:
 - uses no DOM state
 - uses `@sefaria/text-transform` for required text processing
 - applies HTML vocalization through the transform package rather than parsing HTML independently
-- preserves available attribution needed by the component
+- preserves available attribution when the component owns its display
 - returns a component-specific partial or empty state for missing requested content
 - calls child pure factories for child views
 
@@ -176,7 +176,7 @@ Every public element:
 - accepts only visual or interaction properties in addition to that view model
 - emits composed events for host actions
 - renders the loading, data, partial, empty, and error states that its view model supports
-- preserves available attribution
+- preserves the data assigned to its rendering surface
 - supports keyboard operation
 - uses `--sefaria-*` custom properties
 - emits no global style
@@ -197,7 +197,7 @@ An element must not call `fetch`, `@sefaria/client`, or an async component facto
 
 ## Data and interaction state
 
-Data state belongs in the view model. This includes text, labels, attribution, missing-content details, loading messages, empty messages, and error details.
+Data state belongs in the view model. This includes text, labels, component-owned attribution, missing-content details, loading messages, empty messages, and error details.
 
 Visual and interaction state remains on the element. This includes layout, expanded state, selection, focus, popup placement, and whether a dialog is open.
 
@@ -232,8 +232,8 @@ Task lifecycle state and component view-model state must not compete for the sam
 
 | Element | Status | Primary payload source | View-model responsibility | Element properties |
 | --- | --- | --- | --- | --- |
-| `<sefaria-text-segment>` | Current | `/api/v3/texts/{tref}` payload or parent payload slice | Safe text, direction, language, attribution, and static footnote data | None in the current contract |
-| `<sefaria-bilingual-segment>` | Current | `/api/v3/texts/{tref}` payload or parent payload slice | Primary and translation sides, absent-side state, and attribution | `contentLanguage`, `layout`, and `sideOrder` |
+| `<sefaria-text-segment>` | Current | `/api/v3/texts/{tref}` payload or parent payload slice | Safe text, direction, language, and static footnote data | None in the current contract |
+| `<sefaria-bilingual-segment>` | Current | `/api/v3/texts/{tref}` payload or parent payload slice | Primary and translation sides and absent-side state | `contentLanguage`, `layout`, and `sideOrder` |
 | `<sefaria-ref-label>` | Current | `/api/ref/{tref}` payload or parent payload slice | Canonical English and Hebrew labels, URL forms, owning index, node type, and unresolvable-reference state | `labelLanguage` and `linked` |
 | `<sefaria-source-card>` | Current | `/api/v3/texts/{tref}` payload | Payload-derived reference header, ordered bilingual pairs, attribution, and missing-content state | `referenceLabel`, `contentLanguage`, `layout`, and `sideOrder` |
 | `<sefaria-popup>` | Planned | Source-card payload or parent payload | Popup content view model and recoverable error state | Anchor, open state, placement, and focus behavior |
@@ -255,9 +255,9 @@ The pure factory matches `languageFamilyName` case-insensitively and matches `ve
 
 `projectTextSegmentVersion` accepts one already-selected `CoreV3Version`. It does not select by language, title, array position, `isPrimary`, or `isSource`.
 
-`projectTextSegmentValue` accepts one already-selected `CoreV3Version` plus one resolved string or null leaf. It owns the same sanitization, vocalization, footnote extraction, direction, language, and attribution projection as `projectTextSegmentVersion`. A composite that flattens recursive text calls this leaf projection rather than constructing text-segment data itself.
+`projectTextSegmentValue` accepts one already-selected `CoreV3Version` plus one resolved string or null leaf. It owns the same sanitization, vocalization, footnote extraction, direction, and language projection as `projectTextSegmentVersion`. A composite that flattens recursive text calls this leaf projection rather than constructing text-segment data itself.
 
-`createTextSegmentViewModel` owns language-family selection and delegates the selected version to `projectTextSegmentVersion`. This keeps one owner for sanitization, vocalization, footnote extraction, direction, language, and attribution projection.
+`createTextSegmentViewModel` owns language-family selection and delegates the selected version to `projectTextSegmentVersion`. This keeps one owner for sanitization, vocalization, footnote extraction, direction, and language projection.
 
 Payload warnings describe missing request selectors. `createTextSegmentViewModel` preserves them because it owns one selector. `projectTextSegmentVersion` does not assign request warnings to an existing selected version.
 
@@ -267,11 +267,13 @@ If a requested role has no selected version, the composite owns that missing-sid
 
 Text segment has no `partial` state. More than one matching version or an array-valued selected text produces a projection `error`; the factory does not choose a version or child segment silently.
 
-String text passes through `sanitize`, full-mark HTML vocalization, and `extractFootnotes` before entering the view model. The data view model preserves the payload-provided `language`, `actualLanguage`, `direction`, `versionTitle`, and `versionSource`. The source remains text in this contract and is not converted into an unvalidated link.
+String text passes through `sanitize`, full-mark HTML vocalization, and `extractFootnotes` before entering the view model. The data view model preserves the payload-provided `language`, `actualLanguage`, and `direction`.
 
 `<sefaria-text-segment>` renders static footnote markers and available note bodies. Interactive footnote activation and word selection remain outside the current contract because no consumer defines their action or event payload.
 
 The element supports mixed scripts, punctuation, and long unbroken text without inferring direction from language. Poetry- and paragraph-specific presentation remain outside the current contract until an exact behavior is defined.
+
+Text-segment and bilingual-segment view models do not carry or render edition attribution. Attribution describes the selected text editions for a containing source card rather than an individual repeated leaf. A host that needs attributed bilingual text uses a source card instead of adding an attribution-suppression mode to either segment element.
 
 ## Reference label contract [Current]
 
@@ -377,7 +379,7 @@ Each card item carries positional identity and a ref-free `BilingualPairViewMode
 
 ### View model and states
 
-The data state carries a payload-derived header and an ordered item array. The header preserves `ref`, `heRef`, `indexTitle`, `heIndexTitle`, `primary_category`, and `categories` from the corrected payload. The factory does not construct a `RefLabelViewModel`, because the v3 texts payload does not contain the reference endpoint's `url_ref` and `node_type` fields.
+The data state carries a payload-derived header, one attribution entry for each resolved edition, and an ordered item array. The empty state carries the same header and attribution collection. A resolved edition remains attributed when its selected text has no renderable leaf, because the attribution identifies the edition selected for the card rather than an individual rendered item. The header preserves `ref`, `heRef`, `indexTitle`, `heIndexTitle`, `primary_category`, and `categories` from the corrected payload. Each attribution entry preserves its role, `versionTitle`, and inert `versionSource` text. The factory does not construct a `RefLabelViewModel`, because the v3 texts payload does not contain the reference endpoint's `url_ref` and `node_type` fields.
 
 | Situation | State |
 | --- | --- |
@@ -392,7 +394,7 @@ The card has no card-level `partial` state. A one-sided work is `data` whose ite
 
 `<sefaria-source-card>` accepts only its view model, an optional host-supplied `RefLabelViewModel`, and the `contentLanguage`, `layout`, and `sideOrder` presentation properties. It performs no request. When `referenceLabel` is absent, it renders the payload-derived header without a link. Supplying `referenceLabel` renders the existing reference-label component and does not change request ownership.
 
-The source card and `<sefaria-bilingual-segment>` use one shared pair renderer for side markup, ordering, absent-side slots, and layout CSS. The bilingual element is a thin public wrapper for one pair. The card renders its keyed item collection inside one shadow root.
+The source card and `<sefaria-bilingual-segment>` use one shared pair renderer for side markup, ordering, absent-side slots, and layout CSS. The bilingual element is a thin public wrapper for one pair. The card renders its keyed item collection inside one shadow root, then renders the visible editions' attribution once outside that repeated collection. Three items from the same two editions therefore render two attribution entries, not six.
 
 The factory projects every leaf returned by the payload. It performs a single depth-first traversal plus keyed position alignment rather than imposing an artificial item cap. Tests use a realistic large payload to prove exact item count and linear work, and browser tests prove keyed DOM reuse across view-model updates.
 
@@ -404,7 +406,7 @@ Direction comes from version or corrected API data. A factory must not infer dir
 
 Text that can contain markup passes through `@sefaria/text-transform` before the view model reaches an element.
 
-A component that renders text also renders its available attribution. Core components have no attribution-suppression property.
+Edition attribution belongs to the source-card container. Text-segment and bilingual-segment elements do not render it, and no element has an attribution-suppression property. The source card renders each visible resolved edition once, treating `versionSource` as inert text rather than an unvalidated link.
 
 ## Theming
 
@@ -483,6 +485,6 @@ A planned component is complete when:
 - composite request-count tests pass
 - the element accepts no request input and makes no request
 - text is safe before it reaches the element
-- direction and attribution come from the view model
+- direction and any component-owned attribution come from the view model
 - applicable keyboard and browser checks pass
 - a clean checkout passes `pnpm check`

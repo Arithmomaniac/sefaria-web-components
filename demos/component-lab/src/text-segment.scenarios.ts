@@ -34,10 +34,6 @@ export const textSegmentDataScenario = {
         content: "Static note supplied by the view model.",
       },
     ],
-    attribution: {
-      versionTitle: "Component lab edition",
-      versionSource: "Authored demonstration data",
-    },
   },
 } satisfies TextSegmentScenario;
 

@@ -88,7 +88,7 @@ Review the initial corrections for:
 - [ ] The async factory uses a supplied client.
 - [ ] For a captured successful payload, the async result equals the pure result.
 - [ ] Missing requested content becomes a component-specific partial or empty state.
-- [ ] The factory preserves required direction and attribution.
+- [ ] The factory preserves the data owned by its rendering surface; source-card projection preserves edition attribution.
 - [ ] Unsafe HTML passes through `@sefaria/text-transform`.
 - [ ] An abort does not become a data state.
 
@@ -104,7 +104,7 @@ Review the initial corrections for:
 - [ ] `projectTextSegmentVersion` projects an already-selected `CoreV3Version` without language-family reselection.
 - [ ] Request-based text-segment projection delegates post-selection work to `projectTextSegmentVersion`.
 - [ ] Role-based composites resolve sides before they call `projectTextSegmentVersion`.
-- [ ] The resolved-version projection owns sanitization, vocalization, footnotes, direction, language, and attribution.
+- [ ] The resolved-version projection owns sanitization, vocalization, footnotes, direction, and language.
 - [ ] Request warnings remain with the selector-owning factory or composite.
 - [ ] The resolved-version projection does not assign payload warnings to an existing selected version.
 - [ ] A composite maps a missing role and its warning without calling the resolved-version projection.
@@ -225,7 +225,9 @@ Review the initial corrections for:
 - [ ] Components emit no global style.
 - [ ] Custom properties use the `--sefaria-*` prefix.
 - [ ] Direction comes from view-model data.
-- [ ] Text includes available attribution.
+- [ ] Text segments contain no repeated edition attribution.
+- [ ] A source card renders each visible resolved edition's attribution once outside its item collection.
+- [ ] A source card renders `versionSource` as inert text rather than an unvalidated link.
 - [ ] Interactive controls use native elements and accessible names.
 - [ ] Focus is visible.
 - [ ] Modal popups cycle Tab and Shift+Tab.

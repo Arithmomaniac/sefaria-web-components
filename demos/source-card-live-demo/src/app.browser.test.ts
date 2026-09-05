@@ -128,6 +128,9 @@ function createDataViewModel(label: string): SourceCardDataViewModel {
       primaryCategory: "Tanakh",
       categories: ["Tanakh", "Torah"],
     },
+    attributions: [
+      { side: "primary", versionTitle: label, versionSource: null },
+    ],
     items: [
       {
         position: [],
@@ -144,7 +147,6 @@ function createDataViewModel(label: string): SourceCardDataViewModel {
               direction: "rtl",
               body: [{ kind: "html", html: label }],
               notes: [],
-              attribution: { versionTitle: label, versionSource: null },
             },
           },
           absent: { side: "translation", message: "No translation." },

@@ -12,6 +12,7 @@ import "./ref-label-element.js";
 import { SefariaElement } from "./sefaria-element.js";
 import type { RefLabelViewModel } from "./ref-label.js";
 import type {
+  SourceCardAttributionViewModel,
   SourceCardHeaderViewModel,
   SourceCardViewModel,
 } from "./source-card.js";
@@ -73,6 +74,37 @@ export class SefariaSourceCard extends SefariaElement {
         border-block-start: 1px solid var(--_sefaria-border);
         padding-block-start: 1rem;
       }
+
+      .attributions {
+        display: grid;
+        gap: 0.35rem;
+        margin-block-start: 1rem;
+        padding-block-start: 1rem;
+        border-block-start: 1px solid var(--_sefaria-border);
+        color: var(--_sefaria-fg-muted);
+        font-size: 0.8em;
+      }
+
+      .attribution {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.35em;
+        margin: 0;
+        min-width: 0;
+      }
+
+      .attribution > * {
+        min-width: 0;
+        overflow-wrap: anywhere;
+      }
+
+      .attribution-label {
+        font-weight: 600;
+      }
+
+      .version-source::before {
+        content: "— ";
+      }
     `,
     bilingualPairStyles,
   ];
@@ -119,6 +151,7 @@ export class SefariaSourceCard extends SefariaElement {
           <p role="status" aria-live="polite">
             ${viewModel.absent.map((side) => side.message).join(" ")}
           </p>
+          ${this.#renderAttributions(viewModel.attributions)}
         `;
       case "data":
         return html`
@@ -141,6 +174,7 @@ export class SefariaSourceCard extends SefariaElement {
                 </div>`,
             )}
           </section>
+          ${this.#renderAttributions(viewModel.attributions)}
         `;
     }
   }
@@ -162,6 +196,42 @@ export class SefariaSourceCard extends SefariaElement {
         <span class="hebrew" lang="he" dir="rtl">${header.heRef}</span>
       </div>
     </header>`;
+  }
+
+  #renderAttributions(
+    attributions: readonly SourceCardAttributionViewModel[],
+  ): TemplateResult | typeof nothing {
+    const visible = attributions.filter(
+      (attribution) =>
+        this.contentLanguage === "both" ||
+        this.contentLanguage === attribution.side,
+    );
+    if (visible.length === 0) {
+      return nothing;
+    }
+
+    return html`<section class="attributions" aria-label="Text editions">
+      ${visible.map((attribution) => this.#renderAttribution(attribution))}
+    </section>`;
+  }
+
+  #renderAttribution(
+    attribution: SourceCardAttributionViewModel,
+  ): TemplateResult {
+    const label =
+      attribution.side === "primary" ? "Primary text:" : "Translation:";
+    const source =
+      attribution.versionSource === null
+        ? nothing
+        : html`<span class="version-source"
+            >${attribution.versionSource}</span
+          >`;
+
+    return html`<p class="attribution" data-side=${attribution.side}>
+      <span class="attribution-label">${label}</span>
+      <span class="version-title">${attribution.versionTitle}</span>
+      ${source}
+    </p>`;
   }
 }
 

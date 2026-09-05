@@ -49,6 +49,16 @@ export interface SourceCardHeaderViewModel {
   readonly categories: readonly string[];
 }
 
+/** One selected edition attributed once by a source card. */
+export interface SourceCardAttributionViewModel {
+  /** Role filled by the selected edition. */
+  readonly side: BilingualPairSide;
+  /** Exact Sefaria version title. */
+  readonly versionTitle: string;
+  /** Free-form source text, without URL interpretation. */
+  readonly versionSource: string | null;
+}
+
 /** One positionally identified bilingual item in a source card. */
 export interface SourceCardItemViewModel {
   /** Zero-based indexes followed through recursive text arrays. */
@@ -71,6 +81,8 @@ export interface SourceCardDataViewModel {
   readonly state: "data";
   /** Payload-derived reference heading. */
   readonly header: SourceCardHeaderViewModel;
+  /** Selected editions attributed once for the complete card. */
+  readonly attributions: readonly SourceCardAttributionViewModel[];
   /** Ordered bilingual items. */
   readonly items: readonly SourceCardItemViewModel[];
 }
@@ -81,6 +93,8 @@ export interface SourceCardEmptyViewModel {
   readonly state: "empty";
   /** Payload-derived reference heading. */
   readonly header: SourceCardHeaderViewModel;
+  /** Selected editions attributed once for the complete card. */
+  readonly attributions: readonly SourceCardAttributionViewModel[];
   /** Both absent roles, in primary-then-translation order. */
   readonly absent: readonly [BilingualPairAbsentSide, BilingualPairAbsentSide];
 }
@@ -149,10 +163,12 @@ export function createSourceCardViewModel(
   }
 
   const header = createHeader(payload);
+  const attributions = createAttributions(resolved.versions);
   if (projected.items.length === 0) {
     return {
       state: "empty",
       header,
+      attributions,
       absent: [
         absentForSide(
           payload,
@@ -170,7 +186,7 @@ export function createSourceCardViewModel(
     };
   }
 
-  return { state: "data", header, items: projected.items };
+  return { state: "data", header, attributions, items: projected.items };
 }
 
 /**
@@ -364,6 +380,23 @@ function createHeader(payload: CoreV3TextsResponse): SourceCardHeaderViewModel {
     primaryCategory: payload.primary_category,
     categories: [...payload.categories],
   };
+}
+
+function createAttributions(
+  versions: Partial<Record<BilingualPairSide, CoreV3Version>>,
+): SourceCardAttributionViewModel[] {
+  return SIDES.flatMap((side) => {
+    const version = versions[side];
+    return version === undefined
+      ? []
+      : [
+          {
+            side,
+            versionTitle: version.versionTitle,
+            versionSource: version.versionSource,
+          },
+        ];
+  });
 }
 
 function formatPosition(position: readonly number[]): string {

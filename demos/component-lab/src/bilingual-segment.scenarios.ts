@@ -27,10 +27,6 @@ export const primarySide = {
       content: "Static note supplied by the view model.",
     },
   ],
-  attribution: {
-    versionTitle: "Component lab source edition",
-    versionSource: "Authored demonstration data",
-  },
 } satisfies TextSegmentDataViewModel;
 
 export const translationSide = {
@@ -47,10 +43,6 @@ export const translationSide = {
     },
   ],
   notes: [],
-  attribution: {
-    versionTitle: "Component lab translation edition",
-    versionSource: "Authored demonstration data",
-  },
 } satisfies TextSegmentDataViewModel;
 
 export const bilingualSegmentDataScenario = {

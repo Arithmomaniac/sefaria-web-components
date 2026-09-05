@@ -29,10 +29,6 @@ const DATA_VIEW_MODEL: TextSegmentDataViewModel = {
       content: "<b>Static</b> footnote body.",
     },
   ],
-  attribution: {
-    versionTitle: "Test edition",
-    versionSource: "javascript:still plain text",
-  },
 };
 
 afterEach(() => {
@@ -99,9 +95,7 @@ test("renders payload language and direction with static footnotes", async () =>
   expect(article?.lang).toBe("he");
   expect(article?.dir).toBe("ltr");
   expect(sourceLink).toBeNull();
-  expect(element?.shadowRoot?.textContent).toContain(
-    "javascript:still plain text",
-  );
+  expect(element?.shadowRoot?.querySelector(".attribution")).toBeNull();
 });
 
 test("does not invent a body for a missing static footnote", async () => {
@@ -171,35 +165,6 @@ test("contains a long unbroken word in a 320 pixel host", async () => {
   const body = element?.shadowRoot?.querySelector<HTMLElement>(".body");
   expect(body).not.toBeNull();
   expect(body!.scrollWidth).toBeLessThanOrEqual(body!.clientWidth);
-});
-
-test("contains a long unbroken attribution source", async () => {
-  const viewModel: TextSegmentDataViewModel = {
-    ...DATA_VIEW_MODEL,
-    attribution: {
-      ...DATA_VIEW_MODEL.attribution,
-      versionSource: `https://example.test/${"%D7%A9".repeat(100)}`,
-    },
-  };
-  render(html`
-    <div style="width: 320px">
-      <sefaria-text-segment
-        style="width: 100%"
-        .viewModel=${viewModel}
-      ></sefaria-text-segment>
-    </div>
-  `);
-
-  const element = document.querySelector<SefariaTextSegment>(
-    "sefaria-text-segment",
-  );
-  await element?.updateComplete;
-  const attribution =
-    element?.shadowRoot?.querySelector<HTMLElement>(".attribution");
-  expect(attribution).not.toBeNull();
-  expect(attribution!.scrollWidth).toBeLessThanOrEqual(
-    attribution!.clientWidth,
-  );
 });
 
 test("never calls fetch while rendering", async () => {

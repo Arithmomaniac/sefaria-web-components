@@ -196,7 +196,6 @@ function createDataViewModel(label: string): BilingualSegmentDataViewModel {
     direction,
     body: [{ kind: "html", html: `${label} (${language})` }],
     notes: [],
-    attribution: { versionTitle: label, versionSource: null },
   });
 
   return {

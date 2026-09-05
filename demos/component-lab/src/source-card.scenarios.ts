@@ -18,6 +18,19 @@ const header = {
   categories: ["Tanakh", "Torah"],
 } as const;
 
+const attributions = [
+  {
+    side: "primary",
+    versionTitle: "Component lab source edition",
+    versionSource: "Authored demonstration data",
+  },
+  {
+    side: "translation",
+    versionTitle: "Component lab translation edition",
+    versionSource: "Authored demonstration data",
+  },
+] as const;
+
 const dataPair = {
   state: "data",
   primary: primarySide,
@@ -30,6 +43,7 @@ export const sourceCardOneItemScenario = {
   viewModel: {
     state: "data",
     header: { ...header, ref: "Genesis 1:1", heRef: "בראשית א׳:א׳" },
+    attributions,
     items: [{ position: [], pair: dataPair }],
   },
 } satisfies SourceCardScenario;
@@ -40,6 +54,7 @@ export const sourceCardManyItemsScenario = {
   viewModel: {
     state: "data",
     header,
+    attributions,
     items: [
       { position: [0], pair: dataPair },
       { position: [1], pair: dataPair },
@@ -54,6 +69,7 @@ export const sourceCardOneSidedScenario = {
   viewModel: {
     state: "data",
     header,
+    attributions: [attributions[0]],
     items: [
       {
         position: [0],
@@ -82,6 +98,7 @@ export const sourceCardEmptyScenario = {
   viewModel: {
     state: "empty",
     header,
+    attributions,
     absent: [
       { side: "primary", message: "No primary text is available." },
       { side: "translation", message: "No translation is available." },

@@ -84,7 +84,7 @@ describe("projectTextSegmentVersion", () => {
       expect(result.body).toEqual([
         { kind: "html", html: "Selected translation." },
       ]);
-      expect(result.attribution.versionTitle).toBe("Role-selected translation");
+      expect(result.actualLanguage).toBe("en");
     }
   });
 
@@ -139,10 +139,6 @@ describe("projectTextSegmentVersion", () => {
         direction: "ltr",
         body: [{ kind: "html", html: "Second." }],
         notes: [],
-        attribution: {
-          versionTitle: "Resolved range translation",
-          versionSource: "Example publisher",
-        },
       });
     });
 
@@ -212,10 +208,6 @@ describe("createTextSegmentViewModel", () => {
       direction: "rtl",
       body: [{ kind: "html", html: "In the beginning." }],
       notes: [],
-      attribution: {
-        versionTitle: "Example English",
-        versionSource: "Example publisher",
-      },
     });
   });
 
@@ -234,7 +226,6 @@ describe("createTextSegmentViewModel", () => {
     expect(result.state).toBe("data");
     if (result.state === "data") {
       expect(result.body).toEqual([{ kind: "html", html: "Exact text." }]);
-      expect(result.attribution.versionTitle).toBe("Exact");
     }
   });
 
@@ -262,10 +253,6 @@ describe("createTextSegmentViewModel", () => {
             content: "<b>When God began to create </b>Others.",
           },
         ],
-        attribution: {
-          versionTitle: "Explicit source-backed compatibility composition",
-          versionSource: null,
-        },
       },
     );
   });

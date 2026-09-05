@@ -96,15 +96,6 @@ importers:
         specifier: workspace:*
         version: link:../../packages/components
 
-  demos/source-card-comparison-demo:
-    dependencies:
-      '@sefaria/components':
-        specifier: workspace:*
-        version: link:../../packages/components
-      lit:
-        specifier: ^3.3.3
-        version: 3.3.3
-
   demos/source-card-live-demo:
     dependencies:
       '@sefaria/client':
