@@ -37,14 +37,6 @@ export interface TextSegmentLoadingViewModel {
   readonly message: string;
 }
 
-/** Version attribution retained as inert display text. */
-export interface TextSegmentAttribution {
-  /** Exact Sefaria version title. */
-  readonly versionTitle: string;
-  /** Free-form source text, without URL interpretation. */
-  readonly versionSource: string | null;
-}
-
 /** Safe, render-ready data for one text segment. */
 export interface TextSegmentDataViewModel {
   /** State discriminator. */
@@ -63,8 +55,6 @@ export interface TextSegmentDataViewModel {
   readonly body: readonly FootnoteBodyPart[];
   /** Ordered static footnotes referenced by body markers. */
   readonly notes: readonly ExtractedFootnote[];
-  /** Selected version attribution. */
-  readonly attribution: TextSegmentAttribution;
 }
 
 /** Valid response with no renderable text for the requested selection. */
@@ -176,11 +166,22 @@ export function projectTextSegmentVersion(
     };
   }
 
-  if (version.text === null) {
+  return projectTextSegmentValue(payload, version, version.text);
+}
+
+/**
+ * Projects one resolved recursive-text leaf with its selected version metadata.
+ */
+export function projectTextSegmentValue(
+  payload: CoreV3TextsResponse,
+  version: CoreV3Version,
+  text: string | null,
+): TextSegmentDataViewModel | TextSegmentEmptyViewModel {
+  if (text === null) {
     return createSelectedVersionEmptyViewModel(payload, version);
   }
 
-  const sanitized = sanitize(version.text);
+  const sanitized = sanitize(text);
   if (sanitized.trim().length === 0) {
     return createSelectedVersionEmptyViewModel(payload, version);
   }
@@ -197,10 +198,6 @@ export function projectTextSegmentVersion(
     direction: version.direction,
     body: footnotes.body,
     notes: footnotes.notes,
-    attribution: {
-      versionTitle: version.versionTitle,
-      versionSource: version.versionSource,
-    },
   };
 }
 

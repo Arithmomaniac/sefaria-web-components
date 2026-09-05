@@ -88,7 +88,7 @@ Review the initial corrections for:
 - [ ] The async factory uses a supplied client.
 - [ ] For a captured successful payload, the async result equals the pure result.
 - [ ] Missing requested content becomes a component-specific partial or empty state.
-- [ ] The factory preserves required direction and attribution.
+- [ ] The factory preserves the data owned by its rendering surface; source-card projection preserves edition attribution.
 - [ ] Unsafe HTML passes through `@sefaria/text-transform`.
 - [ ] An abort does not become a data state.
 
@@ -104,7 +104,7 @@ Review the initial corrections for:
 - [ ] `projectTextSegmentVersion` projects an already-selected `CoreV3Version` without language-family reselection.
 - [ ] Request-based text-segment projection delegates post-selection work to `projectTextSegmentVersion`.
 - [ ] Role-based composites resolve sides before they call `projectTextSegmentVersion`.
-- [ ] The resolved-version projection owns sanitization, vocalization, footnotes, direction, language, and attribution.
+- [ ] The resolved-version projection owns sanitization, vocalization, footnotes, direction, and language.
 - [ ] Request warnings remain with the selector-owning factory or composite.
 - [ ] The resolved-version projection does not assign payload warnings to an existing selected version.
 - [ ] A composite maps a missing role and its warning without calling the resolved-version projection.
@@ -114,6 +114,44 @@ Review the initial corrections for:
 - [ ] Direction comes from the selected version even when it differs from language expectations.
 - [ ] Static footnote markers and available bodies render without adding interaction.
 - [ ] Version source remains inert text rather than an unvalidated link.
+
+### Bilingual segment
+
+- [ ] One request carries both the `primary` and `translation` selectors.
+- [ ] Blank references and blank exact version titles make zero requests.
+- [ ] Exact selectors claim their matching role version before bare selectors fall back to `isPrimary` and `isSource`.
+- [ ] `isPrimary` is not assumed to be unique across versions returned for both selectors.
+- [ ] Reversing the payload `versions` array produces an identical view model.
+- [ ] A version that fills neither role is dropped.
+- [ ] More than one candidate for either role is a projection error.
+- [ ] The resolved-version projection is never called for an absent role.
+- [ ] Each side's message comes from the warning whose key matches that side's serialized selector.
+- [ ] Warning-key matching substitutes a space for each underscore in a requested version title.
+- [ ] One absent side gives the partial state; two give the empty state.
+- [ ] A child projection error surfaces as a bilingual error rather than an absent side.
+- [ ] `contentLanguage`, `layout`, and `sideOrder` remain independent element properties.
+- [ ] `sideOrder` applies by role when either side is absent.
+- [ ] One visible side uses the full available inline size.
+- [ ] `auto` layout responds to container width in both directions without measurement script.
+- [ ] Unequal side lengths share a block start without overlap.
+
+### Source card
+
+- [ ] Segment, flat range, spanning range, and nested non-spanning payloads use the same factory and element.
+- [ ] A scalar text value produces one item with the root position.
+- [ ] Recursive text is flattened from its own shape rather than from `isSpanning`.
+- [ ] Primary and translation leaves align by the union of position paths.
+- [ ] A one-sided position remains a partial pair instead of being dropped.
+- [ ] Empty inner arrays contribute no blank item.
+- [ ] Scalar-array disagreement at one path is a projection error.
+- [ ] Card items use positional identity and do not synthesize leaf references.
+- [ ] The payload-derived header makes no second request.
+- [ ] An optional host-supplied `RefLabelViewModel` changes only header rendering.
+- [ ] A ten-item card uses one outer request and zero child requests.
+- [ ] Async and pure factories are equal for the captured payload.
+- [ ] The shared pair renderer produces the bilingual element's established layout behavior.
+- [ ] Keyed rendering preserves unchanged item DOM across view-model updates.
+- [ ] A realistic large payload projects every leaf without truncation or quadratic scanning.
 
 ## Composite request counts
 
@@ -187,7 +225,9 @@ Review the initial corrections for:
 - [ ] Components emit no global style.
 - [ ] Custom properties use the `--sefaria-*` prefix.
 - [ ] Direction comes from view-model data.
-- [ ] Text includes available attribution.
+- [ ] Text segments contain no repeated edition attribution.
+- [ ] A source card renders each visible resolved edition's attribution once outside its item collection.
+- [ ] A source card renders `versionSource` as inert text rather than an unvalidated link.
 - [ ] Interactive controls use native elements and accessible names.
 - [ ] Focus is visible.
 - [ ] Modal popups cycle Tab and Shift+Tab.

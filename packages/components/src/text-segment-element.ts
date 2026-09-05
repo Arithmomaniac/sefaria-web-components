@@ -14,7 +14,7 @@ export class SefariaTextSegment extends SefariaElement {
     viewModel: { attribute: false },
   };
 
-  /** Text-segment layout, typography, attribution, and containment styles. */
+  /** Text-segment layout, typography, footnotes, and containment styles. */
   static override styles = [
     ...SefariaElement.styles,
     css`
@@ -64,25 +64,6 @@ export class SefariaTextSegment extends SefariaElement {
 
       .footnote-label {
         margin-inline-end: 0.35em;
-      }
-
-      .attribution {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.35em;
-        min-width: 0;
-        margin-block-start: 1rem;
-        color: var(--_sefaria-fg-muted);
-        font-size: 0.8em;
-      }
-
-      .attribution > * {
-        min-width: 0;
-        overflow-wrap: anywhere;
-      }
-
-      .version-source::before {
-        content: "— ";
       }
     `,
   ];
@@ -141,18 +122,6 @@ export class SefariaTextSegment extends SefariaElement {
               </ol>`
             : nothing
         }
-        <footer class="attribution">
-          <span class="version-title"
-            >${viewModel.attribution.versionTitle}</span
-          >
-          ${
-            viewModel.attribution.versionSource === null
-              ? nothing
-              : html`<span class="version-source"
-                  >${viewModel.attribution.versionSource}</span
-                >`
-          }
-        </footer>
       </article>
     `;
   }

@@ -4,7 +4,7 @@
 
 ## Summary
 
-This design defines a generated API foundation with corrections and component-owned view models. Elements render view models and never request data. The client, text-processing packages, text-segment vertical slice, and reference-label vertical slice are current; the remaining component and integration contracts are planned.
+This design defines a generated API foundation with corrections and component-owned view models. Elements render view models and never request data. The client, text-processing packages, text-segment, bilingual-segment, reference-label, and source-card vertical slices are current; the remaining component and integration contracts are planned.
 
 ## Scope
 
@@ -16,7 +16,7 @@ This design defines a generated API foundation with corrections and component-ow
 
 Core is the stable first product boundary. It is not a delivery phase or issue plan.
 
-Core includes the six API operations and all three text-processing capabilities. It also includes the text primitives, bounded text range, source card, popup, MCP source-card App, and Linker demonstration.
+Core includes the six API operations and all three text-processing capabilities. It also includes the text primitives, source card with its bounded text collection, popup, MCP source-card App, and Linker demonstration.
 
 The connections panel and recursive connected reading remain outside Core. Their later implementation must obey the same request, projection, and rendering boundaries.
 
@@ -123,7 +123,9 @@ Each component has a non-DOM public subpath. This subpath owns its request type,
 
 A composite can resolve a child input by payload role before projection. The child subpath owns the pure resolved-input projection, so the composite does not repeat child transformation logic.
 
-Text segment exposes `projectTextSegmentVersion` for this case. A bilingual composite can resolve primary, source, and translation roles from one payload, then project each selected `CoreV3Version`.
+Text segment exposes `projectTextSegmentVersion` for a selected scalar version and `projectTextSegmentValue` for one resolved recursive-text leaf. A bilingual composite can resolve primary, source, and translation roles from one payload, then project each selected `CoreV3Version`. The source card can flatten recursive text and project each leaf without repeating text transformation logic.
+
+The source card owns the bounded text collection. Segment, flat range, chapter, spanning range, and nested non-spanning payloads use one composite contract; there is no separate text-range element or factory. Card items use positional identity and do not synthesize references from array indexes.
 
 Request warnings remain with the selector-owning factory or composite. A resolved-version projection cannot assign a warning for another request selector.
 

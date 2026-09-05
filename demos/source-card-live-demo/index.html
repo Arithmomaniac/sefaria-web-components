@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Live source-card demo</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --page: light-dark(#f5f2ec, #252422);
+        --surface: light-dark(#fff, #302f2d);
+        --border: light-dark(#d7d0c5, #57524c);
+        --text: light-dark(#24211d, #f1ede6);
+        --muted: light-dark(#71695f, #bdb5aa);
+        --accent: light-dark(#a92850, #ff91ad);
+        --danger: light-dark(#b42318, #ff8b82);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--page);
+        color: var(--text);
+        font-family: "Segoe UI", Aptos, sans-serif;
+      }
+      main {
+        width: min(86rem, 100%);
+        margin: auto;
+        padding: clamp(1rem, 4vw, 3rem);
+      }
+      h1,
+      h2,
+      h3,
+      p {
+        margin-block-start: 0;
+      }
+      header p,
+      #request-state {
+        color: var(--muted);
+      }
+      .workspace {
+        display: grid;
+        grid-template-columns: minmax(18rem, 0.72fr) minmax(0, 1.28fr);
+        gap: 1rem;
+        align-items: start;
+      }
+      .panel {
+        min-width: 0;
+        padding: 1.25rem;
+        border: 1px solid var(--border);
+        border-radius: 1rem;
+        background: var(--surface);
+      }
+      .presets {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+      }
+      button,
+      input,
+      select {
+        font: inherit;
+      }
+      button,
+      input,
+      select {
+        min-height: 2.5rem;
+        border: 1px solid var(--border);
+        border-radius: 0.55rem;
+        background: var(--surface);
+        color: var(--text);
+      }
+      button {
+        padding: 0.45rem 0.7rem;
+        cursor: pointer;
+      }
+      button:hover,
+      button:focus-visible {
+        border-color: var(--accent);
+      }
+      button[type="submit"] {
+        width: 100%;
+        background: var(--accent);
+        color: white;
+        font-weight: 700;
+      }
+      label {
+        display: grid;
+        gap: 0.3rem;
+        margin-bottom: 0.7rem;
+        color: var(--muted);
+        font-size: 0.88rem;
+        font-weight: 600;
+      }
+      input,
+      select {
+        width: 100%;
+        padding: 0.5rem 0.65rem;
+      }
+      #display-form {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.6rem;
+      }
+      #host-error {
+        color: var(--danger);
+      }
+      sefaria-source-card {
+        --sefaria-surface: var(--surface);
+        --sefaria-fg: var(--text);
+        --sefaria-fg-muted: var(--muted);
+        --sefaria-border: var(--border);
+        --sefaria-accent: var(--accent);
+        --sefaria-link: var(--accent);
+      }
+      @media (max-width: 58rem) {
+        .workspace {
+          grid-template-columns: 1fr;
+        }
+        .presets,
+        #display-form {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Live source-card demo</h1>
+        <p>
+          Each preset makes one v3 text request, then projects every recursive
+          leaf into the request-free source card.
+        </p>
+      </header>
+      <div class="workspace">
+        <section class="panel">
+          <h2>Request</h2>
+          <div class="presets" aria-label="Example references">
+            <button
+              type="button"
+              data-demo-request
+              data-demo-id="segment"
+              data-tref="Genesis 1:1"
+            >
+              Single segment
+            </button>
+            <button
+              type="button"
+              data-demo-request
+              data-demo-id="range"
+              data-tref="Genesis 1:1-3"
+            >
+              Same-section range
+            </button>
+            <button
+              type="button"
+              data-demo-request
+              data-demo-id="chapter"
+              data-tref="Genesis 1"
+            >
+              Chapter
+            </button>
+            <button
+              type="button"
+              data-demo-request
+              data-demo-id="spanning"
+              data-tref="Genesis 1:31-2:2"
+            >
+              Spanning range
+            </button>
+            <button
+              type="button"
+              data-demo-request
+              data-demo-id="nested"
+              data-tref="Likutei Moharan 1"
+            >
+              Nested, not spanning
+            </button>
+            <button
+              type="button"
+              data-demo-request
+              data-demo-id="one-sided"
+              data-tref="Tosafot on Shabbat 2a"
+            >
+              One-sided with holes
+            </button>
+            <button
+              type="button"
+              data-demo-request
+              data-demo-id="shape-union"
+              data-tref="Zohar, Bereshit 1-5"
+            >
+              Sides disagree in shape
+            </button>
+          </div>
+          <form id="source-card-form">
+            <label
+              >Sefaria reference
+              <input name="tref" value="Genesis 1:1-3" required
+            /></label>
+            <label
+              >Exact primary version title
+              <input name="primaryVersionTitle" placeholder="Optional"
+            /></label>
+            <label
+              >Exact translation version title
+              <input name="translationVersionTitle" placeholder="Optional"
+            /></label>
+            <button type="submit">Load source card</button>
+          </form>
+          <h3>Display</h3>
+          <form id="display-form">
+            <label
+              >Visible sides
+              <select name="contentLanguage">
+                <option value="both">Both</option>
+                <option value="primary">Primary</option>
+                <option value="translation">Translation</option>
+              </select>
+            </label>
+            <label
+              >Layout
+              <select name="layout">
+                <option value="auto">Auto</option>
+                <option value="stacked">Stacked</option>
+                <option value="side-by-side">Side by side</option>
+              </select>
+            </label>
+            <label
+              >Side order
+              <select name="sideOrder">
+                <option value="primary-first">Primary first</option>
+                <option value="translation-first">Translation first</option>
+              </select>
+            </label>
+          </form>
+        </section>
+        <section class="panel">
+          <h2>Result</h2>
+          <p id="request-state" data-state="initial">
+            Waiting for the first request.
+          </p>
+          <p id="host-error" role="alert" hidden></p>
+          <sefaria-source-card id="source-card-result"></sefaria-source-card>
+        </section>
+      </div>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
