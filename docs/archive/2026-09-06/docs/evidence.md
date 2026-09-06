@@ -1,25 +1,8 @@
-> Created/edited by GitHub Copilot with human review/feedback by avilevin.
+> Created/edited by GitHub Copilot; pending human review.
 
 # Evidence
 
 This document records source observations that support the design and specifications. It does not define product behavior or delivery status.
-
-## Upstream documentation coverage
-
-**Observed on September 6, 2026:** Sefaria's [Formatting within Sefaria Texts](https://developers.sefaria.org/docs/text-formatting-beyond-the-segment-level) already explains subsegment markup and lists allowed tags and attributes. The review establishes current coverage, not when each topic was first published.
-
-| Already explained upstream | What this repository adds |
-| --- | --- |
-| Markup belongs to a Version's text rather than an Index; ordinary inline formatting and line breaks | A guide connecting those concepts to validated payloads, factories, and component rendering |
-| Footnote marker/body pairs and inline commentary placements, including matching link metadata and label overrides | Local extraction behavior, missing versus empty bodies, inert metadata, and component ownership |
-| Structural overlays, direction spans, reference-link attributes, and images | The exact local allowlist, URL restrictions, alt-text-only image handling, and explicit deferred behavior |
-| A table of the persisted tag families and supported attributes | Additional pinned source/fixture observations and a distinction between persisted, API-generated, Web-generated, legacy, and hostile input |
-
-Do not describe these upstream explanations as undocumented discoveries. Our [markup guide](guides/text-markup.md) is a companion explaining examples and local handling. The [differences guide](guides/differences.md) identifies deliberate local choices; an implementation detail found in source is not automatically either undocumented or a local divergence.
-
-Further research starts from Sefaria's [current documentation index](https://developers.sefaria.org/llms.txt), which identifies guides and API reference pages and advertises Markdown page variants. Refetch the relevant pages before relying on coverage claims. The review above does not establish coverage or absence for every edge case, such as exact PASEQ policies, parser recovery, or data-dependent response shapes.
-
-Current explanatory documentation does not replace the pinned source, upstream tests, deployed fixtures, or guarded overlay required for a transport correction. Historical observations below remain dated evidence; they are not claims about what today's documentation omits.
 
 ## Source baseline
 
@@ -50,24 +33,6 @@ The Sefaria web and mobile repositories are the primary evidence for current ren
 Consumer projects show integration needs and independent use. They do not define Sefaria behavior.
 
 On August 30, 2026, Sefaria's remote `master` was `91ca8c1a32a6f883261862933ecb394dc1025c1e`. The files used for the text-markup and transform analysis had not changed since the pinned `1f7d0844ca6a9eddc8e48168962aacb09de75bd6` revision.
-
-## Historical decision provenance
-
-This section records the strongest session-history decisions that explain the current contract boundaries. It does not define product behavior; the current specifications and design document do that.
-
-Session UUIDs with turn numbers and dates are archive trace pointers, not public links. Session archives can omit tool output and can contain assistant proposals or branch reports, so those reports are not implementation proof. The baseline for this audit is `origin/main` commit `7f631685961b3ff6243d812570e1ffbd85aa53c6`; September 6, 2026 active worktrees are excluded.
-
-| Decision | Session evidence | Historical proposal or supersession | Current owner |
-| --- | --- | --- | --- |
-| Corrected transport contracts instead of a generalized model | `de4d0659-4a18-4271-90d1-7114c1226581`, turn 4, August 28, 2026: the source card was a “red flag” and the OpenAPI document should generate the client types. Turn 5 rejected taking responsibility for generalized models. | The earlier `@sefaria/model` and private source-card foundation was superseded by the corrected OpenAPI and thin-client boundary. | [`design.md`](design.md), [`specs/client.md`](specs/client.md) |
-| Request-free elements and factory-owned projection | `de4d0659-4a18-4271-90d1-7114c1226581`, turns 43-44, August 31 and September 1, 2026: payload-to-view-model orchestration should sit between the payload and the component. | The historical assistant description is a proposal or branch report; it does not prove that every planned integration is delivered. | [`design.md`](design.md), [`specs/components.md`](specs/components.md) |
-| One bounded source-card collection | `a7049088-19ac-4308-8662-7a384026dfb2`, turns 14, 23, and 24, September 4-5, 2026: a segment can be a singleton collection, the reference appears once, and attribution belongs once in the card container. | The separate text-range request and view-model stack is superseded by the source-card collection projection. | [`specs/components.md`](specs/components.md), [`development.md`](development.md) |
-| Removal of the offline-model foundation | `cdb4a0e1-1089-4ddc-ad33-2b925c7d5a87`, turn 37, August 26, 2026: the user explored client-owned cross-section expansion and questioned `RangeTopology` without an offline consumer. That discussion still contemplated local arithmetic splitting. `de4d0659-4a18-4271-90d1-7114c1226581`, turn 5, August 28, 2026, later rejected responsibility for generalized models. | The current no-offline-parser boundary is the later specification's resolution, not a verbatim instruction from the earlier range discussion. Default cache, retry, and coalescing policies are also excluded by the current client contract; the range discussion alone does not establish that exclusion. | [`design.md`](design.md), [`specs/client.md`](specs/client.md) |
-| Representative, non-exhaustive qualification | `cdb4a0e1-1089-4ddc-ad33-2b925c7d5a87`, turn 4, August 25, 2026: the user distinguished a minimum viable implementation from exhaustive edge-case coverage and questioned how an oracle would be obtained. `590ea2de-a4f5-435d-9f49-14291fa2d9de`, turns 3 and 6, September 1, 2026, requested a higher-level explanation and critique of the approach; the detailed corpus and result-class proposal was assistant analysis, not a quoted user directive. | The current documented qualification uses a small source-backed suite and distinguishes unavailable evidence and intentional differences. Broader corpus comparison remains planned. | [`specs/client.md`](specs/client.md), [`specs/text-processing.md`](specs/text-processing.md), [`development.md`](development.md) |
-| API-shaped MCP payloads replace the private wire format | `84986099-e42b-4f8c-91d5-30a576a8b6ea`, turn 5, August 2, 2026, proposed a source-card MCP payload and serializable reader state. `de4d0659-4a18-4271-90d1-7114c1226581`, turn 4, August 28, 2026, rejected putting that payload in a foundational model. | The private `SourceCardData` format is superseded. Corrected API-shaped JSON, boundary validation, and the same pure factory are the planned integration contract, not current MCP behavior. | [`specs/integrations.md`](specs/integrations.md), [`development.md`](development.md) |
-| Historical sources retain chronology and supersession | `84986099-e42b-4f8c-91d5-30a576a8b6ea`, turn 2, July 31, 2026, asked that the older detailed spec and shared spec be compared. `45fcf6a8-e726-4dea-99e2-af9fe0bc9f68`, turn 2, August 22, 2026, asked that spec-branch chronology be preserved. | Older proposals can explain a divergence, but are not a reason to restore behavior superseded by the current specifications. | This evidence record and the current documentation set |
-
-Only task-relevant decisions are summarized here. The pointers retain traceability without publishing complete conversations, machine-local paths, or mutable delivery state.
 
 ## Core endpoint implementation map
 
@@ -136,8 +101,8 @@ The current qualification is a small, pinned, offline suite. It is not an exhaus
 
 | Issue #14 criterion | Existing and current proof |
 | --- | --- |
-| Eight Core operations with provenance | `packages/client/test/validation.test.ts` validates the dated v3, versions, ref, shape, links, find-refs, and async-task fixtures; `packages/client/test/payload-agreement.test.ts` proves the manifest covers all eight operations and validates the September 1 Genesis index fixture statically and at runtime. |
-| Overlay scope and guarded preconditions | Existing `packages/client/test/generation.test.ts` cases prove extraction of only eight reviewed Core GET and POST operations, mutation failure at every co-located guard, deterministic offline generation, stale-output detection, and each reviewed correction. |
+| Six representative Core endpoints with provenance | `packages/client/test/validation.test.ts` validates the dated v3, versions, ref, shape, and links fixtures; `packages/client/test/payload-agreement.test.ts` proves the manifest covers all six operations and validates the September 1 Genesis index fixture statically and at runtime. |
+| Overlay scope and guarded preconditions | Existing `packages/client/test/generation.test.ts` cases prove extraction of only six Core operations, mutation failure at every co-located guard, deterministic offline generation, stale-output detection, and each reviewed correction. |
 | Generated TypeScript and public validator agreement | Existing `packages/client/test/type-contract.test.ts` and `packages/client/test/validation.test.ts` cover generated public types and validators; `packages/client/test/payload-agreement.test.ts` adds shared accepted and rejected fixture expressions. |
 | Negative required-field and old-shape fixtures | `packages/client/test/payload-agreement.test.ts` rejects an index response without required `categories` and the pre-overlay uppercase shape fields. Existing `packages/client/test/validation.test.ts` also enforces required, strict, and `minProperties` constraints. |
 | Character and structural transform comparison | Existing `packages/text-transform/test/vocalization.test.ts`, `sanitize.test.ts`, and `footnotes.test.ts` cover the pure operations. New `tests/compatibility/src/index.test.ts`, `text-transform.test.ts`, and `cross-package-smoke.test.ts` add bounded code-point differences, pinned source comparisons, structural comparisons, and a full validate-to-transform path. |
@@ -297,7 +262,7 @@ Sefaria Web's full vocalization-removal expression and the server's `strip_canti
 
 ### Source-only and intentionally unsupported forms
 
-`u`, `sub`, and `img` are part of the persisted contract but were not found in the selected live Core fixtures. Their status is source-confirmed rather than live-confirmed. These labels describe the selected fixtures' provenance, not an absence of upstream documentation or upstream usage; all three tags are covered by the [upstream formatting documentation reviewed above](#upstream-documentation-coverage).
+`u`, `sub`, and `img` are part of the persisted contract but were not found in the selected live Core fixtures. Their status is source-confirmed rather than live-confirmed.
 
 Images are intentionally disabled for Core. The sanitizer preserves escaped `alt` text and discards the image because no current component owns image loading or an image-origin policy.
 
@@ -386,22 +351,6 @@ Current browsers ignore the removed `scoped` attribute. Popup rules and font imp
 Generic selectors can change host elements. Each host also receives imports for Crimson Text, Frank Ruhl Libre, and Heebo.
 
 A shadow root supplies the isolation that the existing markup assumes.
-
-## Linker detection and browser-test observations
-
-The Linker source observations in this section use Sefaria commit [`1f7d0844ca6a9eddc8e48168962aacb09de75bd6`](https://github.com/Sefaria/Sefaria-Project/tree/1f7d0844ca6a9eddc8e48168962aacb09de75bd6).
-
-The pinned [`find_refs_api`](https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/sefaria/views.py#L519-L538) always enqueues a task and returns HTTP 202 with a task identifier. The pinned [`async_task_status_api`](https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/sefaria/views.py#L540-L586) returns HTTP 202 while pending, HTTP 200 on success, and HTTP 500 on task failure.
-
-The pinned response builder [`_make_find_refs_response_inner`](https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/sefaria/helper/linker/linker.py#L236-L263) records failed matches with `refs: null` and keys `refData` by canonical reference. The pinned OpenAPI input instead models `refs` only as an array and models a literal `RefTitle` property. These are transport-contract mismatches that require guarded correction before the Linker integration can consume generated validators.
-
-The pinned browser script [`static/js/linker.v3/main.js`](https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/static/js/linker.v3/main.js) uses Readability over a document clone, removes tables and superscripts from extraction, supports an additional whitelist selector, excludes existing anchors from wrapping, submits one find-refs task, and polls the task. Its configured polling has 15 retries after the first attempt, waits from 500 milliseconds up to 5 seconds with factor 1.5, and sets a 120-second retry-time limit. Popup mode requests up to 20 text segments per reference per language.
-
-The script does not install a mutation observer. Its `dynamic` option changes canonical-URL selection; a host calls the public `link()` function again to process changed content.
-
-The pinned [`static/test/linker_test.html`](https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/static/test/linker_test.html) is a manually exercised page with English and Hebrew citations, ranges, punctuation, inline markup, exclusions, existing links, and negative text. It loads Linker v2 rather than v3.
-
-The pinned Python tests cover helper response construction, preferred versions, truncation, server-side resolution, and paragraph splitting. Several helper tests refer to an older private helper name while the inspected implementation exports `unpack_find_refs_request`; no dedicated v3 browser or asynchronous route test was located in the inspected JavaScript, E2E, or Python test paths. This project therefore treats those files as scenario and source evidence, not as proof that an upstream v3 browser suite currently passes.
 
 ## Linker theme behavior
 

@@ -1,12 +1,24 @@
+> Created/edited by GitHub Copilot; pending human review.
+
 # Contributor Instructions
 
 These instructions apply to all repository changes. Read each applicable file in `.github/instructions` before you edit a matching path.
 
 ## Architecture status
 
-The specifications define the planned architecture.
+The specifications define intended behavior, including both implemented contracts and planned work. Use [Development](docs/development.md) to identify the implementation baseline and remaining work.
 
 Mark every unimplemented contract as planned. Do not describe an unimplemented contract as current behavior.
+
+## Reuse documented knowledge before investigating
+
+Start with [the documentation index](docs/README.md), the relevant specification, and [the evidence record](docs/evidence.md). Existing guides cover the client/factory/view-model/element relationship, text markup, intentional Sefaria differences, and changed versus remaining plans. Reuse their findings and citations rather than restarting the same audit.
+
+Before calling upstream behavior undocumented, consult Sefaria's current [documentation index](https://developers.sefaria.org/llms.txt) and refetch the relevant page. The [upstream documentation coverage record](docs/evidence.md#upstream-documentation-coverage) identifies material already documented by Sefaria; do not assume our earlier research discovered something absent from its documentation.
+
+Distinguish documented upstream behavior, additional source or fixture observations, intentional local differences, and planned or superseded decisions. A topic not found in the pages reviewed is not proof that Sefaria never documented it.
+
+Use narrowed session history to recover intent that the current documents do not explain. Inspect implementation source to answer a named unresolved question or satisfy a required contract review, then stop when that question is answered. This discovery order does not change the authority order or the source-review requirements below.
 
 ## Use the correct authority
 

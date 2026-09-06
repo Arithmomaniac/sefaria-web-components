@@ -1,6 +1,10 @@
+> Created/edited by GitHub Copilot; pending human review.
+
 # GitHub Copilot Instructions
 
 Obey `AGENTS.md` and each applicable file in `.github/instructions`.
+
+Follow `AGENTS.md`'s documented-knowledge workflow before starting a fresh audit or calling Sefaria behavior undocumented.
 
 Treat repository specifications as intended behavior. Treat the corrected OpenAPI artifact as transport authority and component view models as rendering authority.
 
