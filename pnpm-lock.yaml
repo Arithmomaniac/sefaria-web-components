@@ -98,6 +98,12 @@ importers:
       '@modelcontextprotocol/ext-apps':
         specifier: ^1.7.5
         version: 1.7.5(@modelcontextprotocol/sdk@1.30.0(zod@4.4.3))(zod@4.4.3)
+      '@sefaria/client':
+        specifier: workspace:*
+        version: link:../../../packages/client
+      '@sefaria/components':
+        specifier: workspace:*
+        version: link:../../../packages/components
 
   demos/ref-label-live-demo:
     dependencies:

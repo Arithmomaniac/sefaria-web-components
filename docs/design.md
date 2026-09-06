@@ -6,7 +6,7 @@ For a first explanation with examples, read [How the pieces fit together](guides
 
 ## Summary
 
-This design defines a generated API foundation with corrections and component-owned view models. Elements render view models and never request data. The client, text-processing packages, text-segment, bilingual-segment, reference-label, source-card, popup, and Linker vertical slices are current; the remaining component and integration contracts are planned.
+This design defines a generated API foundation with corrections and component-owned view models. Elements render view models and never request data. The client, text-processing packages, text-segment, bilingual-segment, reference-label, source-card, popup, connections-panel, MCP App, and Linker vertical slices are current; recursive connected-reading history and other later contracts are planned.
 
 ## Scope
 
@@ -18,7 +18,7 @@ This design defines a generated API foundation with corrections and component-ow
 
 Core is the stable first product boundary. It is not a delivery phase or issue plan.
 
-Core includes the eight API operations, all three text-processing capabilities, the text primitives, the source card with its bounded text collection, the popup, and the Linker demonstration. The MCP source-card App is also in the intended Core boundary but remains planned on this baseline. See [Development](development.md) for current implementation and scaffolding.
+Core includes the eight API operations, all three text-processing capabilities, the text primitives, the source card with its bounded text collection, the popup, the Linker demonstration, and the MCP source-card App. See [Development](development.md) for current implementation details.
 
 The connections panel and standalone contextual reader are implemented outside Core. Recursive history-driven connected reading remains planned and must obey the same request, projection, and rendering boundaries.
 
@@ -83,7 +83,7 @@ flowchart LR
     CHILD -->|"component view models"| ELEMENTS["Lit elements"]
     PURE -->|"component view models"| ELEMENTS
     ELEMENTS -->|"DOM rendering"| DOM["Shadow DOM"]
-    MCP["Planned MCP structuredContent"] ==>|"external corrected API payload"| BOUNDARY["Planned MCP validation boundary"]
+    MCP["MCP structuredContent + status/request metadata"] ==>|"external corrected API payload"| BOUNDARY["Integration validation boundary"]
     BOUNDARY -->|"validated payload"| PURE
 ```
 
@@ -121,13 +121,13 @@ Unknown inputs from MCP or another external boundary receive validation before c
 
 ## Component boundary
 
-Each component has a non-DOM public subpath. This subpath owns its request type, view-model union, pure projection factory, and async request factory. The pure factory converts a corrected API payload into one component view model. The async factory obtains the payload through a supplied client and passes it to the pure factory. The current subpaths are `@sefaria/components/text-segment`, `@sefaria/components/bilingual-segment`, `@sefaria/components/ref-label`, `@sefaria/components/source-card`, and `@sefaria/components/popup`.
+Each component has a non-DOM public subpath. This subpath owns its request type, view-model union, pure projection factory, and async request factory. The pure factory converts a corrected API payload into one component view model. The async factory obtains the payload through a supplied client and passes it to the pure factory. The current subpaths are `@sefaria/components/text-segment`, `@sefaria/components/bilingual-segment`, `@sefaria/components/ref-label`, `@sefaria/components/source-card`, `@sefaria/components/popup`, and `@sefaria/components/connections-panel`.
 
 A composite can resolve a child input by payload role before projection. The child subpath owns the pure resolved-input projection, so the composite does not repeat child transformation logic.
 
 Text segment exposes `projectTextSegmentVersion` for a selected scalar version and `projectTextSegmentValue` for one resolved recursive-text leaf. A bilingual composite can resolve primary, source, and translation roles from one payload, then project each selected `CoreV3Version`. The source card can flatten recursive text and project each leaf without repeating text transformation logic.
 
-The source card owns the bounded text collection. Segment, flat range, chapter, spanning range, and nested non-spanning payloads use one composite contract; there is no separate text-range element or factory. Card items retain positional identity. Planned selectable single-section items use a component-owned metadata-backed address mapper, not arbitrary array-index reference synthesis.
+The source card owns the bounded text collection. Segment, flat range, chapter, spanning range, and nested non-spanning payloads use one composite contract; there is no separate text-range element or factory. Card items retain positional identity. Selectable single-section items use a component-owned metadata-backed address mapper, not arbitrary array-index reference synthesis.
 
 Request warnings remain with the selector-owning factory or composite. A resolved-version projection cannot assign a warning for another request selector.
 
@@ -173,7 +173,7 @@ It must not call child async factories. Ten child views from one composite respo
 
 ## MCP boundary
 
-**Planned:** MCP `structuredContent` carries a corrected API payload. The App validates the payload, calls the same pure factory as client mode, and renders the resulting view model.
+MCP `structuredContent` carries a corrected API payload. Namespaced tool-result metadata carries the exact request reference and documented response status so the App can select the generated schema and construct the component request. The metadata carries no payload fields or view model. The App validates both boundaries, calls the same pure factory as client mode for a successful payload, and renders the resulting view model.
 
 ## Failure contracts
 
@@ -199,7 +199,7 @@ It must not call child async factories. Ten child views from one composite respo
 
 The current Linker demonstration consumes public contracts and built artifacts. It owns citation extraction, asynchronous detection, DOM linking, cancellation, stale-result suppression, and popup factory calls outside the element.
 
-**Planned:** the completed MCP App validates corrected API-shaped JSON before projection. Both integrations preserve the same request-free element boundary and do not copy Sefaria applications or define alternate component data models.
+The MCP App validates its namespaced request/status metadata and corrected API-shaped JSON before projection. The Linker integration calls an async component factory outside the element.
 
 See the [integration specification](specs/integrations.md).
 
@@ -213,4 +213,4 @@ Correct text, direction, sanitization, attribution, and accessible interaction h
 
 The client implementation has selected its generator, Zod validators, and committed artifact paths. [Development](development.md#openapi-workflow) records the current tools and workflow. These choices must continue to satisfy the offline, deterministic, and stale-output contracts.
 
-The text-segment, bilingual-segment, reference-label, source-card, and popup export names are established by their vertical slices. Names for later component subpaths remain open until their implementation. The ownership and request-free element boundaries are not open.
+The text-segment, bilingual-segment, reference-label, source-card, popup, and connections-panel export names are established by their vertical slices. Names for later component subpaths remain open until their implementation. The ownership and request-free element boundaries are not open.

@@ -14,6 +14,7 @@
     "check:python": "pnpm install:python && pnpm --filter @sefaria-demo/mcp-app build && pnpm check:python:staged",
     "check:python:staged": "pnpm stage:mcp && uv run --no-sync --directory demos/mcp/fixture-server ruff format --check . && uv run --no-sync --directory demos/mcp/fixture-server ruff check . && uv run --no-sync --directory demos/mcp/fixture-server mypy src tests && uv run --no-sync --directory demos/mcp/fixture-server pytest",
     "client:fixture:capture-candidate": "pnpm --filter @sefaria/client fixture:capture-candidate",
+    "capture:mcp:vscode": "pnpm build:mcp && tsx demos/mcp/scripts/capture-vscode-host.ts",
     "compatibility:qualify": "pnpm --filter @sefaria-tests/compatibility qualify",
     "dev": "pnpm --filter @sefaria-demo/component-lab dev",
     "dev:bilingual-segment": "pnpm --filter @sefaria-demo/bilingual-segment-live-demo dev",
@@ -31,6 +32,8 @@
     "openapi:generate": "pnpm --filter @sefaria/client openapi:generate",
     "openapi:refresh": "pnpm --filter @sefaria/client openapi:refresh",
     "stage:mcp": "node demos/mcp/stage-fixture.mjs",
+    "setup:mcp:vscode": "pnpm build:mcp && tsx demos/mcp/scripts/setup-vscode-host.ts",
+    "demo:mcp:vscode": "pnpm build:mcp && tsx demos/mcp/scripts/capture-vscode-host.ts --keep-open",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "pnpm -r --if-present typecheck && tsc -p demos/tsconfig.json"

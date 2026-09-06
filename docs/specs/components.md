@@ -4,7 +4,7 @@
 
 ## Status
 
-The text-segment, bilingual-segment, reference-label, source-card, and popup vertical slices are current. The remaining component surfaces are planned.
+The text-segment, bilingual-segment, reference-label, source-card, popup, and connections-panel vertical slices are current. Remaining component surfaces are planned.
 
 ## Boundary
 
@@ -48,7 +48,7 @@ Planned names follow this pattern:
 | Popup | `PopupRequest` | `PopupViewModel` | `createPopupViewModel` | `loadPopupViewModel` |
 | Connections panel | `ConnectionsPanelRequest` | `ConnectionsPanelViewModel` | `createConnectionsPanelViewModel` | `loadConnectionsPanelViewModel` |
 
-The text-segment, bilingual-segment, reference-label, source-card, and popup names are current. The connections-panel name is planned and can be refined by its first implementation slice without changing ownership or request boundaries.
+The listed component names are current.
 
 ## View-model states
 

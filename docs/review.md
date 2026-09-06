@@ -225,11 +225,16 @@ Review the initial corrections for:
 ## MCP integration
 
 - [ ] `structuredContent` contains a corrected API payload.
+- [ ] Namespaced tool-result metadata contains only fixed operation identity, a documented status, and the exact request reference.
+- [ ] Invalid metadata stops before payload validation.
 - [ ] The App validates the unknown payload with the generated TypeScript validator.
 - [ ] The App reports structured paths for invalid payloads.
 - [ ] The App calls the same pure factory as client mode.
 - [ ] The App supplies only a view model to the element.
 - [ ] The first render makes zero requests.
+- [ ] One tool result includes useful text content for hosts without App rendering.
+- [ ] The server preserves network and undocumented HTTP failures as tool failures.
+- [ ] Automated repository checks mock the server transport and remain offline.
 - [ ] The server sends no component HTML.
 - [ ] The implementation adds no hydration path.
 - [ ] The writer, validator, App, and fixture migrate atomically.
