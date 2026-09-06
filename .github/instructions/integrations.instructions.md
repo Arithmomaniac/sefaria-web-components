@@ -10,7 +10,7 @@ applyTo: "demos/mcp/**,demos/linker/**,docs/specs/integrations.md"
 - Let integrations accept references, host input, clients, and cancellation controls.
 - Call non-DOM component factories outside elements.
 - Give elements only view models and visual or interaction properties.
-- Put a corrected API payload in MCP `structuredContent`.
+- Put a corrected API payload in MCP `structuredContent`; when MCP requires an object root for an array-shaped endpoint response, wrap the unchanged payload in the smallest specified integration envelope.
 - Validate unknown MCP or server JSON with a public corrected `@sefaria/client` schema or generated validator.
 - Report structured JSON paths before projection.
 - Call the same pure factory in server-provided and client modes.

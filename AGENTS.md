@@ -127,6 +127,8 @@ Test each corrected schema against the pinned Sefaria implementation and its ups
 
 Use realistic Sefaria payload sizes for synchronous code. Add a limit to work that can expand with payload size.
 
+Do not use `Genesis 1:1` in demos, documentation examples, prompts, or newly authored ordinary test cases. Its unusually broad connection set makes it a stress case rather than a representative verse. Prefer a bounded reference such as `Micah 6:8`; retain or add `Genesis 1:1` only for an explicitly identified high-volume regression or stress test.
+
 If code or configuration changes, run `pnpm check` before review.
 
 ## Use repository-installed tools

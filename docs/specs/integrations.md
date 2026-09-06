@@ -4,7 +4,7 @@
 
 ## Status
 
-The Core MCP App, VS Code Copilot Chat host acceptance, and Linker integration are current.
+The Core MCP App, adaptive connections tool and rendering, VS Code Copilot Chat source-card and composer-delivery walkthrough, and Linker integration are current. A successful App `ui/message` response means the host accepted the follow-up; the host can enqueue it immediately or place it in its composer for explicit submission.
 
 ## Shared integration rules
 
@@ -46,17 +46,19 @@ The API has no transport paging parameter: UI paging bounds projection and rende
 
 The MCP App renders Sefaria source material inside an MCP Apps-compatible host. The first render uses the tool result and makes no second request.
 
-The Core App renders one source card from a corrected `/api/v3/texts/{tref}` payload.
+The current Core App renders one source card from a corrected `/api/v3/texts/{tref}` payload.
+
+The planned connections extension renders the existing request-free connections panel from a corrected `/api/links/{tref}` payload. Selecting a connection sends a user-role follow-up message that asks the assistant to call `get_text` for the exact selected target. The source appears in a later chat result; the connections App neither fetches the source nor replaces itself with it.
 
 The App is a self-contained HTML resource. The MCP server can package it without the TypeScript checkout at runtime.
 
 ## MCP tool contract
 
-The MCP server exposes one `get_text` tool that progressively enhances the official `Sefaria/sefaria-mcp` tool of the same name with an App resource.
+The current MCP server exposes `get_text`, which progressively enhances the official `Sefaria/sefaria-mcp` tool of the same name with an App resource.
 
 | Input | Contract |
 | --- | --- |
-| `reference` | Required Sefaria reference such as `Genesis 1:1` or `Berakhot 2a` |
+| `reference` | Required Sefaria reference such as `Micah 6:8` or `Berakhot 2a` |
 | `version_language` | Optional `source`, `english`, or `both`; defaults to `both` |
 
 The tool keeps the official MCP server's `source`, `english`, and `both` input vocabulary, but maps those choices to the source-card rendering roles. `source` sends one `version=primary` query value, `english` sends one `version=translation` query value, and `both` sends repeated `version=primary` and `version=translation` query values. It always sends `return_format=default`. This distinction matters for texts such as Kuzari, where the API's original-language `source` version is not necessarily the database's `isPrimary` version consumed by the source-card factory.
@@ -72,9 +74,26 @@ One tool result serves both host capabilities:
 
 The prior private `preview_sefaria_app` tool is not retained as an alias or compatibility path.
 
+### Connections tool [Planned]
+
+The server also exposes `get_links_between_texts`, preserving the official tool's `reference` and `with_text` vocabulary while adding the App resource.
+
+| Input | Contract |
+| --- | --- |
+| `reference` | Required Sefaria reference whose text connections are requested |
+| `with_text` | Optional `"0"` or `"1"`; explicit values always win |
+
+When `with_text` is omitted or null, the server resolves it per initialized client session: `"1"` when the client advertises the MCP Apps extension and `"0"` otherwise. It does not infer capability from a client name or persist the decision globally. An explicit `"0"` remains metadata-only even for an Apps client.
+
+The server performs one `GET /api/links/{tref}` operation with the resolved `with_text` and `with_sheet_links=0`. A documented 200 or 400 response is returned through the tool result. Network failures and undocumented statuses remain tool failures.
+
+The server rejects a decoded response body larger than 5 MiB or a successful array containing more than 10,000 links. It asks the caller for a narrower reference and does not silently truncate the corrected payload. This bounds accepted synchronous work; it is not transport pagination.
+
+The text content remains useful without Apps support. It identifies the reference and error or result context, lists at most 20 targets, includes excerpts only when text was requested, is bounded to 8,000 characters, and states when the textual summary is shortened. It is not a second implementation of the component's grouping, sorting, or preview rules.
+
 ## MCP payload boundary
 
-`structuredContent` carries corrected API-shaped JSON. It does not carry a component view model.
+`get_text` `structuredContent` carries corrected API-shaped object JSON directly. `get_links_between_texts` preserves the corrected array-shaped links payload inside `{ "payload": ... }` because MCP `structuredContent` requires an object root. The envelope is an integration constraint, not a view model or normalized domain contract.
 
 The tool also returns a short text content item for hosts that do not render Apps.
 
@@ -97,6 +116,27 @@ The tool-result `_meta["sefaria/source-card"]` object carries only integration m
 The App validates the metadata before using it. It then validates `structuredContent` with the generated validator selected by the metadata status. Invalid metadata or payload input stops before projection.
 
 A validation failure contains structured paths that identify each invalid field. The App displays an integration error and does not refetch.
+
+The planned tool-result `_meta["sefaria/connections"]` object contains:
+
+```json
+{
+  "operation": "getLinks",
+  "method": "GET",
+  "path": "/api/links/{tref}",
+  "status": 200,
+  "request": {
+    "tref": "Micah 6:8",
+    "withText": true
+  }
+}
+```
+
+The App requires exactly one supported Sefaria result discriminator. It rejects missing or ambiguous metadata rather than guessing from payload shape. For connections, it validates the envelope and then validates `payload` with the generated links response contract selected by the documented 200 or 400 status. Diagnostics prefix generated payload paths with `/structuredContent/payload`.
+
+For a valid success payload, the App retains one capture containing the validated payload and effective request. It chooses Commentary at page zero when available, otherwise the first category in the factory's deterministic order. Overview remains available. Category changes reset to page zero; category, page, and preview-visibility changes call the pure connections factory and make zero requests. The fixed page size remains 20.
+
+A metadata-only result renders entries without previews. Load previews sends a user-role chat request for `get_links_between_texts` with the same reference and explicit `with_text="1"`; it does not call a server tool or `fetch` from the App.
 
 ## MCP boundary sequence
 
@@ -131,13 +171,48 @@ sequenceDiagram
 
 The App makes zero network requests during this sequence.
 
+### Planned connections interaction sequence
+
+```mermaid
+sequenceDiagram
+    participant Tool as MCP links tool
+    participant Host as MCP host
+    participant App as MCP App
+    participant Validator as @sefaria/client validator
+    participant Factory as Connections pure factory
+    participant Panel as sefaria-connections-panel
+
+    Tool->>Tool: GET /api/links/{tref}
+    Tool-->>Host: bounded text + {payload} + connections metadata
+    Host-->>App: one tool result
+    App->>App: validate discriminator, metadata, and envelope
+    App->>Validator: unknown payload and documented status
+    Validator-->>App: typed corrected response
+    App->>Factory: captured payload, request, and local projection
+    Factory-->>App: ConnectionsViewModel
+    App->>Panel: viewModel
+    Panel-->>App: selected target
+    alt Host supports text messages
+        App->>Host: user message requesting get_text(target)
+        Host-->>Tool: later get_text invocation
+    else Unsupported, rejected, or unconfirmed
+        App-->>Host: explicit status and selectable follow-up text
+    end
+```
+
+The App resolves a connection activation against the currently rendered entry's ID and target reference. It sends only a fixed instruction containing the target reference as data, requests `version_language="both"`, and excludes preview HTML or arbitrary event text. A forged or stale event sends no message.
+
+After explicit activation, the App attempts `ui/message` even when the initialized host omits the optional text-message capability advertisement. It exposes sending, delivered, rejected, and unconfirmed states outside the request-free panel and suppresses duplicate activation while a send is pending. A successful response means that the host accepted delivery; the host may enqueue the message or populate its composer. The App does not automatically retry an uncertain send because the host may already have received it. Unsupported or failed delivery leaves the panel usable and displays selectable follow-up text.
+
+A newer tool result, cancellation, or teardown invalidates pending UI continuations and removes result-specific listeners. A late acknowledgement cannot update a newer result. Reader snapshots, Back, breadcrumbs, and in-panel source navigation remain outside this extension.
+
 ## Server and client equivalence
 
-The MCP path is server-provided mode. The tool supplies corrected API-shaped JSON, and the App validates it.
+The MCP path is server-provided mode. Each tool supplies corrected API-shaped JSON, directly or in the specified links envelope, and the App validates it.
 
-Client mode obtains the same payload type through the thin client. Both modes call `createSourceCardViewModel`.
+Client mode obtains the same payload type through the thin client. Source-card modes call `createSourceCardViewModel`; connections modes call `createConnectionsViewModel`.
 
-For the same payload and deterministic inputs, both modes must produce equal view models.
+For the same payload and deterministic inputs, each server-provided mode and its corresponding client mode must produce equal view models.
 
 Server-provided mode does not send rendered component HTML. The repository defines no HTML server-rendering or hydration contract.
 
@@ -154,11 +229,12 @@ The HTML file must not contain development-server URLs. It uses the host theme a
 
 ## FastMCP demonstration server
 
-The demonstration server remains small and additive. It proves the live request, resource, tool-result, package-data, and unknown-JSON boundaries.
+The demonstration server remains small and additive. It proves the live requests, capability resolution, resource, tool-result, package-data, and unknown-JSON boundaries.
 
 The server contains:
 
-- one live `get_text` UI tool
+- one current live `get_text` UI tool
+- one current live `get_links_between_texts` UI tool
 - one `ui://` resource
 - the self-contained App
 - validation with the generated TypeScript validator
@@ -175,7 +251,7 @@ The server rejects a successful payload with more than 400 text leaves before it
 
 ## MCP host acceptance
 
-Core acceptance uses VS Code Copilot Chat as the named MCP Apps-compatible host.
+Core acceptance uses VS Code Copilot Chat as the named MCP Apps-compatible host for rendering, local interaction, and composer delivery. The App attempts `ui/message` after explicit activation even when the host omits the optional text-message capability advertisement, because current VS Code accepts that request and places its content in the composer.
 
 Record:
 
@@ -185,6 +261,18 @@ Record:
 - an automated screenshot or a separately recorded automation limitation
 
 Standalone browser rendering does not prove host compatibility. Host limitations remain separate from component failures.
+
+The acceptance harness extends the existing isolated Playwright/CDP flow into one asserted walkthrough:
+
+1. Render the existing Leviticus 19:18 bilingual source-card baseline.
+2. Request Micah 6:8 connections with omitted `with_text` and verify Apps negotiation produces previews and opens Commentary.
+3. Select another available category, return to Commentary, advance one page, and return to page zero without another chat turn.
+4. Activate a displayed connection, including one keyboard activation, verify the App's `ui/message` fills the real VS Code composer with the exact selected target, submit that composer, and verify the subsequent `get_text` invocation and source card.
+5. Request Micah 6:8 with explicit `with_text="0"`, verify metadata-only rendering, activate Load previews, verify the App fills the composer with the explicit `"1"` request, submit it, and verify the later preview-bearing result.
+
+The harness tracks new result identities so an older iframe or card cannot satisfy a later stage. Micah 6:8 must expose a second category and at least one category with more than 20 links for the live category/paging stages; missing prerequisites fail with a concrete diagnostic instead of being skipped. Deterministic fixtures remain the authority for stable multi-category and multi-page behavior. Genesis 1:1 is reserved for explicitly identified high-volume tests rather than ordinary examples.
+
+Each successful stage records a screenshot, and the run writes a machine-readable result with stages, selected references, host versions, artifacts, and any failure. A partial walkthrough exits nonzero. `capture:mcp:vscode` and `demo:mcp:vscode` execute the same assertions; the demo command additionally retains its current post-capture interactive relaunch.
 
 ## MCP acceptance criteria
 
@@ -204,6 +292,16 @@ Standalone browser rendering does not prove host compatibility. Host limitations
 - Automated tests make no network request.
 - A successful payload larger than the source-card render limit fails as a tool error.
 - VS Code Copilot Chat renders the packaged card from one `get_text` result.
+- The connections tool resolves omitted `with_text` from the initialized client's Apps capability and preserves explicit `"0"` and `"1"` overrides.
+- One connections invocation performs one links request and returns the unchanged validated response inside the specified object envelope.
+- A successful links response larger than 5 MiB decoded or 10,000 entries fails explicitly without partial projection.
+- The App validates connections metadata, envelope, documented status, and corrected payload before projection.
+- The App calls the connections pure factory and gives the element only `ConnectionsViewModel`.
+- Initial category selection, category changes, and paging follow the specified rules and make zero App requests.
+- Connection activation attempts one fixed user-role follow-up for the exact current target. A successful host response can represent immediate enqueueing or composer population.
+- Missing integration wiring, rejected, or unconfirmed messaging leaves the panel usable with exact selectable follow-up text and no automatic retry.
+- Metadata-only rendering preserves explicit caller intent; Load previews requests a later explicit text-inclusive tool call.
+- The extended named-host walkthrough completes every source-card, connections, local-navigation, connected-source, and preview-loading stage with stage-specific assertions and artifacts, recording automatic delivery, composer submission, or manual fallback for each App-initiated follow-up.
 
 ## Linker script purpose
 
