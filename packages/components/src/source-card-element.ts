@@ -26,6 +26,7 @@ export class SefariaSourceCard extends SefariaElement {
     contentLanguage: { type: String, attribute: "content-language" },
     layout: { type: String },
     sideOrder: { type: String, attribute: "side-order" },
+    hideAttributions: { type: Boolean, attribute: "hide-attributions" },
   };
 
   /** Card structure, heading, collection, and shared pair styles. */
@@ -102,6 +103,10 @@ export class SefariaSourceCard extends SefariaElement {
         font-weight: 600;
       }
 
+      .version-title-link {
+        color: var(--_sefaria-link);
+      }
+
       .version-source::before {
         content: "— ";
       }
@@ -124,12 +129,16 @@ export class SefariaSourceCard extends SefariaElement {
   /** Requested role order for every pair. */
   declare sideOrder: BilingualPairSideOrder;
 
+  /** Whether resolved edition attribution is intentionally omitted. */
+  declare hideAttributions: boolean;
+
   constructor() {
     super();
     this.referenceLabel = undefined;
     this.contentLanguage = "both";
     this.layout = "auto";
     this.sideOrder = "primary-first";
+    this.hideAttributions = false;
   }
 
   protected override render() {
@@ -201,6 +210,9 @@ export class SefariaSourceCard extends SefariaElement {
   #renderAttributions(
     attributions: readonly SourceCardAttributionViewModel[],
   ): TemplateResult | typeof nothing {
+    if (this.hideAttributions) {
+      return nothing;
+    }
     const visible = attributions.filter(
       (attribution) =>
         this.contentLanguage === "both" ||
@@ -220,17 +232,27 @@ export class SefariaSourceCard extends SefariaElement {
   ): TemplateResult {
     const label =
       attribution.side === "primary" ? "Primary text:" : "Translation:";
+    const sourceUrl = attribution.versionSourceUrl ?? null;
     const source =
-      attribution.versionSource === null
+      attribution.versionSource === null || sourceUrl !== null
         ? nothing
         : html`<span class="version-source"
             >${attribution.versionSource}</span
           >`;
+    const title =
+      sourceUrl === null
+        ? html`<span class="version-title">${attribution.versionTitle}</span>`
+        : html`<a
+            class="version-title version-title-link"
+            href=${sourceUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            >${attribution.versionTitle}</a
+          >`;
 
     return html`<p class="attribution" data-side=${attribution.side}>
       <span class="attribution-label">${label}</span>
-      <span class="version-title">${attribution.versionTitle}</span>
-      ${source}
+      ${title} ${source}
     </p>`;
   }
 }

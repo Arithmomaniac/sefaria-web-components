@@ -1,0 +1,91 @@
+:root {
+  color-scheme: light dark;
+  --page: light-dark(#f5f1e8, #1f211f);
+  --surface: light-dark(#fffdf8, #2b2e2a);
+  --border: light-dark(#d7cfc1, #555b53);
+  --text: light-dark(#25231f, #f1eee7);
+  --muted: light-dark(#6d675d, #bdb7ac);
+  --accent: light-dark(#8e2449, #ff93b4);
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--text);
+  font:
+    1rem/1.65 Georgia,
+    "Times New Roman",
+    serif;
+}
+.site-header,
+main,
+footer {
+  width: min(70rem, calc(100% - 2rem));
+  margin-inline: auto;
+}
+.site-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-block: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+.site-header a,
+article a {
+  color: var(--accent);
+}
+main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 16rem;
+  gap: 2rem;
+  padding-block: 3rem;
+}
+article {
+  padding: clamp(1.25rem, 4vw, 3rem);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: var(--surface);
+}
+h1,
+h2 {
+  line-height: 1.15;
+}
+.dek,
+aside,
+footer {
+  color: var(--muted);
+}
+.hebrew {
+  direction: rtl;
+  font-family: "Segoe UI", Arial, sans-serif;
+}
+.demo-panel {
+  align-self: start;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  background: var(--surface);
+  font-family: "Segoe UI", sans-serif;
+}
+button {
+  min-height: 2.5rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+#status[role="alert"] {
+  color: #c33;
+}
+footer {
+  padding-block: 2rem;
+}
+@media (max-width: 48rem) {
+  main {
+    grid-template-columns: 1fr;
+  }
+}

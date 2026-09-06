@@ -1,10 +1,10 @@
-> Created/edited by GitHub Copilot; pending human review.
+> Created/edited by GitHub Copilot with human review/feedback by avilevin.
 
 # Design: Generated API Contracts and Request-Free Components
 
 ## Summary
 
-This design defines a generated API foundation with corrections and component-owned view models. Elements render view models and never request data. The client, text-processing packages, text-segment, bilingual-segment, reference-label, and source-card vertical slices are current; the remaining component and integration contracts are planned.
+This design defines a generated API foundation with corrections and component-owned view models. Elements render view models and never request data. The client, text-processing packages, text-segment, bilingual-segment, reference-label, source-card, popup, and Linker vertical slices are current; the remaining component and integration contracts are planned.
 
 ## Scope
 
@@ -16,7 +16,7 @@ This design defines a generated API foundation with corrections and component-ow
 
 Core is the stable first product boundary. It is not a delivery phase or issue plan.
 
-Core includes the six API operations and all three text-processing capabilities. It also includes the text primitives, source card with its bounded text collection, popup, MCP source-card App, and Linker demonstration.
+Core includes the eight API operations and all three text-processing capabilities. It also includes the text primitives, source card with its bounded text collection, popup, MCP source-card App, and Linker demonstration.
 
 The connections panel and recursive connected reading remain outside Core. Their later implementation must obey the same request, projection, and rendering boundaries.
 

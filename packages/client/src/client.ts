@@ -25,6 +25,13 @@ type SefariaGetOptions<ThrowOnError extends boolean> = Omit<
   readonly responseStyle?: "fields";
 };
 
+type SefariaPostOptions<ThrowOnError extends boolean> = Omit<
+  RequestOptions<"fields", ThrowOnError>,
+  "method" | "responseStyle"
+> & {
+  readonly responseStyle?: "fields";
+};
+
 /** Branded client accepted by the generated Sefaria SDK operations. */
 export interface SefariaClient {
   /** Compile-time brand preventing accidental structural substitutes. */
@@ -36,6 +43,14 @@ export interface SefariaClient {
     ThrowOnError extends boolean = false,
   >(
     options: SefariaGetOptions<ThrowOnError>,
+  ) => RequestResult<TData, TError, ThrowOnError, "fields">;
+  /** Performs a validated POST request using fields-style responses. */
+  readonly post: <
+    TData = unknown,
+    TError = unknown,
+    ThrowOnError extends boolean = false,
+  >(
+    options: SefariaPostOptions<ThrowOnError>,
   ) => RequestResult<TData, TError, ThrowOnError, "fields">;
 }
 
@@ -70,6 +85,7 @@ export function createSefariaClient(
   const facade: SefariaClient = {
     [sefariaClientBrand]: true,
     get: client.get,
+    post: client.post,
   };
   sefariaClients.add(facade);
   return Object.freeze(facade);

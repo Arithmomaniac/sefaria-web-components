@@ -3,12 +3,14 @@ import { describe, expect, it, vi } from "vitest";
 
 import {
   createSefariaClient,
+  getAsyncTaskStatus,
   getIndexV2,
   getLinks,
   getRef,
   getShape,
   getTextVersions,
   getV3Texts,
+  postFindRefs,
   type SefariaClientOptions,
 } from "../src/index.js";
 import { SefariaContractError } from "../src/contract-error.js";
@@ -163,6 +165,68 @@ describe("generated Sefaria SDK", () => {
     expect(requestedUrl).toBe(
       "https://example.test/root/api/texts/versions/Genesis%201%3A1",
     );
+  });
+
+  it("serializes and validates find-refs submission and task polling", async () => {
+    const requests: { url: string; method: string; body: string | null }[] = [];
+    const responses = [
+      jsonResponse({ task_id: "task" }, 202),
+      jsonResponse({
+        task_id: "task",
+        state: "SUCCESS",
+        ready: true,
+        result: {
+          title: { results: [], refData: {} },
+          body: { results: [], refData: {} },
+        },
+      }),
+    ];
+    const client = createSefariaClient({
+      baseUrl: "https://example.test",
+      fetch: async (request, init) => {
+        const normalized =
+          request instanceof Request ? request : new Request(request, init);
+        requests.push({
+          url: normalized.url,
+          method: normalized.method,
+          body: await normalized.clone().text(),
+        });
+        const response = responses.shift();
+        if (response === undefined) {
+          throw new Error("Unexpected request.");
+        }
+        return response;
+      },
+    });
+
+    await postFindRefs({
+      client,
+      query: { with_text: "0", debug: "0", max_segments: 20 },
+      body: {
+        text: { title: "Demo", body: "Genesis 1:1" },
+        lang: "en",
+      },
+    });
+    await getAsyncTaskStatus({
+      client,
+      path: { task_id: "task" },
+    });
+
+    expect(requests).toEqual([
+      {
+        url: "https://example.test/api/find-refs?with_text=0&debug=0&max_segments=20",
+        method: "POST",
+        body: JSON.stringify({
+          text: { title: "Demo", body: "Genesis 1:1" },
+          lang: "en",
+        }),
+      },
+      {
+        url: "https://example.test/api/async/task",
+        method: "GET",
+        body: "",
+      },
+    ]);
   });
 
   it("encodes getRef paths and validates its response", async () => {

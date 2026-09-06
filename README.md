@@ -1,4 +1,4 @@
-> Created/edited by GitHub Copilot; pending human review.
+> Created/edited by GitHub Copilot with human review/feedback by avilevin.
 
 # Sefaria Web Components
 
@@ -14,7 +14,7 @@ The Web Components render component-specific view models. They never accept refe
 
 ## Implementation status
 
-The client, text-transform package, text-segment component, bilingual-segment component, reference-label component, and source-card component are implemented. The remaining documents define the planned architecture. The [development guide](docs/development.md) distinguishes current behavior from remaining work.
+The client, text-transform package, text-segment, bilingual-segment, reference-label, source-card, popup, and Linker demonstration are implemented. The remaining documents define the planned architecture. The [development guide](docs/development.md) distinguishes current behavior from remaining work.
 
 ## Documentation
 
@@ -28,6 +28,7 @@ The client, text-transform package, text-segment component, bilingual-segment co
 | Replay the reference-label demonstration | [Reference label demonstration](docs/ref-label-demo.md) |
 | Replay the bilingual-segment demonstration | [Bilingual segment demonstration](docs/bilingual-segment-demo.md) |
 | Replay the source-card demonstration | [Source card demonstration](docs/source-card-demo.md) |
+| Embed or run the Linker bookmarklet | [Linker demonstration](docs/linker-demo.md) |
 | Implement the MCP App or Linker demonstration | [Integration specification](docs/specs/integrations.md) |
 | Install tools and run the repository | [Development guide](docs/development.md) |
 | Review generated contracts and request boundaries | [Review guide](docs/review.md) |
@@ -49,7 +50,7 @@ The specifications are normative. `docs/evidence.md` records observations and so
 | `demos/bilingual-segment-live-demo` | Interactive live Sefaria request page for the bilingual-segment component |
 | `demos/source-card-live-demo` | Interactive live Sefaria request page for segment, range, spanning, nested, and one-sided source cards with card-level edition attribution |
 | `demos/mcp` | MCP corrected-payload boundary and self-contained App |
-| `demos/linker-userscript` | Third-party integration through an async component factory |
+| `demos/linker` | Embeddable Linker script, bookmarklet loader, and authored article demonstration |
 
 ## Start development
 
@@ -76,9 +77,9 @@ If Corepack is unavailable, use `npx --yes pnpm@11.22.0` instead of `pnpm`. The 
 | Interactive bilingual-segment page | `pnpm dev:bilingual-segment` |
 | Interactive source-card page       | `pnpm dev:source-card`       |
 | MCP App with a FastMCP fixture     | `pnpm dev:mcp`               |
-| Linker userscript                  | `pnpm dev:linker`            |
+| Linker embed and bookmarklet       | `pnpm dev:linker`            |
 
-The [integration specification](docs/specs/integrations.md) defines the planned contracts for these demonstrations.
+The [integration specification](docs/specs/integrations.md) defines current and planned contracts for these demonstrations.
 
 ## License and ownership
 

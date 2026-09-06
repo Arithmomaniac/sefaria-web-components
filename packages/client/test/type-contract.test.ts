@@ -4,12 +4,16 @@ import { describe, expect, expectTypeOf, it } from "vitest";
 
 import {
   createSefariaClient,
+  getAsyncTaskStatus,
   getIndexV2,
   getLinks,
   getRef,
   getShape,
   getTextVersions,
   getV3Texts,
+  postFindRefs,
+  type CoreFindRefsResponse,
+  type GetAsyncTaskStatusResponses,
   type CoreErrorResponse,
   type CoreLinkResponse,
   type CoreShapeChapter,
@@ -25,7 +29,10 @@ import {
   type GetV3TextsData,
   type GetVersionsData,
   type GetVersionsResponses,
+  type PostFindRefsData,
+  type PostFindRefsResponses,
   type VersionJson,
+  type zCoreFindRefsResponse,
   type zCoreShapeChapter,
   type zCoreShapeCollapsedRecord,
   type zCoreShapeLeafRecord,
@@ -34,7 +41,7 @@ import {
 } from "../src/index.js";
 
 describe("generated request and response contracts", () => {
-  it("exposes the six named Core SDK functions", () => {
+  it("exposes the eight named Core SDK functions", () => {
     expect([
       getV3Texts,
       getTextVersions,
@@ -42,7 +49,9 @@ describe("generated request and response contracts", () => {
       getIndexV2,
       getShape,
       getLinks,
-    ]).toHaveLength(6);
+      postFindRefs,
+      getAsyncTaskStatus,
+    ]).toHaveLength(8);
   });
 
   it("uses tref and typed query arguments", () => {
@@ -79,6 +88,18 @@ describe("generated request and response contracts", () => {
         client,
         path: { title: "Tanakh" },
         query: { dependents: "1" },
+      });
+      void postFindRefs({
+        client,
+        query: { with_text: "0", debug: "0", max_segments: 20 },
+        body: {
+          text: { title: "Demo", body: "Genesis 1:1" },
+          lang: "en",
+        },
+      });
+      void getAsyncTaskStatus({
+        client,
+        path: { task_id: "task" },
       });
       void getShape({
         client,
@@ -142,6 +163,9 @@ describe("generated request and response contracts", () => {
     expectTypeOf<
       NonNullable<GetLinksData["query"]>["category"]
     >().toEqualTypeOf<string[] | undefined>();
+    expectTypeOf<
+      NonNullable<PostFindRefsData["query"]>["with_text"]
+    >().toEqualTypeOf<"0" | "1" | undefined>();
   });
 
   it("preserves generated success and documented error status types", () => {
@@ -153,9 +177,33 @@ describe("generated request and response contracts", () => {
       error: string;
       ref: string;
     }>();
+    expectTypeOf<PostFindRefsResponses[202]>().toEqualTypeOf<{
+      task_id: string;
+    }>();
+    expectTypeOf<GetAsyncTaskStatusResponses[200]>().toMatchTypeOf<{
+      state: "SUCCESS";
+      ready: true;
+      result: Record<string, unknown>;
+    }>();
   });
 
   it("preserves recursive public schema inference", () => {
+    expectTypeOf<
+      z.infer<typeof zCoreFindRefsResponse>["body"]["results"]
+    >().toEqualTypeOf<CoreFindRefsResponse["body"]["results"]>();
+    expectTypeOf<
+      Pick<
+        NonNullable<
+          z.infer<typeof zCoreFindRefsResponse>["body"]["refData"][string]
+        >,
+        "heRef" | "url" | "primaryCategory"
+      >
+    >().toEqualTypeOf<
+      Pick<
+        CoreFindRefsResponse["body"]["refData"][string],
+        "heRef" | "url" | "primaryCategory"
+      >
+    >();
     expectTypeOf<
       z.infer<typeof zCoreStringArrayOrNull>
     >().toEqualTypeOf<CoreStringArrayOrNull>();

@@ -68,5 +68,15 @@
     "source": "https://www.sefaria.org/api/ref/__missing_ref_label_probe__",
     "capturedAt": "2026-09-03",
     "reduction": "Unmodified deployed HTTP 200 payload for an unparseable reference."
+  },
+  "find-refs-enqueued-2026-09-06.json": {
+    "source": "https://www.sefaria.org/api/find-refs?with_text=0&debug=0&max_segments=20",
+    "capturedAt": "2026-09-06",
+    "reduction": "Unmodified deployed HTTP 202 enqueue payload for authored public demo text without tracking metadata."
+  },
+  "find-refs-success-2026-09-06.json": {
+    "source": "https://www.sefaria.org/api/async/72a1b515-eb68-4df8-a9ec-ce541bb89195",
+    "capturedAt": "2026-09-06",
+    "reduction": "Unmodified deployed HTTP 200 success payload for the authored public demo text; includes resolved matches, dynamic refData keys, and a failed match with refs null."
   }
 }

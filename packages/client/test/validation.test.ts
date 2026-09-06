@@ -10,6 +10,9 @@ import {
   type JsonObject,
 } from "../scripts/generate-openapi.js";
 import {
+  validateGetAsyncTaskStatus200,
+  validateGetAsyncTaskStatus202,
+  validateGetAsyncTaskStatus500,
   validateGetIndexV2200,
   validateGetLinks200,
   validateGetLinks400,
@@ -20,8 +23,10 @@ import {
   validateGetV3Texts200,
   validateGetV3Texts400,
   validateGetV3Texts404,
+  validatePostFindRefs202,
 } from "../src/generated/response-validators.gen.js";
 import {
+  zCoreFindRefsResponse,
   zCoreStringArrayOrNull,
   zCoreV3AvailableVersion,
   zCoreV3TextValue,
@@ -152,6 +157,59 @@ describe("public generated response validators", () => {
         error: "with_text is not supported for whole-book refs.",
         ref: "Genesis",
       }),
+    ).toBe(true);
+    expect(
+      validatePostFindRefs202(
+        await readFixture("find-refs-enqueued-2026-09-06.json"),
+      ),
+    ).toBe(true);
+    expect(
+      validateGetAsyncTaskStatus200(
+        await readFixture("find-refs-success-2026-09-06.json"),
+      ),
+    ).toBe(true);
+    expect(
+      validateGetAsyncTaskStatus202({
+        task_id: "task",
+        state: "PENDING",
+        ready: false,
+      }),
+    ).toBe(true);
+    expect(
+      validateGetAsyncTaskStatus500({
+        task_id: "task",
+        state: "FAILURE",
+        ready: true,
+        error: "failed",
+      }),
+    ).toBe(true);
+  });
+
+  it("validates the known find-refs result separately from generic task success", async () => {
+    const success = (await readFixture(
+      "find-refs-success-2026-09-06.json",
+    )) as { result: unknown };
+
+    expect(zCoreFindRefsResponse.safeParse(success.result).success).toBe(true);
+    expect(zCoreFindRefsResponse.safeParse({ unrelated: true }).success).toBe(
+      false,
+    );
+    expect(
+      zCoreFindRefsResponse.safeParse({
+        title: { results: [], refData: {} },
+        body: {
+          results: [
+            {
+              startChar: 0,
+              endChar: 4,
+              text: "Nope",
+              linkFailed: true,
+              refs: null,
+            },
+          ],
+          refData: {},
+        },
+      }).success,
     ).toBe(true);
   });
 

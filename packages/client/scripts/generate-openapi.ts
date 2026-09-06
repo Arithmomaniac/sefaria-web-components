@@ -110,7 +110,7 @@ export interface ResponseContractMetadata {
   /** The generated SDK function name. */
   readonly functionName: string;
   /** The HTTP method for the response contract. */
-  readonly method: "GET";
+  readonly method: "GET" | "POST";
   /** The OpenAPI path template. */
   readonly path: string;
   /** The HTTP response status. */
@@ -149,39 +149,57 @@ interface OpenApiFormatModule {
 /** The retained Core endpoints and their stable generated names. */
 export const CORE_OPERATIONS = [
   {
+    method: "get",
     path: "/api/v3/texts/{tref}",
     operationId: "get-v3-texts",
     functionName: "getV3Texts",
   },
   {
+    method: "get",
     path: "/api/texts/versions/{tref}",
     operationId: "get-versions",
     functionName: "getTextVersions",
   },
   {
+    method: "get",
     path: "/api/ref/{tref}",
     operationId: "get-ref",
     functionName: "getRef",
   },
   {
+    method: "get",
     path: "/api/v2/index/{title}",
     operationId: "get-index-v2",
     functionName: "getIndexV2",
   },
   {
+    method: "get",
     path: "/api/shape/{title}",
     operationId: "get-shape",
     functionName: "getShape",
   },
   {
+    method: "get",
     path: "/api/links/{tref}",
     operationId: "get-links",
     functionName: "getLinks",
   },
+  {
+    method: "post",
+    path: "/api/find-refs",
+    operationId: "post-find-refs",
+    functionName: "postFindRefs",
+  },
+  {
+    method: "get",
+    path: "/api/async/{task_id}",
+    operationId: "get-async-task-status",
+    functionName: "getAsyncTaskStatus",
+  },
 ] as const;
 
 /** The OpenAPI paths retained in the corrected Core document. */
-export const CORE_PATHS = CORE_OPERATIONS.map(({ path }) => path);
+export const CORE_PATHS = [...new Set(CORE_OPERATIONS.map(({ path }) => path))];
 
 const require = createRequire(import.meta.url);
 const openapiFormat = require("openapi-format") as OpenApiFormatModule;
@@ -554,20 +572,23 @@ function getPointerValue(document: JsonObject, pointer: string): unknown {
   return current;
 }
 
-function retainOnlyGet(pathItem: JsonValue): JsonValue {
+function retainSelectedMethods(
+  pathItem: JsonValue,
+  methods: ReadonlySet<string>,
+): JsonValue {
   if (!isRecord(pathItem)) {
     return cloneJson(pathItem);
   }
   const retained: JsonObject = {};
   for (const [key, value] of Object.entries(pathItem)) {
-    if (!httpMethods.has(key) || key === "get") {
+    if (!httpMethods.has(key) || methods.has(key)) {
       retained[key] = cloneJson(value as JsonValue);
     }
   }
   return retained;
 }
 
-/** Retains the selected GET paths and every component they reference. */
+/** Retains the selected Core operations and every component they reference. */
 export function extractCoreDocument(
   document: JsonObject,
   corePaths: readonly string[] = CORE_PATHS,
@@ -583,7 +604,12 @@ export function extractCoreDocument(
     if (pathItem === undefined) {
       throw new Error(`Missing Core OpenAPI path: ${path}.`);
     }
-    paths[path] = retainOnlyGet(pathItem as JsonValue);
+    const methods = new Set(
+      CORE_OPERATIONS.filter((operation) => operation.path === path).map(
+        ({ method }) => method,
+      ),
+    );
+    paths[path] = retainSelectedMethods(pathItem as JsonValue, methods);
   }
 
   const pending = new Set<string>();
@@ -654,11 +680,12 @@ export function extractCoreDocument(
   for (const expected of CORE_OPERATIONS) {
     const pathItem = paths[expected.path];
     assertRecord(pathItem, `Core path ${expected.path}`);
-    const operation = pathItem.get;
-    assertRecord(operation, `GET ${expected.path}`);
+    const operation = pathItem[expected.method];
+    const method = expected.method.toUpperCase();
+    assertRecord(operation, `${method} ${expected.path}`);
     if (operation.operationId !== expected.operationId) {
       throw new Error(
-        `Unexpected operationId for GET ${expected.path}: ${String(
+        `Unexpected operationId for ${method} ${expected.path}: ${String(
           operation.operationId,
         )}.`,
       );
@@ -693,12 +720,13 @@ function isJsonMediaType(mediaType: string): boolean {
 
 function responseSchemaPointer(
   path: string,
+  method: "get" | "post",
   status: number,
   mediaType: string,
 ): string {
   return `/paths/${encodePointerSegment(
     path,
-  )}/get/responses/${status}/content/${encodePointerSegment(mediaType)}/schema`;
+  )}/${method}/responses/${status}/content/${encodePointerSegment(mediaType)}/schema`;
 }
 
 function componentValidatorExport(schema: unknown): string {
@@ -728,62 +756,70 @@ function collectResponseContracts(
   for (const expected of CORE_OPERATIONS) {
     const pathItem = document.paths[expected.path];
     assertRecord(pathItem, `Core path ${expected.path}`);
-    const operation = pathItem.get;
-    assertRecord(operation, `GET ${expected.path}`);
-    assertRecord(operation.responses, `Responses for GET ${expected.path}`);
+    const operation = pathItem[expected.method];
+    const method = expected.method.toUpperCase() as "GET" | "POST";
+    assertRecord(operation, `${method} ${expected.path}`);
+    assertRecord(
+      operation.responses,
+      `Responses for ${method} ${expected.path}`,
+    );
 
     for (const [statusText, responseValue] of Object.entries(
       operation.responses,
     ).sort(([left], [right]) => left.localeCompare(right))) {
       if (!/^\d{3}$/.test(statusText)) {
         throw new Error(
-          `GET ${expected.path} must use explicit response statuses, received ${statusText}.`,
+          `${method} ${expected.path} must use explicit response statuses, received ${statusText}.`,
         );
       }
       const status = Number(statusText);
       assertRecord(
         responseValue,
-        `Response ${statusText} for GET ${expected.path}`,
+        `Response ${statusText} for ${method} ${expected.path}`,
       );
       assertRecord(
         responseValue.content,
-        `Response content ${statusText} for GET ${expected.path}`,
+        `Response content ${statusText} for ${method} ${expected.path}`,
       );
       const jsonEntries = Object.entries(responseValue.content).filter(
         ([mediaType]) => isJsonMediaType(mediaType),
       );
       if (jsonEntries.length !== 1) {
         throw new Error(
-          `GET ${expected.path} ${statusText} must define exactly one JSON response schema.`,
+          `${method} ${expected.path} ${statusText} must define exactly one JSON response schema.`,
         );
       }
       const [mediaType, mediaValue] = jsonEntries[0] as [string, unknown];
       assertRecord(
         mediaValue,
-        `Media type ${mediaType} for GET ${expected.path} ${statusText}`,
+        `Media type ${mediaType} for ${method} ${expected.path} ${statusText}`,
       );
       if (!isRecord(mediaValue.schema)) {
         throw new Error(
-          `GET ${expected.path} ${statusText} is missing a JSON response schema.`,
+          `${method} ${expected.path} ${statusText} is missing a JSON response schema.`,
         );
       }
       const validatorExport =
-        status >= 200 && status < 300
-          ? `z${pascalCase(expected.operationId)}Response`
-          : componentValidatorExport(mediaValue.schema);
+        isRecord(mediaValue.schema) &&
+        typeof mediaValue.schema.$ref === "string"
+          ? componentValidatorExport(mediaValue.schema)
+          : status >= 200 && status < 300
+            ? `z${pascalCase(expected.operationId)}Response`
+            : componentValidatorExport(mediaValue.schema);
       const validatorName = validatorFunctionName(
         expected.functionName,
         status,
       );
       const schemaPath = responseSchemaPointer(
         expected.path,
+        expected.method,
         status,
         mediaType,
       );
       metadata.push({
         operationId: expected.operationId,
         functionName: expected.functionName,
-        method: "GET",
+        method,
         path: expected.path,
         status,
         contentTypes: [mediaType],
@@ -811,7 +847,7 @@ function buildResponseContractsModule(
       (entry) => `  {
     operationId: ${JSON.stringify(entry.operationId)},
     functionName: ${JSON.stringify(entry.functionName)},
-    method: "GET",
+    method: ${JSON.stringify(entry.method)},
     path: ${JSON.stringify(entry.path)},
     status: ${entry.status},
     contentTypes: ${JSON.stringify(entry.contentTypes)},
@@ -830,7 +866,7 @@ import { ${imports} } from "./zod.gen.js";
 export interface GeneratedResponseContract {
   readonly operationId: string;
   readonly functionName: string;
-  readonly method: "GET";
+  readonly method: "GET" | "POST";
   readonly path: string;
   readonly status: number;
   readonly contentTypes: readonly string[];
@@ -1062,19 +1098,23 @@ export type Options<
     "  meta?: Record<string, unknown>;",
     "external fetch client metadata option",
   );
-  const patched = metadata.replace(
-    /options\.client\.get<([\s\S]*?)>\(\{\n {4}responseValidator: ([\s\S]*?),\n {4}url: ("[^"]+"),\n {4}\.\.\.options,\n {2}\}\);/g,
-    `requireSefariaClient(options.client).get<$1>({
+  const branded = metadata.replace(
+    /options\.client\.(get|post)</g,
+    "requireSefariaClient(options.client).$1<",
+  );
+  const patched = branded.replace(
+    /\{\n {4}responseValidator: ([\s\S]*?),\n {4}url: ("[^"]+"),\n {4}\.\.\.options,/g,
+    `{
     ...options,
     parseAs: "json",
     responseStyle: "fields",
     responseTransformer: async (data) => data,
-    responseValidator: $2,
-    url: $3,
-  });`,
+    responseValidator: $1,
+    url: $2,`,
   );
   if (
-    patched === metadata ||
+    branded === metadata ||
+    patched === branded ||
     patched.match(/requireSefariaClient\(/g)?.length !== CORE_OPERATIONS.length
   ) {
     throw new Error("Could not secure every generated SDK client call.");

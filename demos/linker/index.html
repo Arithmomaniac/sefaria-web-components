@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reading across traditions</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <strong>The Common Reader</strong>
+      <a href="https://example.com/about">About this journal</a>
+    </header>
+    <main>
+      <article>
+        <header>
+          <p>Ideas · September 6, 2026</p>
+          <h1>Reading across traditions</h1>
+          <p class="dek">
+            An authored article demonstrating automatic citation linking.
+          </p>
+        </header>
+        <p>
+          The opening image of Genesis 1:1 has traveled through centuries of
+          commentary. It can appear in ordinary prose without special markup,
+          alongside a discussion of Shabbat 2a and the shape of a page.
+        </p>
+        <p>
+          Inline typography should remain intact when a reference crosses
+          emphasis, as in <em>Genesis</em> 1:2, because the host page owns its
+          markup and event listeners.
+        </p>
+        <h2>A Hebrew example</h2>
+        <p class="hebrew" lang="he">
+          הקורא עשוי לפגוש גם את בראשית א:ג בתוך פסקה עברית רגילה.
+        </p>
+        <p>
+          This
+          <a href="https://example.com/original-link">ordinary host link</a>
+          must remain untouched, as must citations inside tables or
+          superscripts.
+        </p>
+      </article>
+      <aside class="demo-panel" data-sefaria-linker-owned>
+        <h2>Linker status</h2>
+        <p id="status" role="status">Loading the embedded linker.</p>
+        <button id="rescan" type="button">Rescan article</button>
+      </aside>
+    </main>
+    <footer>
+      Authored demonstration content. Citation text is sent to Sefaria for
+      detection.
+    </footer>
+    <script>
+      const status = document.querySelector("#status");
+      const run = () =>
+        window.SefariaLinker.link().then(
+          (result) => {
+            status.textContent = `Linked ${result.linked} citations; skipped ${result.skipped}.`;
+          },
+          (error) => {
+            if (error instanceof DOMException && error.name === "AbortError") {
+              return;
+            }
+            status.textContent =
+              error instanceof Error ? error.message : String(error);
+            status.setAttribute("role", "alert");
+          },
+        );
+      window.addEventListener("sefaria-linker-ready", run, { once: true });
+      document.querySelector("#rescan").addEventListener("click", run);
+      const script = document.createElement("script");
+      script.src = "./sefaria-linker.js";
+      script.onerror = () => {
+        status.textContent = "Unable to load the linker artifact.";
+        status.setAttribute("role", "alert");
+      };
+      document.head.append(script);
+    </script>
+  </body>
+</html>

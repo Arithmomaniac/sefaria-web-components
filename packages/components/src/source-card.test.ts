@@ -91,21 +91,49 @@ describe("createSourceCardViewModel", () => {
       primaryCategory: "Tanakh",
       categories: ["Tanakh", "Torah"],
     });
+
     expect(result.attributions).toEqual([
       {
         side: "primary",
         versionTitle: "Explicit source-backed compatibility composition",
         versionSource: null,
+        versionSourceUrl: null,
       },
       {
         side: "translation",
         versionTitle: "Example English",
         versionSource: "Example publisher",
+        versionSourceUrl: null,
       },
     ]);
     expect(result.items).toHaveLength(1);
     expect(result.items[0]?.position).toEqual([]);
     expect(result.items[0]?.pair.state).toBe("data");
+  });
+
+  it("validates HTTP(S) version sources for linked edition titles", () => {
+    const payload = payloadWith("Primary.", "Translation.");
+    payload.versions[0]!.versionSource = "javascript:alert(1)";
+    payload.versions[1]!.versionSource = "https://example.test/translation";
+
+    const result = createSourceCardViewModel(payload, REQUEST);
+
+    expect(result.state).toBe("data");
+    if (result.state !== "data") return;
+    expect(result.attributions).toEqual([
+      {
+        side: "primary",
+        versionTitle: "Explicit source-backed compatibility composition",
+        versionSource: "javascript:alert(1)",
+        versionSourceUrl: null,
+      },
+      {
+        side: "translation",
+        versionTitle: "Example English",
+        versionSource: "https://example.test/translation",
+        versionSourceUrl: "https://example.test/translation",
+      },
+    ]);
   });
 
   it("flattens nested text by position even when isSpanning is false", () => {

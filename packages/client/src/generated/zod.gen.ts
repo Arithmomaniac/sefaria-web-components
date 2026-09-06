@@ -12,9 +12,76 @@ import type {
   CoreV3TextValue,
 } from "./types.gen.js";
 
+/**
+ * Async Task Enqueued
+ *
+ * Response returned when an asynchronous task has been successfully enqueued.
+ */
+export const zAsyncTaskEnqueued = z.object({
+  task_id: z.string(),
+});
+
+/**
+ * Async Task Failure
+ *
+ * Response returned when a task has failed permanently.
+ */
+export const zAsyncTaskFailure = z.object({
+  task_id: z.string(),
+  state: z.enum(["FAILURE"]),
+  ready: z.literal(true),
+  error: z.string(),
+});
+
+/**
+ * Async Task Pending
+ *
+ * Response returned while a task is still in progress.
+ */
+export const zAsyncTaskPending = z.object({
+  task_id: z.string(),
+  state: z.enum(["PENDING", "STARTED", "RETRY"]),
+  ready: z.literal(false),
+  meta: z.record(z.string(), z.unknown()).optional(),
+});
+
 export const zCoreErrorResponse = z.object({
   error: z.string(),
 });
+
+export const zCoreFindRefsReferenceData = z
+  .object({
+    heRef: z.string(),
+    url: z.string(),
+    primaryCategory: z.string(),
+    he: z.array(z.string()).optional(),
+    en: z.array(z.string()).optional(),
+    isTruncated: z.boolean().optional(),
+  })
+  .strict();
+
+export const zCoreFindRefsRequest = z
+  .object({
+    text: z
+      .object({
+        title: z.string(),
+        body: z.string(),
+      })
+      .strict(),
+    lang: z.enum(["he", "en"]).optional(),
+    metaDataForTracking: z
+      .object({
+        url: z.string().optional(),
+        description: z.string().optional(),
+        title: z.string().optional(),
+      })
+      .strict()
+      .optional(),
+    version_preferences_by_corpus: z
+      .record(z.string(), z.record(z.string(), z.string()))
+      .nullish(),
+  })
+  .strict();
 
 export const zCoreLinkVersion = z.object({
   title: z.string(),
@@ -158,6 +225,44 @@ export const zLanguageCode = z.string();
  * A title string is any one of the known text titles or title variants in the Sefaria Database.
  */
 export const zRef = z.string();
+
+export const zCoreFindRefsMatch = z
+  .object({
+    startChar: z.int().gte(0),
+    endChar: z.int().gte(0),
+    text: z.string(),
+    linkFailed: z.boolean(),
+    refs: z.array(zRef).nullable(),
+  })
+  .strict();
+
+export const zCoreFindRefsSection = z
+  .object({
+    results: z.array(zCoreFindRefsMatch),
+    refData: z.record(z.string(), zCoreFindRefsReferenceData),
+    debugData: z.array(z.unknown()).optional(),
+  })
+  .strict();
+
+export const zCoreFindRefsResponse = z
+  .object({
+    title: zCoreFindRefsSection,
+    body: zCoreFindRefsSection,
+    url: z.string().optional(),
+  })
+  .strict();
+
+/**
+ * Async Task Success
+ *
+ * Response returned when a task has completed successfully. The shape of `result` depends on which API enqueued the task.
+ */
+export const zAsyncTaskSuccess = z.object({
+  task_id: z.string(),
+  state: z.enum(["SUCCESS"]),
+  ready: z.literal(true),
+  result: z.record(z.string(), z.unknown()),
+});
 
 export const zCoreLinkObject = z.object({
   _id: z.string(),
@@ -376,6 +481,16 @@ export const zGetIndexV2Response = zCoreIndexResponse;
  * Successful response
  */
 export const zGetLinksResponse = zCoreLinkResponse;
+
+/**
+ * Task enqueued. Poll `GET /api/async/{task_id}` to retrieve results. When the task completes successfully, the result will have the shape described by `FindRefsAPIResponse`.
+ */
+export const zPostFindRefsResponse = zAsyncTaskEnqueued;
+
+export const zGetAsyncTaskStatusResponse = z.union([
+  zAsyncTaskSuccess,
+  zAsyncTaskPending,
+]);
 
 /**
  * Retrieve basic statistics and information about the "shape" of an `Index` on Sefaria.
