@@ -367,4 +367,25 @@ describe("public generated response validators", () => {
       true,
     );
   });
+
+  it.each([200, 400, 404] as const)(
+    "selects the generated v3 texts validator for status %s",
+    async (status) => {
+      const value =
+        status === 200
+          ? await readFixture("v3-text-spanning-2026-08-29.json")
+          : { error: `HTTP ${status}` };
+
+      expect(
+        validateExternalResponse(
+          {
+            method: "GET",
+            path: "/api/v3/texts/{tref}",
+            status,
+          },
+          value,
+        ),
+      ).toEqual({ valid: true, issues: [] });
+    },
+  );
 });

@@ -1,5 +1,6 @@
 import type {
   SefariaBilingualSegment,
+  SefariaConnectionsPanel,
   SefariaRefLabel,
   SefariaSourceCard,
   SefariaTextSegment,
@@ -18,6 +19,15 @@ import {
   bilingualSegmentScenarios,
 } from "./bilingual-segment.scenarios.js";
 import {
+  connectionsEmptyScenario,
+  connectionsErrorScenario,
+  connectionsLoadingScenario,
+  connectionsMetadataScenario,
+  connectionsDetailsScenario,
+  connectionsPanelScenarios,
+  connectionsSummaryScenario,
+} from "./connections-panel.scenarios.js";
+import {
   refLabelDataScenario,
   refLabelEmptyScenario,
   refLabelErrorScenario,
@@ -27,6 +37,7 @@ import {
 import {
   sourceCardEmptyScenario,
   sourceCardErrorScenario,
+  sourceCardHiddenAddressesScenario,
   sourceCardLoadingScenario,
   sourceCardManyItemsScenario,
   sourceCardOneItemScenario,
@@ -131,10 +142,11 @@ test("shows the five current bilingual-segment states", async () => {
   ]);
 });
 
-test("shows the six current source-card scenarios", async () => {
+test("shows the seven current source-card scenarios", async () => {
   expect(sourceCardScenarios).toEqual([
     sourceCardOneItemScenario,
     sourceCardManyItemsScenario,
+    sourceCardHiddenAddressesScenario,
     sourceCardOneSidedScenario,
     sourceCardLoadingScenario,
     sourceCardEmptyScenario,
@@ -154,7 +166,36 @@ test("shows the six current source-card scenarios", async () => {
   expect(sourceCardScenarios.map((scenario) => scenario.id)).toEqual([
     "one-item",
     "many-items",
+    "hidden-addresses",
     "one-sided",
+    "loading",
+    "empty",
+    "error",
+  ]);
+});
+
+test("shows the six current connections-panel scenarios", async () => {
+  expect(connectionsPanelScenarios).toEqual([
+    connectionsSummaryScenario,
+    connectionsDetailsScenario,
+    connectionsMetadataScenario,
+    connectionsLoadingScenario,
+    connectionsEmptyScenario,
+    connectionsErrorScenario,
+  ]);
+  const lab = await renderLab();
+  const panels = Array.from(
+    lab.shadowRoot?.querySelectorAll<SefariaConnectionsPanel>(
+      "sefaria-connections-panel",
+    ) ?? [],
+  );
+  expect(panels.map((panel) => panel.viewModel?.state)).toEqual(
+    connectionsPanelScenarios.map((scenario) => scenario.viewModel.state),
+  );
+  expect(connectionsPanelScenarios.map((scenario) => scenario.id)).toEqual([
+    "summary",
+    "details",
+    "metadata-only",
     "loading",
     "empty",
     "error",

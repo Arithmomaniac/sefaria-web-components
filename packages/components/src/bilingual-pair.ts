@@ -95,15 +95,20 @@ export const bilingualPairStyles: CSSResult = css`
     max-width: 100%;
   }
 
+  [data-pair-side] {
+    min-width: 0;
+    max-width: 100%;
+  }
+
   @container (min-width: 500px) {
     .pair[data-content="both"][data-layout="auto"] {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .pair[data-content="both"][data-layout="auto"][data-order="primary-first"]
-      [data-side="primary"],
+      > :is([data-side="primary"], [data-pair-side="primary"]),
     .pair[data-content="both"][data-layout="auto"][data-order="translation-first"]
-      [data-side="translation"] {
+      > :is([data-side="translation"], [data-pair-side="translation"]) {
       order: -1;
     }
   }
@@ -113,9 +118,9 @@ export const bilingualPairStyles: CSSResult = css`
   }
 
   .pair[data-content="both"][data-layout="side-by-side"][data-order="primary-first"]
-    [data-side="primary"],
+    > :is([data-side="primary"], [data-pair-side="primary"]),
   .pair[data-content="both"][data-layout="side-by-side"][data-order="translation-first"]
-    [data-side="translation"] {
+    > :is([data-side="translation"], [data-pair-side="translation"]) {
     order: -1;
   }
 
@@ -130,17 +135,33 @@ export const bilingualPairStyles: CSSResult = css`
 export function renderBilingualPair(
   viewModel: BilingualPairViewModel,
   presentation: BilingualPairPresentation,
+  renderSideAdornment?: (side: BilingualPairSide) => TemplateResult,
 ): TemplateResult {
   const parts =
     viewModel.state === "data"
       ? [
-          renderSide("primary", viewModel.primary, presentation),
-          renderSide("translation", viewModel.translation, presentation),
+          renderSide(
+            "primary",
+            viewModel.primary,
+            presentation,
+            renderSideAdornment,
+          ),
+          renderSide(
+            "translation",
+            viewModel.translation,
+            presentation,
+            renderSideAdornment,
+          ),
         ]
       : viewModel.state === "partial"
         ? SIDES.map((side) =>
             side === viewModel.present.side
-              ? renderSide(side, viewModel.present.view, presentation)
+              ? renderSide(
+                  side,
+                  viewModel.present.view,
+                  presentation,
+                  renderSideAdornment,
+                )
               : renderAbsent(side, viewModel.absent.message, presentation),
           )
         : viewModel.absent.map((absent) =>
@@ -161,14 +182,22 @@ function renderSide(
   side: BilingualPairSide,
   view: TextSegmentDataViewModel,
   presentation: BilingualPairPresentation,
+  renderSideAdornment?: (side: BilingualPairSide) => TemplateResult,
 ) {
   if (!shows(side, presentation)) {
     return nothing;
   }
-  return html`<sefaria-text-segment
-    data-side=${side}
-    .viewModel=${view}
-  ></sefaria-text-segment>`;
+  return html`<div
+    class="pair-side"
+    data-pair-side=${side}
+    data-adornment=${renderSideAdornment === undefined ? "false" : "true"}
+  >
+    ${renderSideAdornment?.(side) ?? nothing}
+    <sefaria-text-segment
+      data-side=${side}
+      .viewModel=${view}
+    ></sefaria-text-segment>
+  </div>`;
 }
 
 function renderAbsent(

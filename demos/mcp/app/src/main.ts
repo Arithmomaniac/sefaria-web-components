@@ -6,25 +6,17 @@ import {
   type McpUiHostContext,
 } from "@modelcontextprotocol/ext-apps";
 
+import { renderStatus, renderToolResult } from "./app.js";
+
 function findRoot(): HTMLElement {
   const root = document.querySelector<HTMLElement>("#app");
   if (!root) {
     throw new Error("MCP App root is missing");
   }
-
   return root;
 }
 
-const root = findRoot();
-
-function showStatus(message: string) {
-  const status = document.createElement("p");
-  status.setAttribute("role", "status");
-  status.textContent = message;
-  root.replaceChildren(status);
-}
-
-function applyHostContext(context: McpUiHostContext) {
+function applyHostContext(context: McpUiHostContext): void {
   if (context.theme) {
     applyDocumentTheme(context.theme);
   }
@@ -36,20 +28,25 @@ function applyHostContext(context: McpUiHostContext) {
   }
 }
 
+const root = findRoot();
+
 if (new URLSearchParams(window.location.search).has("standalone")) {
-  showStatus("Sefaria MCP App scaffold");
+  renderStatus(
+    root,
+    "Call get_text in an MCP Apps host to render a Sefaria source card.",
+  );
 } else {
   const app = new App({ name: "Sefaria MCP App", version: "0.0.0" });
 
   app.ontoolresult = (result) => {
-    const content = result.content.find((item) => item.type === "text");
-    showStatus(
-      content?.type === "text" ? content.text : "Tool result received",
-    );
+    renderToolResult(root, result);
+  };
+  app.ontoolcancelled = () => {
+    renderStatus(root, "The Sefaria text request was cancelled.");
   };
   app.onhostcontextchanged = applyHostContext;
   app.onerror = (error) => {
-    showStatus(`MCP App error: ${String(error)}`);
+    renderStatus(root, `MCP App error: ${String(error)}`);
   };
 
   void app
@@ -61,6 +58,6 @@ if (new URLSearchParams(window.location.search).has("standalone")) {
       }
     })
     .catch((error: unknown) => {
-      showStatus(`Unable to connect to the MCP host: ${String(error)}`);
+      renderStatus(root, `Unable to connect to the MCP host: ${String(error)}`);
     });
 }

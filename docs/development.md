@@ -2,7 +2,7 @@
 
 # Development
 
-This contributor guide describes the implementation baseline at `origin/main` commit `d5c16517becb92f2c721b07639ad9ac6f63ac332` as of September 6, 2026.
+This contributor guide describes the current implementation as of September 6, 2026, combining `origin/main` commit `36482462e53cc9d346fe1250b8417619e52ba7f3` with the current client-cache and reusable-schema feature work.
 
 The sections below separate delivered baseline behavior, changes from older plans, and work that remains intended. A runnable command is not proof that the corresponding integration is finished.
 
@@ -19,15 +19,16 @@ For reader-oriented explanations, use the friendly guides rather than the archiv
 
 | Area | Baseline status |
 | --- | --- |
-| `packages/client` | Delivers eight named Core GET and POST SDK functions, committed corrected TypeScript contracts, Zod validators, and a status-aware fetch client. A bounded per-client response cache is planned on this baseline. The corrected Core OpenAPI document is temporary generation output. |
-| `packages/text-transform` | Delivers DOM-free sanitization, Hebrew vocalization modes, and structured footnote extraction. |
-| `packages/components` | Delivers the current component-specific view models, pure and async factory subpaths, and request-free elements for the current text, bilingual, reference-label, source-card, and popup surfaces. |
+| `packages/client` | Delivers eight named Core GET and POST SDK functions, committed corrected TypeScript contracts, reusable Core schemas, Zod validators, and a status-aware fetch client with a bounded default-on per-client response cache. The corrected Core OpenAPI document is temporary generation output. |
+| `packages/text-transform` | Delivers DOM-free sanitization, Hebrew vocalization modes, structured footnote extraction, and bounded connected-text previews. |
+| `packages/components` | Delivers the current component-specific view models, pure and async factory subpaths, and request-free elements for the current text, bilingual, reference-label, selectable source-card, connections-panel, and popup surfaces. |
 | `demos/component-lab` | Shows authored view models for current elements. It is a development surface, not a complete interaction catalog or compatibility oracle. |
 | `demos/ref-label-live-demo` | Provides an interactive HTML form and presets that call the deployed reference endpoint and render `<sefaria-ref-label>`. |
 | `demos/text-segment-live-demo` | Provides an interactive HTML form and presets that call the deployed Sefaria API and render `<sefaria-text-segment>`. |
 | `demos/bilingual-segment-live-demo` | Provides an interactive HTML form, presets, and display controls that make one deployed Sefaria API request and render `<sefaria-bilingual-segment>`. |
 | `demos/source-card-live-demo` | Makes one deployed v3 text request for segment, range, spanning, nested non-spanning, and one-sided presets, renders `<sefaria-source-card>`, and attributes each selected edition once at card level. |
-| `demos/mcp` | Provides a runnable App shell and text-only FastMCP fixture. This is a scaffold, not the finished corrected-payload integration. |
+| `demos/connections-panel-live-demo` | Synchronizes a selectable source card and connections panel, opens a target in its server-provided parent section, selects its first segment, and pages a captured links response without child requests. |
+| `demos/mcp` | Exposes a live `get_text` tool, packages a single-file App, validates corrected 200/400/404 payloads, calls the source-card pure factory, renders the request-free element without an App-side request, and provides an authenticated isolated VS Code capture workflow. |
 | `demos/linker` | Builds an embeddable classic script, bookmarklet loader, automatic and no-autostart article pages, asynchronous citation detection, safe DOM linking, and request-free popups. Public hosting and broad live-site qualification remain external. |
 | `tests/compatibility` | Delivers focused pinned client and transform comparisons, a composed v3 validate-to-transform smoke case, and grouped qualification output without network access. The evidence is representative and non-exhaustive. |
 
@@ -36,10 +37,10 @@ For reader-oriented explanations, use the friendly guides rather than the archiv
 These are superseded decisions, not an uncompleted backlog:
 
 - The generalized `@sefaria/model` foundation and broad offline reference parser are no longer the delivery architecture. The corrected OpenAPI contract and thin `@sefaria/client` own transport data; component factories own projections.
-- The earlier unbounded or implicit cache proposal was removed from the baseline. The current client specification instead plans one bounded, default-on, per-client response cache with explicit opt-out; retries and request coalescing remain excluded.
+- The earlier unbounded or implicit cache proposal was removed from the baseline. The current client instead implements one bounded, default-on, per-client response cache with explicit opt-out; retries and request coalescing remain excluded.
 - A separate text-range request and view-model stack was replaced by a bounded source-card collection. A single segment is a one-item collection, while a range remains one outer request with card-level reference data.
 - Attribution belongs once at the source-card level for each displayed edition, not inside every repeated text segment.
-- The private `SourceCardData` MCP wire format is superseded. The intended integration contract is corrected API-shaped JSON, but the validation and projection path is still planned.
+- The private `SourceCardData` MCP wire format is superseded. The current integration uses corrected API-shaped JSON, boundary validation, and the same source-card pure factory as client mode.
 
 The [historical decision record](evidence.md#historical-decision-provenance) explains the sources and supersession behind these changes. Work on other branches is not included in this baseline. Use the [repository issues](https://github.com/Arithmomaniac/sefaria-web-components/issues) page for live delivery tracking, not as the definition of a component contract.
 
@@ -49,14 +50,11 @@ These are remaining intended capabilities, not removed plans. A scaffold, comman
 
 | Planned capability | Intended result | Contract |
 | --- | --- | --- |
-| Corrected-payload MCP App | Validate tool-provided API JSON, call the source-card pure factory, and render without a second first-render request | [MCP boundary](specs/integrations.md#mcp-payload-boundary) |
-| Named-host acceptance | Demonstrate the supported Core interaction in a recorded MCP host and version; a standalone browser preview is not sufficient | [Host acceptance](specs/integrations.md#mcp-host-acceptance) |
 | Public Linker hosting and broader live-site qualification | Host the built artifact and prove the bounded integration against representative third-party sites and browser policies | [Linker demonstration](linker-demo.md), [Linker integration](specs/integrations.md#linker-script-purpose) |
-| Connections panel, beyond Core | Project links into bounded category and connection views using the same pure/async factory separation | [Component surfaces](specs/components.md#component-surfaces) |
-| Reader state and navigation, beyond Core | Build later connected reading on explicit request/view-model state and host-owned task lifecycles | [Design scope](design.md#core-scope), [Interaction flow](specs/integrations.md#interaction-task-flow) |
+| Reader history, beyond Core | Add Back/history behavior on explicit request/view-model state and host-owned task lifecycles | [Design scope](design.md#core-scope), [Interaction flow](specs/integrations.md#interaction-task-flow) |
 | Broader compatibility coverage | Extend the small current suite with additional source-backed cases, without promising exhaustive corpus equivalence | [Compatibility evidence](evidence.md#current-focused-compatibility-qualification) |
 
-The client, text-transform foundations, popup, and Linker demonstration are already delivered. New component slices still need concrete consumers; they do not justify restoring the superseded generalized model or hidden client policies.
+The client, text-transform foundations, current components, connections panel, contextual reader, MCP App, named-host acceptance, and Linker demonstration are already delivered. New component slices still need concrete consumers; they do not justify restoring the superseded generalized model or hidden client policies.
 
 ## Technology
 
@@ -67,7 +65,7 @@ The client, text-transform foundations, popup, and Linker demonstration are alre
 | Components             | Lit 3                              |
 | Browser builds         | Vite 8                             |
 | TypeScript tests       | Vitest 4 and Playwright            |
-| Python fixture         | Python 3.10 or later and FastMCP 3 |
+| Python MCP server      | Python 3.10 or later and FastMCP 3 |
 | Python environment     | uv                                 |
 | Python checks          | Ruff, mypy, and pytest             |
 | Continuous integration | GitHub Actions                     |
@@ -87,8 +85,9 @@ TypeScript emits reusable ES modules. Vite builds the browser demonstrations and
 | `demos/text-segment-live-demo` | Interactive live API page for the text-segment component |
 | `demos/bilingual-segment-live-demo` | Interactive live API page for the bilingual-segment component |
 | `demos/source-card-live-demo` | Interactive live API page for the source-card component |
-| `demos/mcp` | MCP App shell and text-only FastMCP fixture; corrected-payload boundary planned |
+| `demos/mcp` | Corrected-payload MCP boundary, live FastMCP server, self-contained App, and isolated VS Code acceptance tooling |
 | `demos/linker` | Third-party citation detection, DOM linking, and popup integration |
+| `demos/connections-panel-live-demo` | Interactive contextual source-card and connections-panel host |
 
 Workspace dependencies use `workspace:*`. All workspace packages remain private during the hackathon.
 
@@ -277,7 +276,15 @@ pnpm dev:bilingual-segment
 
 The page makes one request for the source and translation versions of a segment. Its display controls change the visible sides, the layout, and the side order without making another request.
 
-## Run the MCP fixture
+## Run the contextual connections reader
+
+```powershell
+pnpm dev:connections
+```
+
+The host loads a connection target and its server-provided parent section when necessary, selects the first target segment, and requests that segment's links. Reader-row selection makes only a links request. Category changes, 20-entry paging, and showing or hiding captured previews make no request. A labels-only links response exposes an explicit Load previews action rather than fetching inside the element.
+
+## Run the MCP App server
 
 ```powershell
 pnpm dev:mcp
@@ -287,30 +294,23 @@ The current command:
 
 1. Builds the single-file MCP App.
 2. Stages the App.
-3. Starts the text-only FastMCP fixture over standard input and output.
+3. Starts the FastMCP server over standard input and output.
 
-This proves that the runnable scaffold can build and start. It does not prove that the finished integration validates a corrected API payload or projects it into a component view model.
+The server exposes `get_text(reference, version_language="both")`. It requests the deployed Sefaria v3 texts endpoint and returns one progressive result: plain text for every host, corrected API-shaped `structuredContent`, request/status metadata, and the App resource. The public `source`, `english`, and `both` choices select the source-card primary and translation roles through `version=primary`, `version=translation`, or both repeated values. The App bundles the generated validator and source-card factory into the staged HTML; no separate validator or payload fixture is staged.
 
-The planned integration will also stage:
-
-- the built HTML
-- the corrected API-shaped payload fixture
-- the generated TypeScript validator used by the integration boundary
-
-After validation, the integration will call the same pure component factory used by client mode and supply the resulting view model to the request-free element. The old private `SourceCardData` wire format is superseded; this path is planned, not delivered by the current text-only fixture.
-
-An MCP host can use this current configuration:
+VS Code reads the checked-in `.vscode/mcp.json`. It starts the server through `uv` with `${workspaceFolder}`, so the configuration stays portable across worktrees.
 
 ```json
 {
-  "mcpServers": {
+  "servers": {
     "sefaria-components-demo": {
+      "type": "stdio",
       "command": "uv",
       "args": [
         "run",
         "--no-sync",
         "--directory",
-        "C:\\path\\to\\sefaria-web-components\\demos\\mcp\\fixture-server",
+        "${workspaceFolder}/demos/mcp/fixture-server",
         "sefaria-mcp-app-fixture"
       ]
     }
@@ -320,13 +320,51 @@ An MCP host can use this current configuration:
 
 The resource URI is `ui://sefaria/source-card.html`. Its MIME type is `text/html;profile=mcp-app`.
 
+The server request is live. The App's first render is request-free, and repository tests mock the server transport so `pnpm check` remains offline.
+
+Build and stage the App before opening the workspace in VS Code:
+
+```powershell
+pnpm build:mcp
+```
+
+In Copilot Chat Agent mode, enable the `sefaria-components-demo` tools and ask it to use `get_text` for a reference such as `Leviticus 19:18`.
+
+Prepare the persistent isolated VS Code environment before the first automated run:
+
+```powershell
+pnpm setup:mcp:vscode
+```
+
+The command builds and stages the App, creates dedicated user-data, extensions, Copilot home, shared-data, and process-home directories under `%LOCALAPPDATA%\SefariaMcpDemo`, writes deterministic user settings, writes empty VS Code and Agent Host MCP configurations, clears stale chat and MCP tool caches without deleting authentication state, and opens the worktree in that environment. The profile disables MCP discovery, MCP gallery browsing, plugins, and Settings Sync; ignores extension recommendations; and uses the empty extensions directory so no user-installed extensions are loaded. `COPILOT_HOME`, `HOME`, and `USERPROFILE` point at dedicated directories so Agent Host and customization discovery do not load servers, settings, plugins, agents, or other state from the standard user home. The explicit shared-data directory prevents VS Code from reading application state from the machine-wide `.vscode-shared` directory. VS Code's bundled Copilot and core built-in extensions remain available.
+
+The isolated Copilot permission file records approval only for the `sefaria-components-demo` MCP server for this worktree. VS Code `1.136.1` still presents its normal host approval control for the tool call, so the acceptance harness clicks **Allow in this Session**. It does not enable bypass permissions, broad MCP auto-approval, writes, terminal commands, URLs, or any other server.
+
+Sign in to GitHub Copilot once in that window, confirm the `sefaria-components-demo` workspace server when prompted, and close the window. Authentication remains in the dedicated user-data directory and is not committed.
+
+The Playwright acceptance harness then launches a fresh VS Code process with that same user-data and extensions pair, connects over a reserved CDP port, submits the prompt, accepts the narrow session approval, waits for the rendered card inside a host frame, and captures `docs/images/mcp-app-vscode.png` only after it finds the card:
+
+```powershell
+pnpm capture:mcp:vscode
+```
+
+To capture the card and keep the controlled VS Code window open for continued manual use:
+
+```powershell
+pnpm demo:mcp:vscode
+```
+
+On Windows, a small Python launcher uses the native minimized startup flag so automation does not take foreground focus while the user is typing elsewhere. The harness follows VS Code's own Playwright/CDP Chat smoke-test pattern and enables the built-in smoke-test driver only for the capture process. After a successful `demo:mcp:vscode` capture, it closes that process and relaunches the same isolated workspace minimized without a debugging port or smoke-test driver. The demo command stays attached until the replacement VS Code window closes; restore it from the taskbar for continued manual use. `VSCODE_MCP_PROFILE_ROOT` overrides the default profile root. `VSCODE_USER_DATA_DIR`, `VSCODE_EXTENSIONS_DIR`, `VSCODE_EXECUTABLE_PATH`, `VSCODE_DEMO_PYTHON`, and `VSCODE_MCP_SCREENSHOT` override their individual paths. An unsigned profile fails with an explicit authentication message and writes only a diagnostic screenshot under the system temporary directory.
+
+The dedicated user-data, shared-data, Copilot home, and process-home directories are intentionally separate from the standard VS Code and Agent Host profiles. This guarantees a distinct Electron process, makes the CDP port reliable even while normal VS Code windows are open, excludes standard-profile MCP servers and shared application state, and avoids copying authentication or secret-storage files. A normal named profile can share standard-profile authentication, but it does not provide the same process or Agent Host configuration isolation.
+
 Preview the current App without an MCP host:
 
 ```powershell
 pnpm --filter @sefaria-demo/mcp-app dev
 ```
 
-The development URL uses `?standalone=1`.
+The development URL uses `?standalone=1` and explains that a host tool result is required. Browser tests exercise successful, invalid-payload, and documented-error rendering without a host.
 
 ## Run the Linker demonstration
 

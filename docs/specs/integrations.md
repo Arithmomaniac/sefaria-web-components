@@ -4,7 +4,7 @@
 
 ## Status
 
-This specification defines the planned MCP App boundary and the implemented Linker integration boundary.
+The Core MCP App, VS Code Copilot Chat host acceptance, and Linker integration are current.
 
 ## Shared integration rules
 
@@ -32,21 +32,69 @@ If no permitted data source exists, the integration shows its own unavailable st
 
 An integration can use `@lit/task`, a reactive controller, or an equivalent task mechanism. The component package does not require one task framework.
 
+## Standalone connections reader [Current]
+
+The standalone demo has one source-card reader and one connections pane. The host owns the displayed container, active single-segment target, selection, cancellation, stale-result suppression, and English-versus-Hebrew address-label presentation. Selecting a reader row commits the controlled selection immediately, performs one links request and no text request, and renders an integration-owned failure if the request rejects. Opening a connection first obtains its target through the source-card async factory. Once a non-spanning response establishes the first target segment and server-provided section, the host starts the contextual-section request when needed and the first-segment links request concurrently. It commits the contextual reader as soon as the section is available while the connections pane remains loading independently. This is at most two text operations and one links operation; neither component factory performs hidden context loading.
+
+A same-section range opens at its first addressed segment, not a multisegment selection. A spanning target follows only the first server-provided `spanningRefs` entry, requests that bounded context, and selects its first qualified segment; it does not render the complete spanning range or parse a reference string. Missing first-target text is unavailable rather than silently replaced with the next nonempty row. Unsupported nested navigation is explicit, while source-card rendering remains supported. Repeated hops are allowed; history, Back, and MCP qualification remain deferred.
+
+For local category/page changes, the host explicitly captures the validated result of the generated `getLinks` operation and calls the connections pure factory. The capture records its exact reference and text-inclusion coverage and is discarded on target replacement. This is an explicit capture-and-project client path, alongside the one-request async view-model factory, not a cache or hidden observer hook. Both paths share the same pure projection. Category changes, paging, and showing/hiding already captured previews make zero requests. Metadata-only captures require an explicit Load previews action to replace them with one text-inclusive links response.
+
+The API has no transport paging parameter: UI paging bounds projection and rendering, not server work or downloaded response bytes. A superseded navigation, links load, or preview load must never overwrite a newer target or page. A failed contextual-section request leaves the previous reader committed and aborts its sibling links operation. A rejected links operation does not roll back an already established reader selection; the integration clears the loading connections surface and reports its own terminal failure outside the request-free element.
+
 ## MCP App purpose
 
 The MCP App renders Sefaria source material inside an MCP Apps-compatible host. The first render uses the tool result and makes no second request.
 
-The planned Core App renders one source card from a corrected `/api/v3/texts/{tref}` success payload.
+The Core App renders one source card from a corrected `/api/v3/texts/{tref}` payload.
 
 The App is a self-contained HTML resource. The MCP server can package it without the TypeScript checkout at runtime.
+
+## MCP tool contract
+
+The MCP server exposes one `get_text` tool that progressively enhances the official `Sefaria/sefaria-mcp` tool of the same name with an App resource.
+
+| Input | Contract |
+| --- | --- |
+| `reference` | Required Sefaria reference such as `Genesis 1:1` or `Berakhot 2a` |
+| `version_language` | Optional `source`, `english`, or `both`; defaults to `both` |
+
+The tool keeps the official MCP server's `source`, `english`, and `both` input vocabulary, but maps those choices to the source-card rendering roles. `source` sends one `version=primary` query value, `english` sends one `version=translation` query value, and `both` sends repeated `version=primary` and `version=translation` query values. It always sends `return_format=default`. This distinction matters for texts such as Kuzari, where the API's original-language `source` version is not necessarily the database's `isPrimary` version consumed by the source-card factory.
+
+The Python server owns the live request to `https://www.sefaria.org/api/v3/texts/{tref}`. The App does not request Sefaria.
+
+One tool result serves both host capabilities:
+
+- `content` contains a concise plain-text representation for the model and hosts that do not render Apps.
+- `structuredContent` contains the corrected API payload.
+- The tool descriptor's `_meta.ui.resourceUri` points to the App resource.
+- `_meta["sefaria/source-card"]` identifies the request and documented response status for App validation and projection.
+
+The prior private `preview_sefaria_app` tool is not retained as an alias or compatibility path.
 
 ## MCP payload boundary
 
 `structuredContent` carries corrected API-shaped JSON. It does not carry a component view model.
 
-The tool can also return a short text content item for hosts that do not render Apps.
+The tool also returns a short text content item for hosts that do not render Apps.
 
-The App validates `structuredContent` with the generated validator for the corrected operation payload. Invalid input stops before projection.
+The tool-result `_meta["sefaria/source-card"]` object carries only integration metadata:
+
+```json
+{
+  "operation": "getV3Texts",
+  "method": "GET",
+  "path": "/api/v3/texts/{tref}",
+  "status": 200,
+  "request": {
+    "tref": "Leviticus 19:18"
+  }
+}
+```
+
+`operation`, `method`, and `path` are fixed constants. `status` is one of the documented `200`, `400`, or `404` statuses. `request.tref` is the exact tool input. This object does not contain a view model, rendered HTML, transport payload fields, or a client configuration.
+
+The App validates the metadata before using it. It then validates `structuredContent` with the generated validator selected by the metadata status. Invalid metadata or payload input stops before projection.
 
 A validation failure contains structured paths that identify each invalid field. The App displays an integration error and does not refetch.
 
@@ -61,15 +109,20 @@ sequenceDiagram
     participant Factory as Source-card pure factory
     participant Element as sefaria-source-card
 
-    Tool-->>Host: structuredContent = corrected API payload
-    Host-->>App: tool result
-    App->>Validator: unknown structuredContent
+    Tool->>Tool: GET /api/v3/texts/{tref}
+    Tool-->>Host: text content + structuredContent + metadata
+    Host-->>App: one tool result
+    App->>App: validate status and request metadata
+    App->>Validator: unknown structuredContent and documented status
     alt Invalid payload
         Validator-->>App: structured JSON paths
         App-->>Host: integration error state
-    else Valid payload
+    else Documented 400 or 404
+        Validator-->>App: typed error payload
+        App->>Element: SourceCardHttpErrorViewModel
+    else Valid 200 payload
         Validator-->>App: typed corrected payload
-        App->>Factory: validated payload
+        App->>Factory: validated payload and request tref
         Factory-->>App: SourceCardViewModel
         App->>Element: viewModel
         Element-->>Host: rendered shadow DOM
@@ -99,49 +152,58 @@ Server-provided mode does not send rendered component HTML. The repository defin
 
 The HTML file must not contain development-server URLs. It uses the host theme and supported host fonts with Sefaria token defaults.
 
-## FastMCP fixture
+## FastMCP demonstration server
 
-The fixture remains small and additive. It proves the resource, tool-result, package-data, and unknown-JSON boundaries.
+The demonstration server remains small and additive. It proves the live request, resource, tool-result, package-data, and unknown-JSON boundaries.
 
-The planned fixture contains:
+The server contains:
 
-- one fixture-backed UI tool
+- one live `get_text` UI tool
 - one `ui://` resource
 - the self-contained App
-- one corrected API payload fixture
 - validation with the generated TypeScript validator
-- in-memory integration tests
+- in-memory integration tests with a mocked HTTP transport
 - installed-wheel package-data tests
 
-The fixture does not contain copied Sefaria API logic, metrics, OAuth routes, Docker configuration, or unrelated tools.
+The server does not contain copied Sefaria API logic, a response cache, retry policy, fallback payload, metrics, OAuth routes, Docker configuration, or unrelated tools.
+
+Repository checks make no live request. Python tests mock the Sefaria transport with representative corrected payloads and documented error payloads.
 
 A `ui://` resource is an MCP resource, not an HTTP route. MCP handles `resources/read`.
 
+The server rejects a successful payload with more than 400 text leaves before it enters `structuredContent`. This bounds synchronous source-card projection and rendering; callers must request a narrower reference.
+
 ## MCP host acceptance
 
-Core acceptance requires one named MCP Apps-compatible host.
+Core acceptance uses VS Code Copilot Chat as the named MCP Apps-compatible host.
 
 Record:
 
-- the host name
-- the tested version
+- the exact VS Code and GitHub Copilot Chat versions
 - the launch configuration
-- the supported Core interaction
+- the `get_text` invocation and rendered source-card interaction
+- an automated screenshot or a separately recorded automation limitation
 
 Standalone browser rendering does not prove host compatibility. Host limitations remain separate from component failures.
 
 ## MCP acceptance criteria
 
 - The App builds as one HTML file.
-- The fixture reads the packaged file through `resources/read`.
+- The demonstration server reads the packaged file through `resources/read`.
 - Tool metadata and the resource use the same URI.
+- One `get_text` call returns useful text content and App content.
+- The server maps `version_language` to the documented repeated `version` query values.
 - `structuredContent` matches a corrected generated API payload.
+- Metadata identifies the fixed operation, documented status, and exact request reference.
 - Unknown payload validation reports structured paths.
 - The App calls the source-card pure factory.
 - The element receives only `SourceCardViewModel`.
 - The first render makes zero requests.
 - Client and server modes produce equal view models for the same payload.
 - A wheel test reads every packaged runtime artifact.
+- Automated tests make no network request.
+- A successful payload larger than the source-card render limit fails as a tool error.
+- VS Code Copilot Chat renders the packaged card from one `get_text` result.
 
 ## Linker script purpose
 
@@ -272,7 +334,9 @@ The integration documents Content Security Policy, Trusted Types, mixed-content,
 
 - Invalid unknown JSON reports structured paths.
 - A documented HTTP error becomes a component-specific error view model.
+- Invalid tool-result metadata stops before payload validation.
 - A network failure or abort rejects the async factory operation.
+- A server-side network failure produces an MCP tool failure rather than a success-shaped result.
 - An obsolete abort does not replace the current view model with an error.
 - A host without a permitted data source shows integration-owned unavailable UI, not empty API content.
 - Missing content becomes the owning component's partial or empty state.

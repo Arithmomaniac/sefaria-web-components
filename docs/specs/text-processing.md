@@ -16,6 +16,12 @@ Component pure factories call these operations before unsafe or presentation-spe
 
 ## Common contract
 
+### Bounded connected-text preview [Current]
+
+`createTextPreview` sanitizes HTML using the existing narrowing options, omitting footnotes, annotations, and link interaction from the compact preview. It returns balanced safe HTML, decoded visible text, and a truncation flag. Its bound counts grapheme clusters of rendered text, not raw HTML bytes or UTF-16 units. Entities count as decoded text, line breaks count as separators, and combining sequences spanning inline nodes remain intact. It does not cut raw markup or introduce browser dependencies.
+
+The connections consumer uses a 3,500-grapheme bound per legacy language channel. Recursive API leaves are consumed in source order with separators; output is bounded and traversal is linear, without repeated flattening or growing-prefix concatenation. The implementation uses the package's existing parser dependencies and rejects invalid limits. Truncation is explicit, never an empty-content fallback.
+
 Every public operation must:
 
 - be deterministic

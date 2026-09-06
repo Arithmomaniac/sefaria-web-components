@@ -1,0 +1,15 @@
+{
+  "servers": {
+    "sefaria-components-demo": {
+      "type": "stdio",
+      "command": "uv",
+      "args": [
+        "run",
+        "--no-sync",
+        "--directory",
+        "${workspaceFolder}/demos/mcp/fixture-server",
+        "sefaria-mcp-app-fixture"
+      ]
+    }
+  }
+}

@@ -9,6 +9,7 @@ description = "Fixture-only FastMCP server for the Sefaria Web Components demo"
 requires-python = ">=3.10"
 dependencies = [
     "fastmcp==3.2.4",
+    "httpx==0.28.1",
 ]
 
 [project.scripts]

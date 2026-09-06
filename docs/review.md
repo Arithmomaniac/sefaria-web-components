@@ -147,7 +147,7 @@ Review the initial corrections for:
 - [ ] A one-sided position remains a partial pair instead of being dropped.
 - [ ] Empty inner arrays contribute no blank item.
 - [ ] Scalar-array disagreement at one path is a projection error.
-- [ ] Card items use positional identity and do not synthesize leaf references.
+- [ ] Card items retain positional identity; refs appear only for the reviewed metadata-backed address capability.
 - [ ] The payload-derived header makes no second request.
 - [ ] An optional host-supplied `RefLabelViewModel` changes only header rendering.
 - [ ] A ten-item card uses one outer request and zero child requests.
@@ -155,6 +155,35 @@ Review the initial corrections for:
 - [ ] The shared pair renderer produces the bilingual element's established layout behavior.
 - [ ] Keyed rendering preserves unchanged item DOM across view-model updates.
 - [ ] A realistic large payload projects every leaf without truncation or quadratic scanning.
+
+### Source-card selection
+
+- [ ] Selection is opt-in and controlled by positional identity.
+- [ ] Scalar, range-start, offset, depth-one, Talmud-prefix, and commentary cases use source-backed address metadata.
+- [ ] Empty rows do not renumber later rows or replace the requested first target.
+- [ ] Spanning targets expose only the first server-provided context; unsupported nested shapes remain renderable and explicitly nonselectable.
+- [ ] Malformed consumed offsets preserve text rendering and report structured paths on an unavailable navigation capability.
+- [ ] Every supported item receives a short address label from the same metadata as its canonical target; the element does not parse the ref.
+- [ ] Visible primary and translation sides receive Hebrew and English address labels respectively, including conventional Hebrew 15 and 16 forms.
+- [ ] Address labels follow stacked and side-by-side pair layout, and hiding them preserves a keyboard-accessible selection control without changing event identity.
+- [ ] Host property updates emit no event; user controls emit a composed semantic event.
+- [ ] The compact address label remains a real keyboard control, while noninteractive row clicks select without intercepting embedded controls or active text selection.
+- [ ] Selection controls remain keyboard operable and `revealSelection()` makes no request.
+
+### Connections panel
+
+- [ ] The request uses `getLinks` with explicit text and sheet settings.
+- [ ] All text categories have summaries and reusable detail rendering; sheets are excluded.
+- [ ] Counts use unique IDs and do not count expanded anchors as separate connections.
+- [ ] Identical duplicate IDs collapse and conflicting duplicate IDs fail projection.
+- [ ] Category and entry order is stable across payload order.
+- [ ] Each page contains at most 20 entries; out-of-range pages remain explicit.
+- [ ] Preview states distinguish available, absent, partial, hidden, and not requested.
+- [ ] Connected text is bounded by rendered graphemes with balanced safe HTML.
+- [ ] Reported edition/license metadata does not claim unsupported fragment attribution.
+- [ ] One page with ten preview entries makes one links request and zero child requests.
+- [ ] Category/page/preview-display changes over a captured response make zero requests.
+- [ ] Connection, category, page, and preview-request events are composed and keyboard reachable.
 
 ## Composite request counts
 
@@ -199,11 +228,16 @@ Review the initial corrections for:
 ## MCP integration
 
 - [ ] `structuredContent` contains a corrected API payload.
+- [ ] Namespaced tool-result metadata contains only fixed operation identity, a documented status, and the exact request reference.
+- [ ] Invalid metadata stops before payload validation.
 - [ ] The App validates the unknown payload with the generated TypeScript validator.
 - [ ] The App reports structured paths for invalid payloads.
 - [ ] The App calls the same pure factory as client mode.
 - [ ] The App supplies only a view model to the element.
 - [ ] The first render makes zero requests.
+- [ ] One tool result includes useful text content for hosts without App rendering.
+- [ ] The server preserves network and undocumented HTTP failures as tool failures.
+- [ ] Automated repository checks mock the server transport and remain offline.
 - [ ] The server sends no component HTML.
 - [ ] The implementation adds no hydration path.
 - [ ] The writer, validator, App, and fixture migrate atomically.
