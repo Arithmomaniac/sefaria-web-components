@@ -125,6 +125,8 @@ test("renders the payload-derived bilingual header by default", async () => {
   expect(header?.textContent).toContain("Genesis 1:1-2");
   expect(header?.textContent).toContain("בראשית א׳:א׳-ב׳");
   expect(header?.querySelector("a")).toBeNull();
+  expect(getComputedStyle(header!).borderBottomStyle).toBe("solid");
+  expect(getComputedStyle(header!).paddingBottom).toBe("12px");
 });
 
 test("renders a host-supplied linked reference label without requesting", async () => {

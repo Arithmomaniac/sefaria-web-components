@@ -72,9 +72,20 @@ test("inherits the embedding document color scheme", async () => {
 
     const element = document.querySelector("sefaria-element-fixture");
     expect(element).not.toBeNull();
-    expect(getComputedStyle(element!).backgroundColor).toBe("rgb(45, 45, 43)");
-    expect(getComputedStyle(element!).color).toBe("rgb(255, 255, 255)");
+    expect(getComputedStyle(element!).backgroundColor).toBe("rgb(43, 46, 42)");
+    expect(getComputedStyle(element!).color).toBe("rgb(241, 238, 231)");
   } finally {
     document.documentElement.style.removeProperty("color-scheme");
   }
+});
+
+test("uses the Sefaria presentation defaults without host overrides", () => {
+  render(html`<sefaria-element-fixture></sefaria-element-fixture>`);
+
+  const element = document.querySelector("sefaria-element-fixture");
+  expect(element).not.toBeNull();
+  const styles = getComputedStyle(element!);
+  expect(styles.backgroundColor).toBe("rgb(255, 253, 248)");
+  expect(styles.color).toBe("rgb(37, 35, 31)");
+  expect(styles.fontFamily).toContain("Georgia");
 });

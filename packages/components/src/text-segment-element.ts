@@ -38,12 +38,18 @@ export class SefariaTextSegment extends SefariaElement {
       }
 
       .body {
-        line-height: 1.55;
+        line-height: 1.68;
       }
 
       article[lang|="he"],
       article[lang|="arc"] {
         font-family: var(--_sefaria-font-hebrew);
+        font-size: 1.075em;
+      }
+
+      article[lang|="he"] .body,
+      article[lang|="arc"] .body {
+        line-height: 1.78;
       }
 
       article:not([lang|="he"]):not([lang|="arc"]) {
@@ -59,6 +65,7 @@ export class SefariaTextSegment extends SefariaElement {
         padding-inline-start: 1.5rem;
         color: var(--_sefaria-fg-muted);
         font-size: 0.875em;
+        line-height: 1.5;
         list-style: none;
       }
 

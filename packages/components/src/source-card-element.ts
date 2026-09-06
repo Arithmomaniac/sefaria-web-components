@@ -38,19 +38,24 @@ export class SefariaSourceCard extends SefariaElement {
         max-width: 100%;
         min-width: 0;
         border: 1px solid var(--_sefaria-border);
-        border-radius: 0.5rem;
-        padding: 1rem;
+        border-radius: 0.75rem;
+        padding: 1.25rem;
       }
 
       header {
-        margin-block-end: 1rem;
+        margin-block-end: 1.25rem;
+        padding-block-end: 0.75rem;
+        border-block-end: 1px solid var(--_sefaria-border);
       }
 
       .payload-label {
         display: flex;
         flex-wrap: wrap;
-        gap: 0.35rem 0.75rem;
-        font-weight: 600;
+        align-items: baseline;
+        gap: 0.35rem 1rem;
+        font-size: 1.125em;
+        font-weight: 700;
+        line-height: 1.3;
       }
 
       .english {
@@ -63,7 +68,7 @@ export class SefariaSourceCard extends SefariaElement {
 
       .items {
         display: grid;
-        gap: 1rem;
+        gap: 1.25rem;
       }
 
       .item {
@@ -73,17 +78,19 @@ export class SefariaSourceCard extends SefariaElement {
 
       .item + .item {
         border-block-start: 1px solid var(--_sefaria-border);
-        padding-block-start: 1rem;
+        padding-block-start: 1.25rem;
       }
 
       .attributions {
         display: grid;
-        gap: 0.35rem;
-        margin-block-start: 1rem;
-        padding-block-start: 1rem;
+        gap: 0.45rem;
+        margin-block-start: 1.25rem;
+        padding: 1rem;
         border-block-start: 1px solid var(--_sefaria-border);
+        border-radius: 0.4rem;
+        background: var(--_sefaria-surface-muted);
         color: var(--_sefaria-fg-muted);
-        font-size: 0.8em;
+        font-size: 0.8125em;
       }
 
       .attribution {
@@ -105,6 +112,13 @@ export class SefariaSourceCard extends SefariaElement {
 
       .version-title-link {
         color: var(--_sefaria-link);
+        text-underline-offset: 0.16em;
+      }
+
+      .version-title-link:focus-visible {
+        border-radius: 0.15em;
+        outline: 2px solid var(--_sefaria-accent);
+        outline-offset: 0.18em;
       }
 
       .version-source::before {

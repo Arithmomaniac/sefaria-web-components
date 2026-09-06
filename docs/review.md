@@ -241,7 +241,7 @@ Review the initial corrections for:
 - [ ] A source card renders each visible resolved edition's attribution once outside its item collection.
 - [ ] `hideAttributions` defaults to false, and enabling it changes rendering without discarding view-model attribution.
 - [ ] A source card links the edition title for a validated HTTP(S) `versionSourceUrl` and keeps other source text inert.
-- [ ] The Linker popup disables source-card attribution.
+- [ ] The Linker popup displays source-card attribution.
 - [ ] Interactive controls use native elements and accessible names.
 - [ ] Focus is visible.
 - [ ] Modal popups cycle Tab and Shift+Tab.

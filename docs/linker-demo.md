@@ -49,6 +49,12 @@ await SefariaLinker.link({
 
 `contentSelector` selects the primary host subtree. Additional selectors are included once unless already inside the primary subtree. Exclusions supplement the built-in exclusions for anchors, controls, scripts, styles, editable or hidden content, tables, superscripts, and Linker-owned UI.
 
+## Theming
+
+The current popup defaults to a Sefaria-inspired parchment, berry, serif, and dark-mode palette. It inherits the embedding document's `color-scheme`, and hosts can override `--sefaria-surface`, `--sefaria-surface-muted`, `--sefaria-fg`, `--sefaria-fg-muted`, `--sefaria-border`, `--sefaria-border-strong`, `--sefaria-accent`, `--sefaria-accent-soft`, `--sefaria-danger`, `--sefaria-link`, `--sefaria-shadow`, `--sefaria-font-english`, and `--sefaria-font-hebrew` on any ancestor.
+
+The Linker marks generated citation anchors with `data-sefaria-linker-owned` and applies a visible accent, dotted underline, and keyboard focus treatment without changing existing host links.
+
 The current safety bounds are 50,000 document elements, 20,000 eligible text nodes, and 250,000 UTF-16 code units. Pages above any bound fail visibly instead of being partially scanned.
 
 ## Host requirements and limitations

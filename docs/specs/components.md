@@ -406,7 +406,7 @@ Direction comes from version or corrected API data. A factory must not infer dir
 
 Text that can contain markup passes through `@sefaria/text-transform` before the view model reaches an element.
 
-Edition attribution belongs to the source-card container. Text-segment and bilingual-segment elements do not render it. By default, the source card renders each visible resolved edition once; a host can set `hideAttributions` when its surface intentionally omits edition details. The Linker popup does so to match the v3 Linker presentation. When `versionSourceUrl` is present, the edition title is the link and the raw URL is not repeated. A non-URL or unsafe `versionSource` remains inert text.
+Edition attribution belongs to the source-card container. Text-segment and bilingual-segment elements do not render it. By default, the source card renders each visible resolved edition once; a host can set `hideAttributions` when its surface intentionally omits edition details. The Linker popup keeps attribution visible so the embedded preview identifies its source editions. When `versionSourceUrl` is present, the edition title is the link and the raw URL is not repeated. A non-URL or unsafe `versionSource` remains inert text.
 
 ## Theming
 
@@ -416,12 +416,17 @@ The minimum token set is:
 
 ```css
 --sefaria-surface
+--sefaria-surface-muted
 --sefaria-fg
 --sefaria-fg-muted
 --sefaria-border
+--sefaria-border-strong
 --sefaria-accent
+--sefaria-accent-soft
+--sefaria-danger
 --sefaria-link
 --sefaria-category-color
+--sefaria-shadow
 --sefaria-font-scale
 --sefaria-font-hebrew
 --sefaria-font-english

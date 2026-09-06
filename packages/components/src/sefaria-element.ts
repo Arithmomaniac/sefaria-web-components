@@ -12,7 +12,9 @@ export abstract class SefariaElement extends LitElement {
         display: block;
         background: var(--_sefaria-surface);
         color: var(--_sefaria-fg);
+        font-family: var(--_sefaria-font-english);
         font-size: calc(1rem * var(--_sefaria-font-scale));
+        text-rendering: optimizeLegibility;
       }
 
       *,
