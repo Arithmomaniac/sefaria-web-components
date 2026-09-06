@@ -48,7 +48,7 @@ The MCP App renders Sefaria source material inside an MCP Apps-compatible host. 
 
 The current Core App renders one source card from a corrected `/api/v3/texts/{tref}` payload.
 
-The planned connections extension renders the existing request-free connections panel from a corrected `/api/links/{tref}` payload. Selecting a connection sends a user-role follow-up message that asks the assistant to call `get_text` for the exact selected target. The source appears in a later chat result; the connections App neither fetches the source nor replaces itself with it.
+The current connections extension renders the existing request-free connections panel from a corrected `/api/links/{tref}` payload. Selecting a connection sends a user-role follow-up message that asks the assistant to call `get_text` for the exact selected target. The source appears in a later chat result; the connections App neither fetches the source nor replaces itself with it. This composer or queued-message path is not same-App reader navigation.
 
 The App is a self-contained HTML resource. The MCP server can package it without the TypeScript checkout at runtime.
 
@@ -74,7 +74,7 @@ One tool result serves both host capabilities:
 
 The prior private `preview_sefaria_app` tool is not retained as an alias or compatibility path.
 
-### Connections tool [Planned]
+### Connections tool [Current]
 
 The server also exposes `get_links_between_texts`, preserving the official tool's `reference` and `with_text` vocabulary while adding the App resource.
 
@@ -117,7 +117,7 @@ The App validates the metadata before using it. It then validates `structuredCon
 
 A validation failure contains structured paths that identify each invalid field. The App displays an integration error and does not refetch.
 
-The planned tool-result `_meta["sefaria/connections"]` object contains:
+The current tool-result `_meta["sefaria/connections"]` object contains:
 
 ```json
 {
@@ -171,7 +171,7 @@ sequenceDiagram
 
 The App makes zero network requests during this sequence.
 
-### Planned connections interaction sequence
+### Current connections interaction sequence
 
 ```mermaid
 sequenceDiagram

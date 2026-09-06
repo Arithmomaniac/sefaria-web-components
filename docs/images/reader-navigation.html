@@ -1,0 +1,1202 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>A reader with history: illustrated walkthrough</title>
+    <style>
+      :root {
+        --bg: #ffffff;
+        --fg: #1f2328;
+        --muted: #59636e;
+        --card-bg: #f6f8fa;
+        --card-border: #d0d7de;
+        --link: #0969da;
+      }
+      [data-theme="dark"] {
+        --bg: #0d1117;
+        --fg: #e6edf3;
+        --muted: #abb6c2;
+        --card-bg: #161b22;
+        --card-border: #495563;
+        --link: #79b8ff;
+      }
+      body {
+        margin: 0;
+        padding: 24px;
+        background: var(--bg);
+        color: var(--fg);
+        font-family: "Segoe UI", sans-serif;
+        font-size: 17px;
+        line-height: 1.65;
+      }
+      main {
+        max-width: 1200px;
+        margin: auto;
+      }
+      h1 {
+        font-size: clamp(28px, 4vw, 40px);
+        line-height: 1.2;
+        max-width: 900px;
+      }
+      h2 {
+        margin-top: 56px;
+        padding-top: 24px;
+        border-top: 1px solid var(--card-border);
+        line-height: 1.35;
+        scroll-margin-top: 24px;
+      }
+      h3 {
+        margin-top: 32px;
+      }
+      p,
+      ul {
+        max-width: 95ch;
+      }
+      li {
+        margin-block: 8px;
+      }
+      a {
+        color: var(--link);
+        text-underline-offset: 3px;
+      }
+      a:focus-visible,
+      button:focus-visible {
+        outline: 3px solid var(--link);
+        outline-offset: 4px;
+      }
+      code {
+        font-size: 0.9em;
+        background: var(--card-bg);
+        padding: 2px 4px;
+        border-radius: 4px;
+        overflow-wrap: anywhere;
+      }
+      .toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 20px;
+        margin-block: 24px;
+      }
+      .notice,
+      .toc {
+        padding: 18px 24px;
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        border-radius: 8px;
+      }
+      .notice {
+        color: var(--muted);
+      }
+      .toc ol {
+        columns: 2;
+        padding-left: 24px;
+      }
+      .toc li {
+        break-inside: avoid;
+      }
+      figure {
+        margin: 28px 0;
+      }
+      figure img {
+        display: block;
+        width: 100%;
+        height: auto;
+        border: 1px solid var(--card-border);
+        border-radius: 8px;
+      }
+      figcaption {
+        color: var(--muted);
+        font-size: 0.9rem;
+        line-height: 1.6;
+        margin-top: 12px;
+      }
+      .table-scroll {
+        overflow-x: auto;
+        margin-block: 24px;
+      }
+      table {
+        width: 100%;
+        min-width: 620px;
+        border-collapse: collapse;
+        font-size: 0.95rem;
+      }
+      th,
+      td {
+        text-align: left;
+        vertical-align: top;
+        padding: 12px 16px;
+        border: 1px solid var(--card-border);
+      }
+      th {
+        background: var(--card-bg);
+      }
+      @media (max-width: 650px) {
+        body {
+          padding: 16px;
+        }
+        .toc ol {
+          columns: 1;
+        }
+        .diagram {
+          overflow-x: auto;
+        }
+        .diagram svg {
+          min-width: 900px;
+        }
+      }
+      button {
+        font: inherit;
+        padding: 8px 16px;
+        color: var(--fg);
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        border-radius: 6px;
+      }
+      svg {
+        display: block;
+        width: 100%;
+        height: auto;
+        margin: 24px 0;
+      }
+      .bg {
+        fill: var(--bg);
+      }
+      .card {
+        fill: var(--card-bg);
+        stroke: var(--card-border);
+        stroke-width: 1.5;
+      }
+      .blue {
+        fill: #58a6ff;
+        fill-opacity: 0.09;
+        stroke: #58a6ff;
+        stroke-width: 2;
+      }
+      .green {
+        fill: #3fb950;
+        fill-opacity: 0.09;
+        stroke: #3fb950;
+        stroke-width: 2;
+      }
+      .purple {
+        fill: #bc8cff;
+        fill-opacity: 0.09;
+        stroke: #bc8cff;
+        stroke-width: 2;
+      }
+      .gold {
+        fill: #d29922;
+        fill-opacity: 0.09;
+        stroke: #d29922;
+        stroke-width: 2;
+      }
+      text {
+        fill: var(--fg);
+        font-family: "Segoe UI", sans-serif;
+        font-size: 17px;
+      }
+      .title {
+        font-size: 26px;
+        font-weight: 650;
+      }
+      .heading {
+        font-size: 20px;
+        font-weight: 650;
+      }
+      .small {
+        font-size: 15px;
+      }
+      .muted {
+        fill: var(--muted);
+      }
+      .center {
+        text-anchor: middle;
+      }
+      .arrow {
+        fill: none;
+        stroke: #58a6ff;
+        stroke-width: 2.5;
+      }
+      .type-arrow {
+        fill: none;
+        stroke: #bc8cff;
+        stroke-width: 2;
+        stroke-dasharray: 6 5;
+      }
+      .rule {
+        stroke: var(--card-border);
+        stroke-width: 2;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <p class="notice">
+        Created/edited by GitHub Copilot; pending human review.
+      </p>
+      <h1>A reader with history: what to share, what to keep in the host</h1>
+      <p class="muted">
+        Created/edited by GitHub Copilot with human review/feedback by avilevin.
+      </p>
+      <div class="toolbar">
+        <button
+          type="button"
+          onclick="
+            document.documentElement.dataset.theme =
+              document.documentElement.dataset.theme === 'dark'
+                ? 'light'
+                : 'dark'
+          "
+        >
+          Switch light / dark
+        </button>
+        <a href="../guides/reader-navigation.md">Markdown version</a>
+        <a href="../evidence.md#reader-navigation-ownership-september-6-2026"
+          >Source evidence</a
+        >
+      </div>
+      <p>
+        <strong>Accepted direction:</strong> reuse the source card and
+        connections panel, add a headless reader session, and compose them in a
+        controlled reader surface with Back and breadcrumbs. Share the
+        interaction semantics and visual surface between the browser and MCP
+        App. Keep their request execution separate.
+      </p>
+      <p>
+        This is an illustrated explanation, not the normative API reference.
+        <strong>Current baseline</strong> refers to repository commit
+        <code>5dedf0a89f9b8486143cc071e01b620cc53247cd</code>, inspected on
+        September 6, 2026, after the connections panel, bounded client cache,
+        and adaptive MCP connections flow merged.
+        <strong>Observed</strong> describes pinned upstream source.
+        <strong>Planned</strong> identifies accepted work that has not landed on
+        the baseline. The <a href="../specs/components.md">component</a> and
+        <a href="../specs/integrations.md">integration</a> specifications remain
+        authoritative.
+      </p>
+      <p class="notice">
+        Unified presentation of the
+        <a href="../guides/reader-navigation.md">Markdown walkthrough</a>, with
+        its screenshots and editable inline SVG diagrams interleaved. The
+        Markdown file is the prose source; this page contains the diagram
+        source. Keep the prose in both versions aligned when revising the
+        explanation.
+      </p>
+      <nav class="toc" aria-label="Walkthrough sections">
+        <strong>In this walkthrough</strong>
+        <ol>
+          <li><a href="#current">What we have now</a></li>
+          <li><a href="#sefaria">What Sefaria owns</a></li>
+          <li><a href="#hosts">One component, two hosts</a></li>
+          <li><a href="#breadcrumbs">Breadcrumb and history ownership</a></li>
+          <li><a href="#responsive">Wide and narrow layouts</a></li>
+          <li><a href="#options">Which abstraction to build</a></li>
+          <li><a href="#decisions">Accepted boundaries</a></li>
+        </ol>
+      </nav>
+      <h2>The questions this answers</h2>
+      <ul>
+        <li>
+          Does the current demo already have a reader, or do we need another
+          component?
+        </li>
+        <li>Who owns breadcrumbs, and how does that compare with Sefaria?</li>
+        <li>
+          What can the browser and MCP App share when requests happen
+          differently?
+        </li>
+        <li>What must Back restore, including on a narrow screen?</li>
+      </ul>
+      <h2 id="current">1. What we have now</h2>
+      <p>
+        The browser demo is already a small reader application. Its host
+        coordinates two reusable elements; neither element requests data.
+        Calling it "non-stateful" was misleading: it has current state, but does
+        not retain a navigable history.
+      </p>
+      <figure>
+        <img
+          src="reader-navigation-current.png"
+          width="1500"
+          height="1150"
+          alt="Current connections demo with a selected source segment and a separate connections pane."
+        />
+        <figcaption>
+          Current UI, captured from the merged demo using committed text and
+          links fixtures in place of live HTTP responses. This is a screenshot
+          of real components, not a proposed reader shell. It demonstrates
+          rendering, not a fresh live-service or MCP acceptance result.
+        </figcaption>
+      </figure>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Current piece</th>
+              <th scope="col">What it already owns</th>
+              <th scope="col">What it does not own</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Source card</td>
+              <td>
+                Bounded text rendering, metadata-backed segment targets,
+                controlled selection, focus/reveal behavior
+              </td>
+              <td>Connections loading or reader history</td>
+            </tr>
+            <tr>
+              <td>Connections panel</td>
+              <td>
+                Category summaries, 20-entry pages, bounded previews, action
+                events
+              </td>
+              <td>Target navigation, requests, or history</td>
+            </tr>
+            <tr>
+              <td>Browser demo host</td>
+              <td>
+                Displayed section, active segment, captures, projection
+                settings, cancellation, stale-result suppression
+              </td>
+              <td>Back stack or breadcrumbs</td>
+            </tr>
+            <tr>
+              <td>Adaptive MCP App</td>
+              <td>
+                Host-delivered source or links result validation, pure component
+                projection, local connections category/page controls, explicit
+                chat follow-up
+              </td>
+              <td>Same-App connected-source navigation or reader history</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        The
+        <a href="../../demos/connections-panel-live-demo/src/app.ts"
+          >browser host</a
+        >
+        opens a target, obtains its server-provided context when needed, selects
+        the first qualified segment, and loads that segment's connections. It
+        makes at most two text operations and one links operation for that flow.
+        Selecting another displayed segment needs only a links operation.
+        Category/page changes project the current capture with zero requests;
+        preview acquisition is a separate explicit action. See the
+        <a href="../specs/integrations.md#standalone-connections-reader-current"
+          >current interaction contract</a
+        >.
+      </p>
+      <p>
+        The current MCP experience is still narrower than the planned integrated
+        reader:
+      </p>
+      <figure>
+        <img
+          src="mcp-app-vscode.png"
+          width="1920"
+          height="1140"
+          alt="Existing source-card MCP App rendered inside VS Code Copilot Chat."
+        />
+        <figcaption>
+          Existing named-host source-card capture; provenance is recorded in
+          <a href="../evidence.md#mcp-host-interaction">MCP host interaction</a
+          >. The merged App also renders connections and sends an explicit chat
+          follow-up, but neither behavior establishes Back or same-App
+          host-proxied tool calls.
+        </figcaption>
+      </figure>
+      <p>
+        The missing feature is therefore
+        <strong>history across coordinated reader workspaces</strong>, not
+        another text renderer.
+      </p>
+
+      <h2 id="sefaria">2. What Sefaria owns, and what we are not copying</h2>
+      <figure class="diagram">
+        <svg
+          id="precedent"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 1200 650"
+          role="img"
+          aria-labelledby="precedent-title precedent-description"
+        >
+          <title id="precedent-title">
+            Sefaria precedent and our proposed reader
+          </title>
+          <desc id="precedent-description">
+            Sefaria Web owns open panels in ReaderApp. Mobile owns tab and page
+            history. Our proposed bounded reader retains earlier workspaces and
+            renders one active text-and-connections pair with a history trail.
+          </desc>
+          <rect class="bg" width="1200" height="650" rx="8" />
+          <text x="26" y="40" class="title">
+            Context is retained in different ways
+          </text>
+          <text x="26" y="70" class="muted">
+            Observed source structure on the left; a local product proposal on
+            the right.
+          </text>
+
+          <rect x="24" y="104" width="360" height="430" rx="10" class="blue" />
+          <text x="44" y="138" class="heading">Sefaria Web</text>
+          <text x="44" y="165" class="small muted">
+            Open-panel collection + browser history
+          </text>
+          <rect x="44" y="195" width="98" height="136" rx="6" class="card" />
+          <rect x="154" y="195" width="98" height="136" rx="6" class="card" />
+          <rect x="264" y="195" width="98" height="136" rx="6" class="card" />
+          <text x="93" y="225" class="center">Text A</text>
+          <text x="203" y="225" class="center">Text B</text>
+          <text x="313" y="225" class="center">B links</text>
+          <path
+            d="M 59 249 H 127 M 59 267 H 127 M 59 285 H 115 M 169 249 H 237 M 169 267 H 237 M 169 285 H 225 M 279 249 H 347 M 279 267 H 347 M 279 285 H 335"
+            class="rule"
+          />
+          <text x="44" y="370">ReaderApp owns the panel collection.</text>
+          <text x="44" y="402">Selection opens adjacent connections.</text>
+          <text x="44" y="434">Citation actions insert or replace panels.</text>
+          <text x="44" y="484" class="small muted">
+            A panel arrangement is not itself
+          </text>
+          <text x="44" y="508" class="small muted">
+            a source-to-commentary breadcrumb trail.
+          </text>
+
+          <rect
+            x="420"
+            y="104"
+            width="360"
+            height="430"
+            rx="10"
+            class="purple"
+          />
+          <text x="440" y="138" class="heading">Sefaria Mobile</text>
+          <text x="440" y="165" class="small muted">
+            TabHistory composed from PageHistory
+          </text>
+          <rect x="467" y="195" width="266" height="136" rx="6" class="card" />
+          <text x="486" y="225">&lt; Back</text>
+          <text x="486" y="260">Current reading state</text>
+          <path d="M 486 280 H 710 M 486 301 H 678" class="rule" />
+          <text x="440" y="370">ReaderApp owns the history objects.</text>
+          <text x="440" y="402">Controls receive a Back action.</text>
+          <text x="440" y="434">Current tab state is not the back stack.</text>
+          <text x="440" y="484" class="small muted">
+            This shows state ownership, not
+          </text>
+          <text x="440" y="508" class="small muted">
+            a reproduction of the native mobile UI.
+          </text>
+
+          <rect
+            x="816"
+            y="104"
+            width="360"
+            height="430"
+            rx="10"
+            class="green"
+          />
+          <text x="836" y="138" class="heading">Our proposed reader</text>
+          <text x="836" y="165" class="small muted">
+            One active workspace + retained history
+          </text>
+          <rect x="836" y="195" width="320" height="39" rx="6" class="card" />
+          <text x="852" y="221">Micah 6:8 &gt; Rashi &gt; Current source</text>
+          <rect x="836" y="246" width="153" height="85" rx="6" class="card" />
+          <rect x="1001" y="246" width="155" height="85" rx="6" class="card" />
+          <text x="912" y="277" class="center">Source card</text>
+          <text x="1078" y="277" class="center">Connections</text>
+          <path d="M 854 298 H 970 M 1019 298 H 1137" class="rule" />
+          <text x="836" y="370">Session owns entries and restoration.</text>
+          <text x="836" y="402">Surface renders the trail and both panes.</text>
+          <text x="836" y="434">Host executes requested data work.</text>
+          <text x="836" y="484" class="small muted">
+            History breadcrumbs are our proposal,
+          </text>
+          <text x="836" y="508" class="small muted">
+            not an asserted Sefaria UI feature.
+          </text>
+
+          <rect x="24" y="562" width="1152" height="65" rx="8" class="gold" />
+          <text x="44" y="588">
+            Do not conflate: source history, open panels, connections
+            categories, and library hierarchy.
+          </text>
+          <text x="44" y="612" class="small muted">
+            Sefaria's inspected BreadcrumbPath renders caller-supplied search
+            hierarchy, not this proposed reader trail.
+          </text>
+        </svg>
+        <figcaption>
+          Interpretive schematic, not a screenshot or pixel-parity claim. Source
+          observations and pinned links are in
+          <a href="../evidence.md#reader-navigation-ownership-september-6-2026"
+            >Reader navigation ownership</a
+          >.
+        </figcaption>
+      </figure>
+      <p>
+        On Sefaria Web, <code>ReaderApp</code> owns a collection of panels and
+        browser-history updates. Selecting text can open a connections panel
+        adjacent to it; citation navigation can insert a text panel and replace
+        a following connections panel. This preserves context spatially, rather
+        than necessarily replacing one whole reader with another.
+        <code>ReaderPanel</code> can delegate state changes to that parent.
+      </p>
+      <p>
+        On Sefaria Mobile, <code>ReaderApp</code> uses <code>TabHistory</code>,
+        built from <code>PageHistory</code>, and gives Back actions to reader
+        controls. Current state per tab is distinct from the back stack.
+      </p>
+      <p>
+        The inspected Web <code>BreadcrumbPath</code> is a presentation
+        component used for search-result hierarchy: callers supply crumb data
+        and navigation behavior.
+        <strong
+          >It is not evidence of a source-to-commentary reader-history
+          trail.</strong
+        >
+        Connections category/mode navigation is another concern again.
+      </p>
+      <p>
+        For our bounded product, the accepted supported surface has one active
+        text-and-connections workspace and a retained trail of earlier
+        workspaces. A trail such as
+        <code>Micah 6:8 &gt; Rashi on Micah 6:8 &gt; another source</code> is
+        <strong>our navigation-history feature</strong>, not a claim that we
+        copied Sefaria's breadcrumb semantics. A separate website demo owns an
+        ordered spatial pane collection so it can show multiple source and
+        connections panes at once without turning arbitrary panel management
+        into the public package contract.
+      </p>
+      <h2 id="hosts">3. The same component can work in both hosts</h2>
+      <p>
+        The shared surface would be a <strong>controlled renderer</strong>: it
+        receives a reader-specific view model plus presentation/interaction
+        properties and emits actions. It would not receive raw API payloads,
+        request objects, a client, or the session's complete capture store.
+      </p>
+      <figure class="diagram">
+        <svg
+          id="boundaries"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 1200 840"
+          role="img"
+          aria-labelledby="boundaries-title boundaries-description"
+        >
+          <title id="boundaries-title">
+            Shared reader, separate request execution
+          </title>
+          <desc id="boundaries-description">
+            A controlled surface emits actions to a headless session. Browser
+            and MCP coordinators execute work differently. The browser uses the
+            client; the MCP App calls tools through its host. Both obtain
+            validated captures and use pure factories to supply DOM rendering.
+          </desc>
+          <defs>
+            <marker
+              id="runtime-arrow"
+              markerWidth="8"
+              markerHeight="6"
+              refX="8"
+              refY="3"
+              orient="auto"
+            >
+              <path d="M 0 0 L 8 3 L 0 6 Z" fill="#58a6ff" />
+            </marker>
+            <marker
+              id="contract-arrow"
+              markerWidth="8"
+              markerHeight="6"
+              refX="8"
+              refY="3"
+              orient="auto"
+            >
+              <path d="M 0 0 L 8 3 L 0 6 Z" fill="#bc8cff" />
+            </marker>
+          </defs>
+          <rect class="bg" width="1200" height="840" rx="8" />
+          <text x="26" y="40" class="title">
+            Share the reader, not the transport
+          </text>
+          <text x="26" y="69" class="muted">
+            PROPOSED runtime flow. Current child components and pure factories
+            remain the rendering path.
+          </text>
+
+          <rect x="150" y="94" width="900" height="77" rx="8" class="green" />
+          <text x="600" y="124" class="heading center">
+            Controlled reader surface
+          </text>
+          <text x="600" y="151" class="center">
+            Breadcrumbs + source card + connections panel; emits actions, makes
+            no requests
+          </text>
+          <path
+            d="M 600 171 V 207"
+            class="arrow"
+            marker-end="url(#runtime-arrow)"
+          />
+          <rect x="150" y="213" width="900" height="78" rx="8" class="purple" />
+          <text x="600" y="243" class="heading center">
+            Headless reader session
+          </text>
+          <text x="600" y="270" class="center">
+            Owns entries, transitions and result identity; requests work, not a
+            particular transport
+          </text>
+          <path
+            d="M 330 291 V 334"
+            class="arrow"
+            marker-end="url(#runtime-arrow)"
+          />
+          <path
+            d="M 870 291 V 334"
+            class="arrow"
+            marker-end="url(#runtime-arrow)"
+          />
+
+          <rect x="40" y="340" width="528" height="72" rx="8" class="blue" />
+          <text x="304" y="369" class="heading center">
+            Browser coordinator
+          </text>
+          <text x="304" y="395" class="center">
+            Direct client capability + cancellation
+          </text>
+          <rect x="632" y="340" width="528" height="72" rx="8" class="blue" />
+          <text x="896" y="369" class="heading center">
+            MCP App coordinator
+          </text>
+          <text x="896" y="395" class="center">
+            Host capability + operation-scoped completion
+          </text>
+          <path
+            d="M 304 412 V 450"
+            class="arrow"
+            marker-end="url(#runtime-arrow)"
+          />
+          <path
+            d="M 896 412 V 450"
+            class="arrow"
+            marker-end="url(#runtime-arrow)"
+          />
+
+          <rect x="40" y="456" width="528" height="80" rx="8" class="card" />
+          <text x="304" y="487" class="heading center">
+            Typed client (capture path)
+          </text>
+          <text x="304" y="514" class="center">
+            HTTP to Sefaria; validate the endpoint result
+          </text>
+          <rect x="632" y="456" width="528" height="80" rx="8" class="card" />
+          <text x="896" y="487" class="heading center">
+            MCP host / Python server
+          </text>
+          <text x="896" y="514" class="center">
+            Tool call through host; server requests Sefaria
+          </text>
+          <path
+            d="M 304 536 V 574"
+            class="arrow"
+            marker-end="url(#runtime-arrow)"
+          />
+          <path
+            d="M 896 536 V 574"
+            class="arrow"
+            marker-end="url(#runtime-arrow)"
+          />
+
+          <rect x="40" y="580" width="528" height="80" rx="8" class="gold" />
+          <text x="304" y="611" class="heading center">
+            Validated result / explicit capture
+          </text>
+          <text x="304" y="638" class="center">
+            Request + status + corrected API-shaped payload
+          </text>
+          <rect x="632" y="580" width="528" height="80" rx="8" class="gold" />
+          <text x="896" y="611" class="heading center">
+            Validate unknown tool result
+          </text>
+          <text x="896" y="638" class="center">
+            Metadata + corrected API JSON; not a view model
+          </text>
+          <path
+            d="M 304 660 V 689 H 445 V 710"
+            class="arrow"
+            marker-end="url(#runtime-arrow)"
+          />
+          <path
+            d="M 896 660 V 689 H 755 V 710"
+            class="arrow"
+            marker-end="url(#runtime-arrow)"
+          />
+
+          <rect x="150" y="716" width="900" height="62" rx="8" class="green" />
+          <text x="600" y="743" class="heading center">
+            Same pure factories and component view models
+          </text>
+          <text x="600" y="766" class="small center">
+            Accepted completions update session state; supplied view models
+            drive DOM rendering.
+          </text>
+
+          <path
+            d="M 574 598 H 620"
+            class="type-arrow"
+            marker-end="url(#contract-arrow)"
+          />
+          <text x="26" y="814" class="small muted">
+            Solid blue: runtime commands/results. Dashed purple: shared API
+            types only. Gold: external payload boundary.
+          </text>
+        </svg>
+        <figcaption>
+          Proposed runtime paths, showing the browser capture-and-project
+          variant. An existing async factory already performs its pure
+          projection internally; it does not need projection a second time. Blue
+          arrows carry commands or results; purple dashed arrows describe
+          type-only contracts. The Sefaria payload is an external JSON boundary.
+          Diagram source: the inline SVG in this HTML document.
+        </figcaption>
+      </figure>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Owner</th>
+              <th scope="col">Responsibility</th>
+              <th scope="col">Explicit exclusion</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Headless session</td>
+              <td>
+                Current entry, immutable history transitions, stable entry IDs,
+                breadcrumb data, which completed result belongs to which
+                navigation
+              </td>
+              <td>DOM, MCP SDK, HTTP, hidden retries</td>
+            </tr>
+            <tr>
+              <td>Host coordinator</td>
+              <td>
+                Executes the session's requested work, manages cancellation and
+                operation identity, validates external results, calls factories,
+                reports completion
+              </td>
+              <td>A second independent history stack</td>
+            </tr>
+            <tr>
+              <td>Controlled reader surface</td>
+              <td>
+                Navigation bar, pane layout, accessible controls, presentation
+                state supplied by the host, composed action events
+              </td>
+              <td>Fetching or interpreting API payloads</td>
+            </tr>
+            <tr>
+              <td>Existing child elements</td>
+              <td>
+                Render their existing component view models and emit their
+                existing events
+              </td>
+              <td>Knowledge of the reader session</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        "Headless" means usable without a DOM element. The accepted session
+        lives at <code>@sefaria/components/reader-session</code>, not in another
+        npm package. Likewise, the planned reader surface is a visual
+        composition, not a new client facade or a composite async factory that
+        secretly calls child async factories.
+      </p>
+      <h3>Browser execution</h3>
+      <p>
+        A segment event goes to the browser coordinator. It calls the typed
+        client or existing async factory, or projects an explicitly held capture
+        when that capture covers the action. Results update session-owned state,
+        which supplies rendering data to the surface. A host can keep its own
+        markup instead of using the shared surface.
+      </p>
+      <p>
+        The standalone page can eventually integrate reader navigation with its
+        URL and browser Back, but that should be an explicit host feature. The
+        session should not write global browser history itself.
+      </p>
+      <h3>MCP execution</h3>
+      <p>
+        The initial render remains unchanged: the server's tool result supplies
+        corrected API JSON; the App validates it and calls the pure factory.
+        There is no duplicate first-render text request.
+      </p>
+      <p>
+        For a later interaction needing data, the planned integrated App
+        coordinator must call a server tool through the MCP host. The exact
+        installed SDK capability and named-host permission path remain a
+        qualification gate rather than an assumed
+        <code>callServerTool</code> API. The server requests Sefaria, and the
+        App validates the returned operation/status/request metadata and payload
+        before pure projection. It does <strong>not</strong> call the browser
+        async factory against Sefaria as a fallback.
+      </p>
+      <p>
+        The
+        <a
+          href="https://apps.extensions.modelcontextprotocol.io/api/classes/app.App.html"
+          >MCP Apps architecture</a
+        >
+        describes host-proxied tool calls; the
+        <a href="https://modelcontextprotocol.io/extensions/apps/overview"
+          >overview</a
+        >
+        distinguishes those calls from sending messages or updating model
+        context. Clicking a connection need not ask the language model to invent
+        the next step. Host tool availability and permissions still apply.
+      </p>
+      <p>
+        The current <code>get_links_between_texts</code> tool preserves the
+        corrected array payload inside the specified MCP object envelope.
+        Request identity and documented status remain available for the existing
+        validation-and-projection boundary. The current selected-connection
+        action deliberately sends a chat follow-up; integrated same-App
+        navigation is separate planned work and must not claim success from that
+        composer path.
+      </p>
+      <p>
+        Back, breadcrumbs, and category/page changes covered by retained
+        captures stay local to the App. A host that denies a needed tool call
+        gets an integration-owned unavailable/error presentation, not a hidden
+        direct request. Browser Back must not be used to navigate the
+        surrounding chat.
+      </p>
+      <p>
+        <strong
+          >The host mediates data access, not every local interaction.</strong
+        >
+        A conversation's tool-call sequence is also not the reader's breadcrumb
+        stack. A new unsolicited tool result needs a declared reset/replace
+        policy; it must not automatically become a child navigation merely
+        because it arrived later.
+      </p>
+      <h2 id="breadcrumbs">
+        4. Breadcrumbs need one semantic owner and one visual owner
+      </h2>
+      <p>
+        The session owns the ordered entries and the meaning of returning to
+        one. The reader surface owns their accessible display. Selecting a crumb
+        emits an entry ID, not a reference to parse and reload.
+      </p>
+      <p>
+        <strong>Example:</strong> start at a Micah 6:8 workspace, open a
+        connected Rashi source, then open another source from there. Each entry
+        preserves both the text pane and its related connections state. Two
+        visits to the same reference can be different entries, so reference
+        strings are not history IDs.
+      </p>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Action</th>
+              <th scope="col">Proposed history effect</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Select a different segment in the current section</td>
+              <td>Update current entry and replace its connections state</td>
+            </tr>
+            <tr>
+              <td>
+                Change category, page, preview visibility, or display settings
+              </td>
+              <td>Update current entry; do not add a crumb</td>
+            </tr>
+            <tr>
+              <td>Open a connected source</td>
+              <td>
+                Establish a new entry when its contextual reader can be
+                committed
+              </td>
+            </tr>
+            <tr>
+              <td>Back</td>
+              <td>Return to the previous retained entry</td>
+            </tr>
+            <tr>
+              <td>Select an earlier crumb</td>
+              <td>
+                Return to it and discard later entries; Forward is not part of
+                this contract
+              </td>
+            </tr>
+            <tr>
+              <td>Switch Text/Connections pane or resize</td>
+              <td>Change presentation, not the source-history path</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        During navigation, pending execution remains separate from the last
+        committed workspace. If contextual text fails, no successful destination
+        entry is created. If text commits but connections fail, retain the
+        destination text and its explicit connections failure. These rules
+        extend the current demo's independent pane behavior rather than forcing
+        both requests into a single all-or-nothing result.
+      </p>
+      <h3>Restore usable state, not just the visible page</h3>
+      <p>
+        Consider
+        <code
+          >Micah 6:8 connections page 2 -&gt; Rashi -&gt; Back -&gt; page
+          3</code
+        >. Restoring the page-2 <code>ConnectionsViewModel</code> can redraw
+        page 2, but it cannot project page 3: the current view model contains
+        only one page.
+      </p>
+      <p>
+        The accepted session retains the validated links capture with its
+        request/status/coverage alongside each retained entry. Captures,
+        requests, projections, and view models remain distinguishable. The
+        surface receives only rendering data. This is explicit session
+        retention, not a default client cache.
+      </p>
+      <p>
+        An entry also needs the selected segment/position, actual edition
+        choices and request inputs, content-language and display settings,
+        category/page, pane failures, and any stable focus/scroll target needed
+        for restoration. Prefer supplied labels and stable targets to reference
+        parsing or saved DOM nodes.
+      </p>
+      <p>
+        Back must invalidate pending work. For example: open Rashi, return to
+        Micah 6:8 while Rashi's links are pending, then receive that late
+        result. It must not replace the restored Micah connections.
+      </p>
+      <p>
+        There is no public snapshot format in this delivery. Retention defaults
+        to 20 entries including current and 20 MiB of aggregate unique corrected
+        payload JSON measured as UTF-8 bytes. The session visibly marks an
+        evicted history boundary, never silently removes current or pinned data,
+        and rejects an admission transactionally when permitted eviction cannot
+        make it fit. In-memory history and durable cross-reload persistence
+        remain separate promises.
+      </p>
+      <h2 id="responsive">
+        5. Wide and narrow layouts share the same reading state
+      </h2>
+      <figure class="diagram">
+        <svg
+          id="layouts"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 1200 710"
+          role="img"
+          aria-labelledby="layouts-title layouts-description"
+        >
+          <title id="layouts-title">Two layouts, one reader session</title>
+          <desc id="layouts-description">
+            Wide layout shows a history trail and side-by-side text and
+            connections. Compact layout shows Back and a trail menu above a Text
+            or Connections pane switch. Changing visible panes does not navigate
+            backward through source history.
+          </desc>
+          <rect class="bg" width="1200" height="710" rx="8" />
+          <text x="26" y="40" class="title">
+            Equivalent navigation, not identical visibility
+          </text>
+          <text x="26" y="69" class="muted">
+            PROPOSED wireframes for a browser page or MCP App; no native-mobile
+            implementation is implied.
+          </text>
+
+          <text x="32" y="112" class="heading">Wide container</text>
+          <rect x="26" y="133" width="727" height="411" rx="12" class="card" />
+          <rect x="46" y="156" width="687" height="56" rx="6" class="purple" />
+          <text x="62" y="190">&lt; Back</text>
+          <path d="M 138 167 V 201" class="rule" />
+          <text x="156" y="190">Micah 6:8 &gt; Rashi &gt; Current source</text>
+          <rect x="46" y="228" width="365" height="290" rx="8" class="blue" />
+          <text x="66" y="262" class="heading">Current text</text>
+          <text x="66" y="292" class="small muted">
+            Source card / bilingual display
+          </text>
+          <rect x="61" y="313" width="335" height="64" rx="6" class="green" />
+          <text x="77" y="339">Selected segment</text>
+          <text x="77" y="363" class="small muted">
+            Same canonical target in either layout
+          </text>
+          <path
+            d="M 66 402 H 385 M 66 426 H 385 M 66 450 H 361 M 66 474 H 385"
+            class="rule"
+          />
+          <rect x="427" y="228" width="306" height="290" rx="8" class="blue" />
+          <text x="447" y="262" class="heading">Connections</text>
+          <text x="447" y="292" class="small muted">
+            Categories / current page
+          </text>
+          <rect x="444" y="313" width="272" height="72" rx="6" class="card" />
+          <text x="461" y="342">Connected source</text>
+          <text x="461" y="368" class="small muted">
+            Open creates a history entry
+          </text>
+          <rect x="444" y="401" width="272" height="72" rx="6" class="card" />
+          <text x="461" y="430">Another source</text>
+          <text x="461" y="455" class="small muted">
+            Preview, edition and link
+          </text>
+          <text x="447" y="501" class="small">Previous page</text>
+          <text x="675" y="501" class="small">More</text>
+
+          <text x="819" y="112" class="heading">Compact container</text>
+          <rect x="812" y="133" width="360" height="411" rx="12" class="card" />
+          <rect x="830" y="156" width="324" height="56" rx="6" class="purple" />
+          <text x="845" y="190" class="small">&lt; Back</text>
+          <text x="912" y="190" class="small">Current source</text>
+          <text x="1110" y="190" class="small">Trail</text>
+          <rect x="830" y="228" width="324" height="48" rx="6" class="green" />
+          <text x="912" y="258" class="center">Text</text>
+          <text x="1072" y="258" class="center">Connections</text>
+          <path d="M 992 237 V 267" class="rule" />
+          <rect x="830" y="293" width="324" height="225" rx="8" class="blue" />
+          <text x="848" y="324" class="heading">One visible pane</text>
+          <text x="848" y="355">Selected segment retained</text>
+          <path
+            d="M 848 380 H 1134 M 848 404 H 1134 M 848 428 H 1103"
+            class="rule"
+          />
+          <text x="848" y="469" class="small muted">
+            Hidden pane keeps its state.
+          </text>
+          <text x="848" y="496" class="small muted">
+            Trail menu exposes earlier entries.
+          </text>
+
+          <rect x="26" y="570" width="1146" height="111" rx="8" class="gold" />
+          <text x="46" y="600" class="heading">Two different actions</text>
+          <text x="46" y="632">
+            Text / Connections: switch panes within the current workspace. No
+            source-history change.
+          </text>
+          <text x="46" y="660">
+            Back / earlier crumb: restore a retained workspace. Resizing
+            performs neither action and makes no request.
+          </text>
+        </svg>
+        <figcaption>
+          Proposed wireframes, not implemented components. The compact
+          illustration is mobile web or a narrow MCP App, not a native-mobile
+          screenshot.
+        </figcaption>
+      </figure>
+      <p>
+        On a wide surface, show the trail above text and connections side by
+        side. On a narrow surface, show one pane with an explicit
+        Text/Connections switch and a compact Back/current-location control. An
+        accessible trail menu can expose earlier entries without requiring
+        hover.
+      </p>
+      <p>
+        Switching panes does not pop source history. Expanding the host does not
+        fetch data or reset the selected segment. The source card's bilingual
+        layout remains a separate setting from the reader's two-pane layout.
+      </p>
+      <p>
+        Use the actual embedding width, not an assumption that desktop means
+        wide. MCP display modes are negotiated with the host, so fullscreen
+        should improve presentation rather than be required for navigation.
+        Focus, scroll placement, and container measurements remain UI concerns;
+        the session retains stable restoration targets.
+      </p>
+      <p>
+        Native mobile could reuse DOM-free navigation semantics, but the current
+        Lit elements and HTML-bearing view models do not become native widgets
+        automatically. This design promises neither a native renderer nor exact
+        Sefaria-Mobile parity.
+      </p>
+      <h2 id="options">6. Which abstraction is worth building?</h2>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Option</th>
+              <th scope="col">Cost and benefit</th>
+              <th scope="col">Fit</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Duplicate the demo coordinator in each host</td>
+              <td>Fast initially; selection, errors, and Back can drift</td>
+              <td>Useful only while learning the MCP interaction boundary</td>
+            </tr>
+            <tr>
+              <td>Shared session, host-specific UI</td>
+              <td>
+                Reuses history without imposing visual structure; duplicates
+                navigation presentation
+              </td>
+              <td>A valid escape hatch</td>
+            </tr>
+            <tr>
+              <td>Shared session plus controlled reader surface</td>
+              <td>
+                Reuses history and breadcrumb/pane UX; adapters remain
+                host-specific
+              </td>
+              <td><strong>Recommended target</strong></td>
+            </tr>
+            <tr>
+              <td>Autonomous reader element with its own transport</td>
+              <td>
+                Easy-looking embed API; mixes data access, application policy,
+                and rendering
+              </td>
+              <td>Conflicts with current ownership rules</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        The shared reader surface earns its place by owning navigation
+        presentation and responsive composition, not by being a convenient place
+        to put requests. The existing demo was a useful first host, not a failed
+        component design.
+      </p>
+      <h2 id="decisions">7. Accepted boundaries and remaining qualification</h2>
+      <p>
+        The component specification now settles push/update rules, stable
+        identities, retained-history limits, pending connections, capture
+        accounting, pinning, and explicit rejection. Durable persistence,
+        Forward, browser URL integration, native mobile rendering, and a public
+        arbitrary-panel manager are deferred.
+      </p>
+      <p>
+        For the MCP connections work, preserve these seams: explicit component
+        actions; host-mediated data access; corrected payloads with
+        request/status identity; shared pure projection; and operation-scoped
+        completion that cannot overwrite a newer navigation. Do not make the
+        server own visual history or return a reader view model as
+        <code>structuredContent</code>.
+      </p>
+      <p>
+        The session foundation proves page-2/Back/page-3 reprojection, late
+        completion rejection, bounded admission, shared capture accounting,
+        interrupted pending connections, and pinned-entry behavior without I/O.
+        The controlled surface, website workspace, and integrated MCP reader
+        remain later slices. Their acceptance still includes a denied MCP tool
+        call, target-text success with links failure, and wide-to-narrow
+        resizing without requests through the actual browser and named-host
+        paths.
+      </p>
+    </main>
+  </body>
+</html>
