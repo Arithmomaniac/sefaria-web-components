@@ -276,6 +276,20 @@ Targeted live `/api/v3/texts` probes on August 27, 2026 showed that text content
 
 `Genesis 1:1` returned a string. `Genesis 1:1-3` returned an array. `Genesis 1:31-2:2` returned nested arrays for the spanning range.
 
+### Recursive text shape and side alignment
+
+Targeted deployed `/api/v3/texts` probes on September 4, 2026 showed that recursive text shape is not determined by `isSpanning`.
+
+`Likutei Moharan 1` returned nested arrays while `isSpanning` was `false`. `Genesis 1:31-2:2` returned nested arrays while `isSpanning` was `true`. A consumer must therefore follow the recursive `text` value itself rather than choosing a flattening rule from `isSpanning`.
+
+The `Genesis 1:31-2:2` response returned `spanningRefs: ["Genesis 1:31", "Genesis 2:1-2"]` for two top-level groups while the text contained three leaf segments. `spanningRefs` labels groups rather than every leaf.
+
+`Zohar, Bereshit 1-5` returned a Hebrew first group containing two strings while the corresponding English first group was an empty array. The two sides can therefore disagree in which position paths exist. Intersection alignment would discard returned source text.
+
+`Tosafot on Shabbat 2a` returned one version shaped as `[[s,s,s],[],[],[s],[],[],[s]]` plus one missing-selector warning. Empty inner arrays occur as holes, and an entire requested side can be absent.
+
+These observations do not establish a general reference-construction algorithm. The payload exposes address types that vary by work, and its group-level references do not identify every leaf. The source-card specification consequently uses positional item identity and does not synthesize leaf references.
+
 ### Bilingual version roles
 
 Sefaria Web commit [`52e00f8bef430cba25a091f4443345ee1890e6c8`](https://github.com/Sefaria/Sefaria-Project/tree/52e00f8bef430cba25a091f4443345ee1890e6c8) treats reader sides as source or primary text and translation text, not fixed Hebrew and English families.
@@ -286,9 +300,33 @@ Sefaria Web commit [`52e00f8bef430cba25a091f4443345ee1890e6c8`](https://github.c
 
 [`sefaria.js:632-647`](https://github.com/Sefaria/Sefaria-Project/blob/52e00f8bef430cba25a091f4443345ee1890e6c8/static/js/sefaria/sefaria.js#L632-L647) sorts serialized version parameters before the request. Query order cannot identify the primary and translation sides.
 
+The pinned [`text_request_adapter.py:70-90`](https://github.com/Sefaria/Sefaria-Project/blob/52e00f8bef430cba25a091f4443345ee1890e6c8/sefaria/model/text_request_adapter.py#L70-L90) evaluates each selector against its own role predicate and optional exact version title. It can return a version with `isPrimary: true` for a `translation|versionTitle` selector when that version is not a source, and it de-duplicates a version selected by both parameters.
+
+On September 3, 2026, the deployed request `Kuzari 1:1?version=primary&version=translation|Yehudah Even Shmuel, 1973` returned `Sefer haKuzari - Project Ben-Yehuda` and `Yehudah Even Shmuel, 1973`. Both versions had `isPrimary: true` and `isSource: false`, with no warnings. `isPrimary` therefore cannot identify one unique side across the complete response. An exact selector must claim its matching version before the opposite bare selector falls back to role flags.
+
 [`text_request_adapter.py:88-92`](https://github.com/Sefaria/Sefaria-Project/blob/52e00f8bef430cba25a091f4443345ee1890e6c8/sefaria/model/text_request_adapter.py#L88-L92) records a missing `(language, versionTitle)` selector only when no version matches it.
 
-[`api/views.py:47-60`](https://github.com/Sefaria/Sefaria-Project/blob/52e00f8bef430cba25a091f4443345ee1890e6c8/api/views.py#L47-L60) converts each missing selector into one warning keyed by its original language or `language|versionTitle` query value. The warning describes request selection, not an existing returned version.
+[`api/views.py:47-60`](https://github.com/Sefaria/Sefaria-Project/blob/52e00f8bef430cba25a091f4443345ee1890e6c8/api/views.py#L47-L60) converts each missing selector into one warning keyed by its language, or by `language|versionTitle` when the selector carried a version title. The warning describes request selection, not an existing returned version.
+
+The warning key is not the original query value. [`api/views.py:39-45`](https://github.com/Sefaria/Sefaria-Project/blob/52e00f8bef430cba25a091f4443345ee1890e6c8/api/views.py#L39-L45) splits a piped `version` parameter and replaces `_` with a space in the version title before the key is built:
+
+```python
+params[1] = params[1].replace('_', ' ')
+```
+
+A request for `primary|The_Title` therefore returns the warning key `primary|The Title`. A consumer that matches a warning to its originating selector must apply the same substitution. Exact string equality against the sent value silently fails to match whenever a requested version title contains an underscore.
+
+Sefaria's own reader does not depend on this. It requests the bare `primary` and `translation` selectors, whose keys carry no version title and need no substitution.
+
+### Bilingual layout and alignment
+
+The reader keeps visible languages and bilingual layout as two independent settings. [`ReaderApp.jsx:974-993`](https://github.com/Sefaria/Sefaria-Project/blob/52e00f8bef430cba25a091f4443345ee1890e6c8/static/js/ReaderApp.jsx#L974-L993) defaults `language` to `bilingual` and `biLayout` to `stacked`, and [`LayoutButtons.jsx:36`](https://github.com/Sefaria/Sefaria-Project/blob/52e00f8bef430cba25a091f4443345ee1890e6c8/static/js/LayoutButtons.jsx#L36) writes whichever of the two the current mode owns.
+
+[`ReaderPanel.jsx:637-641`](https://github.com/Sefaria/Sefaria-Project/blob/52e00f8bef430cba25a091f4443345ee1890e6c8/static/js/ReaderPanel.jsx#L637-L641) forces a stacked layout below 500 pixels.
+
+Side-by-side alignment is CSS only. [`s2.css:7056-7110`](https://github.com/Sefaria/Sefaria-Project/blob/52e00f8bef430cba25a091f4443345ee1890e6c8/static/css/s2.css#L7056-L7110) sets each side to half width and floats it, and each segment emits its own clearing element. No script measures or synchronizes the two sides, so unequal lengths need no measurement.
+
+The reader's `heLeft` and `heRight` layout values are labelled in direction terms but implemented as primary-side placement. [`LayoutButtons.jsx:19-31`](https://github.com/Sefaria/Sefaria-Project/blob/52e00f8bef430cba25a091f4443345ee1890e6c8/static/js/LayoutButtons.jsx#L19-L31) treats `heLeft` as primary on the left, while [`constants.js:8-11`](https://github.com/Sefaria/Sefaria-Project/blob/52e00f8bef430cba25a091f4443345ee1890e6c8/static/js/constants.js#L8-L11) labels it as right-to-left text left of left-to-right text. The two agree only when the primary side is right-to-left. This project names the equivalent property by role for that reason.
 
 This evidence supports a text-segment projection that accepts one already-resolved `CoreV3Version`. The bilingual composite owns role resolution, and text segment remains the single owner of segment transformation.
 

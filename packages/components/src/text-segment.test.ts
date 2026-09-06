@@ -12,6 +12,7 @@ import { v3SourceBackedPayload } from "../../../tests/compatibility/src/v3-sourc
 import {
   createTextSegmentViewModel,
   loadTextSegmentViewModel,
+  projectTextSegmentValue,
   projectTextSegmentVersion,
   type TextSegmentRequest,
 } from "./text-segment.js";
@@ -67,6 +68,7 @@ describe("projectTextSegmentVersion", () => {
       versionTitle: "Role-selected translation",
       text: "Selected translation.",
     });
+
     payload.versions = [
       englishVersion({
         versionTitle: "Other translation",
@@ -82,7 +84,7 @@ describe("projectTextSegmentVersion", () => {
       expect(result.body).toEqual([
         { kind: "html", html: "Selected translation." },
       ]);
-      expect(result.attribution.versionTitle).toBe("Role-selected translation");
+      expect(result.actualLanguage).toBe("en");
     }
   });
 
@@ -118,6 +120,55 @@ describe("projectTextSegmentVersion", () => {
       message: 'No english version "Example English" text is available.',
       warnings: [],
     });
+  });
+
+  describe("projectTextSegmentValue", () => {
+    it("projects one resolved leaf with the selected version metadata", () => {
+      const payload = sourcePayload();
+      const version = englishVersion({
+        versionTitle: "Resolved range translation",
+        text: ["First.", "Second."],
+      });
+
+      expect(projectTextSegmentValue(payload, version, "Second.")).toEqual({
+        state: "data",
+        ref: "Genesis 1:1",
+        heRef: "בראשית א׳:א׳",
+        language: "en",
+        actualLanguage: "en",
+        direction: "ltr",
+        body: [{ kind: "html", html: "Second." }],
+        notes: [],
+      });
+    });
+
+    it("owns the same transformation as selected-version projection", () => {
+      const payload = sourcePayload();
+      const version = payload.versions[0];
+      if (!version || Array.isArray(version.text)) {
+        throw new Error("Source-backed payload must contain scalar text.");
+      }
+
+      expect(projectTextSegmentValue(payload, version, version.text)).toEqual(
+        projectTextSegmentVersion(payload, version),
+      );
+    });
+
+    it.each([null, "", "   ", "<script>unsafe()</script>"])(
+      "returns selected-version empty for non-renderable leaf %#",
+      (text) => {
+        const payload = sourcePayload();
+        const version = englishVersion({ text: ["Range leaf."] });
+
+        expect(projectTextSegmentValue(payload, version, text)).toEqual({
+          state: "empty",
+          ref: "Genesis 1:1",
+          heRef: "בראשית א׳:א׳",
+          message: 'No english version "Example English" text is available.',
+          warnings: [],
+        });
+      },
+    );
   });
 
   it("returns a projection error for selected array text", () => {
@@ -157,10 +208,6 @@ describe("createTextSegmentViewModel", () => {
       direction: "rtl",
       body: [{ kind: "html", html: "In the beginning." }],
       notes: [],
-      attribution: {
-        versionTitle: "Example English",
-        versionSource: "Example publisher",
-      },
     });
   });
 
@@ -179,7 +226,6 @@ describe("createTextSegmentViewModel", () => {
     expect(result.state).toBe("data");
     if (result.state === "data") {
       expect(result.body).toEqual([{ kind: "html", html: "Exact text." }]);
-      expect(result.attribution.versionTitle).toBe("Exact");
     }
   });
 
@@ -207,10 +253,6 @@ describe("createTextSegmentViewModel", () => {
             content: "<b>When God began to create </b>Others.",
           },
         ],
-        attribution: {
-          versionTitle: "Explicit source-backed compatibility composition",
-          versionSource: null,
-        },
       },
     );
   });

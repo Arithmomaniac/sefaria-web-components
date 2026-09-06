@@ -87,9 +87,5 @@ function createDataViewModel(versionTitle: string): TextSegmentDataViewModel {
     direction: "ltr",
     body: [{ kind: "html", html: versionTitle }],
     notes: [],
-    attribution: {
-      versionTitle,
-      versionSource: null,
-    },
   };
 }

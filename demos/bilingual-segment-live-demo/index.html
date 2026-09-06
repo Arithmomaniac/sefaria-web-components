@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      (() => {
+        const param = new URLSearchParams(window.location.search).get(
+          "scoutTheme",
+        );
+        const theme =
+          param ||
+          (window.matchMedia("(prefers-color-scheme: dark)").matches
+            ? "dark"
+            : "light");
+        document.documentElement.setAttribute("data-theme", theme);
+      })();
+    </script>
+    <style>
+      :root {
+        color-scheme: light;
+        --cp-bg: #f7f4ef;
+        --cp-bg-elevated: #fcfbf8;
+        --cp-surface: #ffffff;
+        --cp-border: #dedede;
+        --cp-border-strong: #919191;
+        --cp-text: #242424;
+        --cp-text-muted: #5c5c5c;
+        --cp-accent: #b11f4b;
+        --cp-accent-hover: #9a1a41;
+        --cp-accent-soft: rgba(177, 31, 75, 0.08);
+        --cp-accent-fg: #ffffff;
+        --cp-success: #16a34a;
+        --cp-danger: #dc2626;
+        --cp-warning: #f59e0b;
+        --cp-link: #0078d4;
+        --cp-sheen: rgba(255, 255, 255, 0.55);
+      }
+
+      html[data-theme="dark"] {
+        color-scheme: dark;
+        --cp-bg: #3d3b3a;
+        --cp-bg-elevated: #343231;
+        --cp-surface: #292929;
+        --cp-border: #474747;
+        --cp-border-strong: #5f5f5f;
+        --cp-text: #dedede;
+        --cp-text-muted: #919191;
+        --cp-accent: #fd8ea1;
+        --cp-accent-hover: #fb7b91;
+        --cp-accent-soft: rgba(253, 142, 161, 0.14);
+        --cp-accent-fg: #1a1a1a;
+        --cp-success: #4ade80;
+        --cp-danger: #f87171;
+        --cp-warning: #fbbf24;
+        --cp-link: #4da6ff;
+        --cp-sheen: rgba(255, 255, 255, 0.04);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        min-height: 100vh;
+        margin: 0;
+        background: var(--cp-bg);
+        color: var(--cp-text);
+        font-family:
+          "Segoe UI",
+          Aptos,
+          Calibri,
+          -apple-system,
+          BlinkMacSystemFont,
+          sans-serif;
+      }
+
+      button,
+      input,
+      select {
+        font: inherit;
+      }
+
+      main {
+        width: min(78rem, 100%);
+        margin: 0 auto;
+        padding: 2rem;
+      }
+
+      header {
+        margin-bottom: 1.5rem;
+      }
+
+      h1 {
+        margin: 0 0 0.5rem;
+        font-size: clamp(1.75rem, 4vw, 2.5rem);
+      }
+
+      header p,
+      #request-state {
+        color: var(--cp-text-muted);
+      }
+
+      .workspace {
+        display: grid;
+        grid-template-columns: minmax(18rem, 0.8fr) minmax(0, 1.2fr);
+        gap: 1rem;
+        align-items: start;
+      }
+
+      .panel {
+        min-width: 0;
+        padding: 1.25rem;
+        border: 1px solid var(--cp-border);
+        border-radius: 16px;
+        background: var(--cp-surface);
+        box-shadow: 0 0 0 1px var(--cp-sheen);
+      }
+
+      h2 {
+        margin: 0 0 1rem;
+        font-size: 1.125rem;
+      }
+
+      h3 {
+        margin: 1.25rem 0 0.75rem;
+        font-size: 1rem;
+      }
+
+      .presets {
+        display: grid;
+        gap: 0.5rem;
+        margin-bottom: 1.25rem;
+      }
+
+      button {
+        min-height: 2.5rem;
+        border: 1px solid var(--cp-border-strong);
+        border-radius: 0.625rem;
+        background: var(--cp-surface);
+        color: var(--cp-text);
+        cursor: pointer;
+      }
+
+      button:hover {
+        border-color: var(--cp-accent);
+        background: var(--cp-accent-soft);
+      }
+
+      button:focus-visible,
+      input:focus-visible,
+      select:focus-visible {
+        outline: 3px solid var(--cp-accent-soft);
+        outline-offset: 2px;
+        border-color: var(--cp-accent);
+      }
+
+      button[type="submit"] {
+        width: 100%;
+        border-color: var(--cp-accent);
+        background: var(--cp-accent);
+        color: var(--cp-accent-fg);
+        font-weight: 600;
+      }
+
+      button[type="submit"]:hover {
+        background: var(--cp-accent-hover);
+      }
+
+      button:disabled {
+        cursor: wait;
+        opacity: 0.7;
+      }
+
+      label {
+        display: grid;
+        gap: 0.35rem;
+        margin-bottom: 0.75rem;
+        color: var(--cp-text-muted);
+        font-size: 0.875rem;
+        font-weight: 600;
+      }
+
+      input,
+      select {
+        width: 100%;
+        min-height: 2.5rem;
+        padding: 0.5rem 0.75rem;
+        border: 1px solid var(--cp-border);
+        border-radius: 0.625rem;
+        background: var(--cp-bg-elevated);
+        color: var(--cp-text);
+      }
+
+      input {
+        font-family: Consolas, "Courier New", Courier, monospace;
+      }
+
+      #request-state {
+        margin: 0 0 1rem;
+        font-size: 0.875rem;
+      }
+
+      #request-state[data-state="loading"] {
+        color: var(--cp-warning);
+      }
+
+      #request-state[data-state="data"] {
+        color: var(--cp-success);
+      }
+
+      #request-state[data-state="error"] {
+        color: var(--cp-danger);
+      }
+
+      #host-error {
+        padding: 0.75rem;
+        border: 1px solid var(--cp-danger);
+        border-radius: 0.625rem;
+        color: var(--cp-danger);
+      }
+
+      sefaria-bilingual-segment {
+        --sefaria-surface: var(--cp-surface);
+        --sefaria-fg: var(--cp-text);
+        --sefaria-fg-muted: var(--cp-text-muted);
+        --sefaria-border: var(--cp-border);
+        --sefaria-accent: var(--cp-accent);
+        --sefaria-link: var(--cp-link);
+      }
+
+      @media (max-width: 48rem) {
+        main {
+          padding: 1rem;
+        }
+
+        .workspace {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+    <title>Live bilingual-segment demo</title>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Live bilingual-segment demo</h1>
+        <p>
+          This page makes one request for the source and translation versions of
+          a segment, then supplies the paired result to the request-free Web
+          Component.
+        </p>
+      </header>
+
+      <div class="workspace">
+        <section class="panel" aria-labelledby="request-heading">
+          <h2 id="request-heading">Choose a request</h2>
+          <div class="presets" aria-label="Example requests">
+            <button
+              type="button"
+              data-demo-request
+              data-demo-id="default"
+              data-tref="Genesis 1:1"
+            >
+              Default source and translation
+            </button>
+            <button
+              type="button"
+              data-demo-request
+              data-demo-id="exact-editions"
+              data-tref="Genesis 1:1"
+              data-primary-version-title="Miqra according to the Masorah"
+              data-translation-version-title="The Contemporary Torah, Jewish Publication Society, 2006"
+            >
+              Exact editions on both sides
+            </button>
+            <button
+              type="button"
+              data-demo-request
+              data-demo-id="missing-translation"
+              data-tref="Genesis 1:1"
+              data-translation-version-title="No Such Translation"
+            >
+              Missing translation side
+            </button>
+            <button
+              type="button"
+              data-demo-request
+              data-demo-id="range"
+              data-tref="Genesis 1"
+            >
+              Wrong granularity
+            </button>
+          </div>
+
+          <form id="bilingual-request-form">
+            <label>
+              Sefaria reference
+              <input name="tref" value="Genesis 1:1" required />
+            </label>
+            <label>
+              Exact primary version title
+              <input
+                name="primaryVersionTitle"
+                placeholder="Optional exact version title"
+              />
+            </label>
+            <label>
+              Exact translation version title
+              <input
+                name="translationVersionTitle"
+                placeholder="Optional exact version title"
+              />
+            </label>
+            <button type="submit">Load from Sefaria</button>
+          </form>
+
+          <h3>Display</h3>
+          <form id="display-form">
+            <label>
+              Visible sides
+              <select name="contentLanguage">
+                <option value="both" selected>Both</option>
+                <option value="primary">Primary only</option>
+                <option value="translation">Translation only</option>
+              </select>
+            </label>
+            <label>
+              Layout
+              <select name="layout">
+                <option value="auto" selected>Auto</option>
+                <option value="stacked">Stacked</option>
+                <option value="side-by-side">Side by side</option>
+              </select>
+            </label>
+            <label>
+              Side order
+              <select name="sideOrder">
+                <option value="primary-first" selected>Primary first</option>
+                <option value="translation-first">Translation first</option>
+              </select>
+            </label>
+          </form>
+        </section>
+
+        <section class="panel" aria-labelledby="result-heading">
+          <h2 id="result-heading">Component result</h2>
+          <p id="request-state" data-state="initial">
+            Waiting for the first request.
+          </p>
+          <p id="host-error" role="alert" hidden></p>
+          <sefaria-bilingual-segment
+            id="bilingual-result"
+          ></sefaria-bilingual-segment>
+        </section>
+      </div>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

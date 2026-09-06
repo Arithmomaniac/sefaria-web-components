@@ -1,7 +1,9 @@
 import { SefariaElement } from "@sefaria/components";
 import { css, html } from "lit";
 
+import { bilingualSegmentScenarios } from "./bilingual-segment.scenarios.js";
 import { refLabelScenarios } from "./ref-label.scenarios.js";
+import { sourceCardScenarios } from "./source-card.scenarios.js";
 import { textSegmentScenarios } from "./text-segment.scenarios.js";
 
 class SefariaDevelopmentStatus extends SefariaElement {
@@ -71,6 +73,40 @@ class SefariaDevelopmentStatus extends SefariaElement {
               <sefaria-text-segment
                 .viewModel=${viewModel}
               ></sefaria-text-segment>
+            </section>
+          `,
+        )}
+      </div>
+      <h2>Bilingual segment</h2>
+      <p>
+        Each bilingual example pairs one source side with one translation side
+        from a single authored view model.
+      </p>
+      <div class="states">
+        ${bilingualSegmentScenarios.map(
+          ({ title, viewModel }) => html`
+            <section>
+              <h2>${title}</h2>
+              <sefaria-bilingual-segment
+                .viewModel=${viewModel}
+              ></sefaria-bilingual-segment>
+            </section>
+          `,
+        )}
+      </div>
+      <h2>Source card</h2>
+      <p>
+        A source card owns one payload-derived header and an ordered collection
+        of bilingual pairs.
+      </p>
+      <div class="states">
+        ${sourceCardScenarios.map(
+          ({ title, viewModel }) => html`
+            <section>
+              <h2>${title}</h2>
+              <sefaria-source-card
+                .viewModel=${viewModel}
+              ></sefaria-source-card>
             </section>
           `,
         )}
