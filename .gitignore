@@ -48,6 +48,7 @@ pnpm-debug.log*
 # Editors
 .vscode/*
 !.vscode/extensions.json
+!.vscode/mcp.json
 .idea/
 *.swp
 

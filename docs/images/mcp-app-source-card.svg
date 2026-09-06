@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 720" width="760" height="720" font-family="Segoe UI, Aptos, sans-serif">
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="5" stdDeviation="8" flood-color="#000" flood-opacity=".12"/>
+    </filter>
+  </defs>
+  <rect width="760" height="720" fill="#f7f4ef"/>
+  <rect x="40" y="30" width="680" height="660" rx="14" fill="#fff" stroke="#d8d4ce" filter="url(#shadow)"/>
+  <rect x="40" y="30" width="680" height="44" rx="14" fill="#f0ede8"/>
+  <rect x="40" y="58" width="680" height="16" fill="#f0ede8"/>
+  <circle cx="64" cy="52" r="5" fill="#d2cdc5"/>
+  <circle cx="82" cy="52" r="5" fill="#d2cdc5"/>
+  <circle cx="100" cy="52" r="5" fill="#d2cdc5"/>
+  <text x="380" y="57" text-anchor="middle" font-size="13" font-weight="600" fill="#69655f">VS Code · Copilot Chat</text>
+
+  <rect x="250" y="96" width="442" height="42" rx="12" fill="#9f1d49"/>
+  <text x="674" y="122" text-anchor="end" font-size="14" fill="#fff">Show me Leviticus 19:18 in Hebrew and English.</text>
+
+  <text x="68" y="172" font-size="14" fill="#25231f">I found the source in Sefaria. The same get_text result is available</text>
+  <text x="68" y="193" font-size="14" fill="#25231f">as plain text and as this interactive source card.</text>
+
+  <rect x="68" y="218" width="624" height="372" rx="10" fill="#fcfbf8" stroke="#d5d5d4" stroke-width="1.5"/>
+  <text x="88" y="250" font-size="16" font-weight="700" fill="#181713">Leviticus 19:18</text>
+  <text x="672" y="250" text-anchor="end" font-size="16" font-weight="700" fill="#181713">ויקרא י״ט:י״ח</text>
+  <line x1="88" y1="266" x2="672" y2="266" stroke="#dedbd5"/>
+
+  <text x="380" y="310" text-anchor="middle" font-size="20" fill="#181713" direction="rtl" font-family="Noto Serif Hebrew, Times New Roman, serif">לֹא־תִקֹּם וְלֹא־תִטֹּר אֶת־בְּנֵי עַמֶּךָ</text>
+  <text x="380" y="340" text-anchor="middle" font-size="20" fill="#181713" direction="rtl" font-family="Noto Serif Hebrew, Times New Roman, serif">וְאָהַבְתָּ לְרֵעֲךָ כָּמוֹךָ אֲנִי יְהוָה׃</text>
+
+  <text x="88" y="382" font-size="15" fill="#25231f">You shall not take vengeance or bear a grudge against members</text>
+  <text x="88" y="405" font-size="15" fill="#25231f">of your people. Love your fellow as yourself: I am the LORD.</text>
+
+  <line x1="88" y1="438" x2="672" y2="438" stroke="#dedbd5"/>
+  <text x="88" y="468" font-size="12.5" font-weight="600" fill="#6f6b65">Primary text:</text>
+  <text x="173" y="468" font-size="12.5" fill="#6f6b65">Miqra according to the Masorah</text>
+  <text x="88" y="494" font-size="12.5" font-weight="600" fill="#6f6b65">Translation:</text>
+  <text x="173" y="494" font-size="12.5" fill="#6f6b65">The Contemporary Torah, JPS, 2006</text>
+
+  <rect x="88" y="526" width="188" height="34" rx="17" fill="#f4e5ea"/>
+  <circle cx="108" cy="543" r="5" fill="#288343"/>
+  <text x="122" y="548" font-size="11.5" font-weight="600" fill="#6f1740">1 tool call · 0 App requests</text>
+
+  <text x="68" y="626" font-size="14" fill="#25231f">The card preserves the source language, translation, direction, and edition attribution.</text>
+  <rect x="68" y="648" width="624" height="32" rx="16" fill="#fafafa" stroke="#dedbd5"/>
+  <text x="88" y="669" font-size="12.5" fill="#9a9690">Ask a follow-up…</text>
+</svg>

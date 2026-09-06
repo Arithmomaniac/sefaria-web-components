@@ -4,6 +4,7 @@
     "capture-live-demo.ts",
     "live-demo-core.ts",
     "live-demo-core.browser.test.ts",
-    "live-demo-styles.d.ts"
+    "live-demo-styles.d.ts",
+    "mcp/scripts/**/*.ts"
   ]
 }
