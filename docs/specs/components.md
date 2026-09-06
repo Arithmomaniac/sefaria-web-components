@@ -4,7 +4,7 @@
 
 ## Status
 
-The text-segment, bilingual-segment, reference-label, source-card, popup, and connections-panel vertical slices are current. Remaining component surfaces are planned.
+The text-segment, bilingual-segment, reference-label, source-card, popup, connections-panel, and DOM-free reader-session vertical slices are current. The controlled reader surface remains planned.
 
 ## Boundary
 
@@ -27,7 +27,7 @@ A convenience API can accept a payload and return or configure a component, but 
 
 ## Component subpath contract
 
-Every component has a non-DOM `@sefaria/components` subpath. The subpath owns:
+Every endpoint-backed component has a non-DOM `@sefaria/components` subpath. The subpath owns:
 
 - one component request type
 - one component-specific view-model union
@@ -36,6 +36,8 @@ Every component has a non-DOM `@sefaria/components` subpath. The subpath owns:
 - component-specific construction for the states that component supports
 
 The package does not define a generalized normalized client result or shared domain model.
+
+A non-requesting composition or session subpath can combine existing component requests, view models, and host-admitted corrected payload captures. It does not invent an endpoint-backed request type or async factory. It remains deterministic, DOM-free, and independent of clients, caches, promises, abort controllers, and global state.
 
 Planned names follow this pattern:
 
@@ -49,6 +51,30 @@ Planned names follow this pattern:
 | Connections panel | `ConnectionsPanelRequest` | `ConnectionsPanelViewModel` | `createConnectionsPanelViewModel` | `loadConnectionsPanelViewModel` |
 
 The listed component names are current.
+
+## Reader session [Current]
+
+`@sefaria/components/reader-session` is a DOM-free immutable navigation session over existing source-card and connections-panel contracts. It is not an element, generalized domain model, request facade, cache, or persistence format. Integrations own clients, requests, external validation, cancellation, and physical operation execution.
+
+The session owns semantic source history, stable entry and operation identities, selected source position, display settings, retained corrected payload captures, completion eligibility, and bounded admission. It exposes render-ready source-card and connections-panel view models but never exposes raw captures through its rendering projection.
+
+An initial session accepts exactly one source-only, connections-only, or source-plus-connections seed. A links-only seed does not imply a text request. Repeated equal references create distinct entry identities.
+
+Source navigation begins against an identified retained entry and pushes history only after the host supplies committed contextual source content. A source completion is rejected when its operation is missing, stale, duplicated, or its origin was removed. Selection, display, connections category, and connections page changes update the identified current entry rather than push history.
+
+Back removes the current entry because Forward is not part of this contract. Activating an earlier breadcrumb removes every later entry. These transitions reject while an entry that would be removed is explicitly pinned by a live consumer. A consumer must release those pins before pruning its spatial panes.
+
+Connections work begins against an identified entry. Starting a source-history transition does not perform or cancel that work, but committing a child source interrupts pending connections on the origin entry and makes their later completions ineligible. An interrupted slot is explicit and does not restore as perpetual loading or automatically refetch.
+
+Every admitted capture has immutable object identity and records its method, path, documented status, effective component request, and exact coverage. Source capture coverage is one v3 text request. Connections capture coverage identifies the reference and whether connected text was included. Equal JSON in separately created captures remains separately owned; one capture reused by multiple retained entries is counted once.
+
+Default limits are 20 retained entries including current and 20 MiB of aggregate uniquely retained corrected payload JSON measured as UTF-8 bytes. The byte limit measures the immutable corrected payloads only, not total JavaScript heap use. Existing endpoint payload limits remain independent.
+
+Admission sizes a capture once. It evicts the oldest inactive unpinned history entries until both limits fit, marks the truncated-history boundary in the session projection, and releases captures no longer reachable from retained entries. It never silently evicts the current entry or a pinned entry. If permitted eviction cannot make an admission fit, the transition rejects atomically without changing committed entries or evicting history.
+
+A retained successful links capture remains authoritative for covered local category and page projection. Reprojection calls the existing connections pure factory and performs zero I/O. Missing capture coverage, invalid projection input, and an unavailable or interrupted slot reject explicitly rather than requesting data.
+
+The reader session does not expose a public serialized snapshot schema. Durable persistence, Forward, browser URL history, native mobile integration, retries, request coalescing, stale fallback, and arbitrary public panel management are outside this contract.
 
 ## View-model states
 
@@ -506,7 +532,7 @@ A request-free test must fail if an element calls `fetch`, imports the client at
 
 ## Completion criteria
 
-A planned component is complete when:
+A planned endpoint-backed component is complete when:
 
 - the package implements its request, view model, pure factory, async factory, and element
 - the async result equals the pure result for captured successful payloads
@@ -517,3 +543,5 @@ A planned component is complete when:
 - direction and any component-owned attribution come from the view model
 - applicable keyboard and browser checks pass
 - a clean checkout passes `pnpm check`
+
+A planned non-requesting composition or session is complete when its owning specification defines its state and failure transitions, its public subpath is DOM-free, it performs no I/O, and deterministic tests prove its admission, identity, history, completion, and projection contracts.

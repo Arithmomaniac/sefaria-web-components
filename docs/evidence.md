@@ -69,6 +69,23 @@ Session UUIDs with turn numbers and dates are archive trace pointers, not public
 
 Only task-relevant decisions are summarized here. The pointers retain traceability without publishing complete conversations, machine-local paths, or mutable delivery state.
 
+## Reader navigation ownership (September 6, 2026)
+
+**Observed in pinned source, not a new live-UI capture:** the navigation comparison uses Sefaria Web commit `05863b62ce0b7aa176b74df3bc8bfbdeb0bf171f` and Sefaria Mobile commit `77eb30f66ea71a0af6638c3b5c03a4624f68da8f`. These frontend observations do not replace the existing transport/OpenAPI pin.
+
+| Concern | Source observation |
+| --- | --- |
+| Web reader ownership | [`ReaderApp.jsx`](https://github.com/Sefaria/Sefaria-Project/blob/05863b62ce0b7aa176b74df3bc8bfbdeb0bf171f/static/js/ReaderApp.jsx) owns `panels`, `setPanelState`, `makeHistoryState`, and browser `pushState`/`replaceState`. `openTextListAt` inserts or replaces a connections panel adjacent to its driving panel. `handleCitationClick` can close a following panel and insert a text panel through `openPanelAt`. |
+| Web child state | [`ReaderPanel.jsx:127-136`](https://github.com/Sefaria/Sefaria-Project/blob/05863b62ce0b7aa176b74df3bc8bfbdeb0bf171f/static/js/ReaderPanel.jsx#L127-L136) delegates changes to `setCentralState` when provided, otherwise using local state. Its connections header receives separate mode/category state and callbacks. |
+| Breadcrumb presentation | [`BreadcrumbPath.jsx:41-120`](https://github.com/Sefaria/Sefaria-Project/blob/05863b62ce0b7aa176b74df3bc8bfbdeb0bf171f/static/js/BreadcrumbPath.jsx#L41-L120) renders supplied crumbs and delegates caller behavior through `getCrumbLinkProps`. Its documented consumer is `SearchResultCard`; this is not evidence of a reader-history trail between connected sources. |
+| Mobile history | [`PageHistory.js`](https://github.com/Sefaria/Sefaria-Mobile/blob/77eb30f66ea71a0af6638c3b5c03a4624f68da8f/PageHistory.js) composes per-tab `PageHistory` in `TabHistory` and keeps current tab state separate from the back stack. [`ReaderApp.js`](https://github.com/Sefaria/Sefaria-Mobile/blob/77eb30f66ea71a0af6638c3b5c03a4624f68da8f/ReaderApp.js) constructs that history, implements `manageBackMainOrOpenNav`, and passes the action to reader controls. |
+
+The comparison distinguishes an open-panel collection, application history, category navigation, and breadcrumb presentation. It does not establish that Sefaria implements the proposed bounded source-to-commentary breadcrumb sequence. The [illustrated reader walkthrough](guides/reader-navigation.md) uses these observations as supporting evidence, not as authority for a new local contract.
+
+**Local baseline:** repository commit `5dedf0a89f9b8486143cc071e01b620cc53247cd` contains the connections demo, bounded client cache, and adaptive MCP source/connections App with explicit chat follow-up. The walkthrough's browser screenshot uses the demo's real host and components with committed text/links fixtures replacing HTTP responses; it is not live-service qualification. Its other new figures are labeled schematics/wireframes. The existing MCP screenshot retains the provenance recorded under [MCP host interaction](#mcp-host-interaction). The chat-composer flow is evidence of accepted `ui/message` delivery, not same-App server-tool navigation.
+
+**External documentation reviewed September 6, 2026:** the [MCP Apps overview](https://modelcontextprotocol.io/extensions/apps/overview) and [App SDK reference](https://apps.extensions.modelcontextprotocol.io/api/classes/app.App.html) describe host-proxied server-tool calls, tool-result notifications, and host-controlled capabilities. These support separating App-local navigation from server data access. They do not establish acceptance of connections navigation in this repository's named host.
+
 ## Core endpoint implementation map
 
 The Core API source audit uses Sefaria commit [`1f7d0844ca6a9eddc8e48168962aacb09de75bd6`](https://github.com/Sefaria/Sefaria-Project/tree/1f7d0844ca6a9eddc8e48168962aacb09de75bd6).

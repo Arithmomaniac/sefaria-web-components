@@ -5,7 +5,8 @@ applyTo: "packages/components/**,demos/component-lab/**,docs/specs/components.md
 
 # Component Instructions
 
-- Give each component a non-DOM subpath with its request type, view-model union, pure factory, and async factory.
+- Give each endpoint-backed component a non-DOM subpath with its request type, view-model union, pure factory, and async factory.
+- A non-requesting composition or session subpath may instead combine existing component contracts and host-admitted captures; it must not invent an endpoint, client method, or async factory.
 - Keep component view models specific to one rendering surface.
 - Do not create a generalized data facade.
 - Make pure factories deterministic and independent of clients, caches, DOM state, and global state.
