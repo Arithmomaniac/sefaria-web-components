@@ -57,7 +57,10 @@ Review the initial corrections for:
 - [ ] The client accepts a configurable base URL.
 - [ ] The client accepts an injectable `fetch`.
 - [ ] The client has no generalized normalized facade.
-- [ ] The client has no default cache.
+- [ ] The client cache is per-client, bounded by TTL, entry count, and retained-body bytes, and can be disabled explicitly.
+- [ ] Cache hits pass through the same generated response validation as network responses.
+- [ ] Documented errors, legitimate negative results, malformed responses, aborts, polling, and submissions are not cached.
+- [ ] The cache has no persistence, cross-client sharing, stale fallback, retry, or request coalescing.
 - [ ] The client has no retry policy.
 - [ ] The client has no request coalescing.
 - [ ] The client has no component-specific method.

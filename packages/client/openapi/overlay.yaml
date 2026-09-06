@@ -152,6 +152,9 @@ x-sefaria-guards:
           value: "#/components/schemas/IndexJSON"
   - id: shape-contract
     preconditions:
+      - target: $.components.schemas.CoreShapeMetadata
+        expected:
+          absent: true
       - target: $.components.schemas.CoreShapeChapter
         expected:
           absent: true
@@ -193,6 +196,12 @@ x-sefaria-guards:
           absent: true
   - id: links-contract
     preconditions:
+      - target: $.components.schemas.CoreBilingualText
+        expected:
+          absent: true
+      - target: $.components.schemas.CoreLinkDisplayMetadata
+        expected:
+          absent: true
       - target: $.components.schemas.CoreLinkVersion
         expected:
           absent: true
@@ -1045,6 +1054,22 @@ actions:
     target: "$.components.schemas"
     description: Add the lower-case list, recursive chapter, and HTTP 200 error variants.
     update:
+      CoreShapeMetadata:
+        type: object
+        required:
+          - section
+          - length
+          - book
+          - heBook
+        properties:
+          section:
+            type: string
+          length:
+            type: integer
+          book:
+            type: string
+          heBook:
+            type: string
       CoreShapeChapter:
         description: A segment count, nested shape list, or collapsed complex-text leaf record.
         oneOf:
@@ -1054,58 +1079,38 @@ actions:
               $ref: "#/components/schemas/CoreShapeChapter"
           - $ref: "#/components/schemas/CoreShapeLeafRecord"
       CoreShapeLeafRecord:
-        type: object
-        required:
-          - section
-          - heTitle
-          - title
-          - length
-          - chapters
-          - book
-          - heBook
-        properties:
-          section:
-            type: string
-          heTitle:
-            type: string
-          title:
-            type: string
-          length:
-            type: integer
-          chapters:
-            $ref: "#/components/schemas/CoreShapeChapter"
-          book:
-            type: string
-          heBook:
-            type: string
-          isComplex:
-            type: boolean
+        allOf:
+          - $ref: "#/components/schemas/CoreShapeMetadata"
+          - type: object
+            required:
+              - heTitle
+              - title
+              - chapters
+            properties:
+              heTitle:
+                type: string
+              title:
+                type: string
+              chapters:
+                $ref: "#/components/schemas/CoreShapeChapter"
+              isComplex:
+                type: boolean
       CoreShapeCollapsedRecord:
-        type: object
-        required:
-          - isComplex
-          - section
-          - length
-          - chapters
-          - book
-          - heBook
-        properties:
-          isComplex:
-            type: boolean
-            enum:
-              - true
-          section:
-            type: string
-          length:
-            type: integer
-          chapters:
-            type: array
-            items:
-              $ref: "#/components/schemas/CoreShapeLeafRecord"
-          book:
-            type: string
-          heBook:
-            type: string
+        allOf:
+          - $ref: "#/components/schemas/CoreShapeMetadata"
+          - type: object
+            required:
+              - isComplex
+              - chapters
+            properties:
+              isComplex:
+                type: boolean
+                enum:
+                  - true
+              chapters:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CoreShapeLeafRecord"
       CoreShapeRecord:
         oneOf:
           - $ref: "#/components/schemas/CoreShapeLeafRecord"
@@ -1190,6 +1195,29 @@ actions:
     target: "$.components.schemas"
     description: Add source-backed link, sheet-link, version, and whole-book error schemas.
     update:
+      CoreBilingualText:
+        type: object
+        required:
+          - en
+          - he
+        properties:
+          en:
+            type: string
+          he:
+            type: string
+      CoreLinkDisplayMetadata:
+        type: object
+        required:
+          - index_title
+          - category
+          - collectiveTitle
+        properties:
+          index_title:
+            type: string
+          category:
+            type: string
+          collectiveTitle:
+            $ref: "#/components/schemas/CoreBilingualText"
       CoreLinkVersion:
         type: object
         required:
@@ -1201,129 +1229,91 @@ actions:
             type: string
             nullable: true
       CoreLinkObject:
-        type: object
-        required:
-          - _id
-          - index_title
-          - category
-          - type
-          - ref
-          - anchorRef
-          - anchorRefExpanded
-          - sourceRef
-          - sourceHeRef
-          - anchorVerse
-          - sourceHasEn
-          - commentaryNum
-          - collectiveTitle
-        properties:
-          _id:
-            type: string
-          index_title:
-            type: string
-          category:
-            type: string
-          type:
-            type: string
-          ref:
-            $ref: "#/components/schemas/ref"
-          anchorRef:
-            $ref: "#/components/schemas/ref"
-          anchorRefExpanded:
-            type: array
-            items:
-              $ref: "#/components/schemas/ref"
-          sourceRef:
-            $ref: "#/components/schemas/ref"
-          sourceHeRef:
-            type: string
-          anchorVerse:
-            type: integer
-          sourceHasEn:
-            type: boolean
-          compDate:
-            type: array
-            items:
-              type: integer
-          commentaryNum:
-            type: number
-          collectiveTitle:
-            type: object
+        allOf:
+          - $ref: "#/components/schemas/CoreLinkDisplayMetadata"
+          - type: object
             required:
-              - en
-              - he
+              - _id
+              - type
+              - ref
+              - anchorRef
+              - anchorRefExpanded
+              - sourceRef
+              - sourceHeRef
+              - anchorVerse
+              - sourceHasEn
+              - commentaryNum
             properties:
-              en:
+              _id:
                 type: string
+              type:
+                type: string
+              ref:
+                $ref: "#/components/schemas/ref"
+              anchorRef:
+                $ref: "#/components/schemas/ref"
+              anchorRefExpanded:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ref"
+              sourceRef:
+                $ref: "#/components/schemas/ref"
+              sourceHeRef:
+                type: string
+              anchorVerse:
+                type: integer
+              sourceHasEn:
+                type: boolean
+              compDate:
+                type: array
+                items:
+                  type: integer
+              commentaryNum:
+                type: number
               he:
+                $ref: "#/components/schemas/CoreStringArrayOrNull"
+              text:
+                $ref: "#/components/schemas/CoreStringArrayOrNull"
+              heVersionTitle:
+                $ref: "#/components/schemas/CoreStringArrayOrNull"
+              versionTitle:
+                $ref: "#/components/schemas/CoreStringArrayOrNull"
+              heLicense:
+                $ref: "#/components/schemas/CoreStringArrayOrNull"
+              license:
+                $ref: "#/components/schemas/CoreStringArrayOrNull"
+              heVersionTitleInHebrew:
+                $ref: "#/components/schemas/CoreStringArrayOrNull"
+              versionTitleInHebrew:
+                $ref: "#/components/schemas/CoreStringArrayOrNull"
+              inline_reference:
+                type: object
+              highlightedWords: {}
+              anchorVersion:
+                $ref: "#/components/schemas/CoreLinkVersion"
+              sourceVersion:
+                $ref: "#/components/schemas/CoreLinkVersion"
+              displayedText:
+                $ref: "#/components/schemas/CoreBilingualText"
+              heTitle:
                 type: string
-          he:
-            $ref: "#/components/schemas/CoreStringArrayOrNull"
-          text:
-            $ref: "#/components/schemas/CoreStringArrayOrNull"
-          heVersionTitle:
-            $ref: "#/components/schemas/CoreStringArrayOrNull"
-          versionTitle:
-            $ref: "#/components/schemas/CoreStringArrayOrNull"
-          heLicense:
-            $ref: "#/components/schemas/CoreStringArrayOrNull"
-          license:
-            $ref: "#/components/schemas/CoreStringArrayOrNull"
-          heVersionTitleInHebrew:
-            $ref: "#/components/schemas/CoreStringArrayOrNull"
-          versionTitleInHebrew:
-            $ref: "#/components/schemas/CoreStringArrayOrNull"
-          inline_reference:
-            type: object
-          highlightedWords: {}
-          anchorVersion:
-            $ref: "#/components/schemas/CoreLinkVersion"
-          sourceVersion:
-            $ref: "#/components/schemas/CoreLinkVersion"
-          displayedText:
-            type: object
-            required:
-              - en
-              - he
-            properties:
-              en:
-                type: string
-              he:
-                type: string
-          heTitle:
-            type: string
       CoreSheetLinkObject:
-        type: object
-        required:
-          - isSheet
-          - index_title
-          - category
-          - collectiveTitle
-          - sourceRef
-          - sourceHeRef
-        properties:
-          isSheet:
-            type: boolean
-            enum:
-              - true
-          index_title:
-            type: string
-          category:
-            type: string
-          collectiveTitle:
-            type: object
+        allOf:
+          - $ref: "#/components/schemas/CoreLinkDisplayMetadata"
+          - type: object
             required:
-              - en
-              - he
+              - isSheet
+              - sourceRef
+              - sourceHeRef
             properties:
-              en:
+              isSheet:
+                type: boolean
+                enum:
+                  - true
+              sourceRef:
                 type: string
-              he:
+              sourceHeRef:
                 type: string
-          sourceRef:
-            type: string
-          sourceHeRef:
-            type: string
       CoreLinkResponse:
         oneOf:
           - type: array
@@ -1333,15 +1323,14 @@ actions:
                 - $ref: "#/components/schemas/CoreSheetLinkObject"
           - $ref: "#/components/schemas/CoreErrorResponse"
       CoreLinksErrorResponse:
-        type: object
-        required:
-          - error
-          - ref
-        properties:
-          error:
-            type: string
-          ref:
-            $ref: "#/components/schemas/ref"
+        allOf:
+          - $ref: "#/components/schemas/CoreErrorResponse"
+          - type: object
+            required:
+              - ref
+            properties:
+              ref:
+                $ref: "#/components/schemas/ref"
   - x-action-id: links-category-parameter
     x-correction-id: links-contract
     target: "$.paths['/api/links/{tref}'].get.parameters[2]"
