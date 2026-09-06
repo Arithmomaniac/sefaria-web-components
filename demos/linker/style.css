@@ -2,10 +2,20 @@
   color-scheme: light dark;
   --page: light-dark(#f5f1e8, #1f211f);
   --surface: light-dark(#fffdf8, #2b2e2a);
+  --surface-muted: light-dark(#f8f4ec, #252824);
   --border: light-dark(#d7cfc1, #555b53);
   --text: light-dark(#25231f, #f1eee7);
   --muted: light-dark(#6d675d, #bdb7ac);
   --accent: light-dark(#8e2449, #ff93b4);
+  --accent-soft: light-dark(rgb(142 36 73 / 10%), rgb(255 147 180 / 14%));
+  --sefaria-surface: var(--surface);
+  --sefaria-surface-muted: var(--surface-muted);
+  --sefaria-border: var(--border);
+  --sefaria-fg: var(--text);
+  --sefaria-fg-muted: var(--muted);
+  --sefaria-accent: var(--accent);
+  --sefaria-accent-soft: var(--accent-soft);
+  --sefaria-link: var(--accent);
 }
 * {
   box-sizing: border-box;
@@ -19,6 +29,16 @@ body {
     "Times New Roman",
     serif;
 }
+
+body::before {
+  position: fixed;
+  z-index: -1;
+  inset: 0;
+  background:
+    radial-gradient(circle at 15% 10%, var(--accent-soft), transparent 32rem),
+    linear-gradient(180deg, var(--surface-muted), transparent 18rem);
+  content: "";
+}
 .site-header,
 main,
 footer {
@@ -31,6 +51,7 @@ footer {
   align-items: center;
   padding-block: 1rem;
   border-bottom: 1px solid var(--border);
+  font-family: "Segoe UI", system-ui, sans-serif;
 }
 .site-header a,
 article a {
@@ -47,10 +68,28 @@ article {
   border: 1px solid var(--border);
   border-radius: 1rem;
   background: var(--surface);
+  box-shadow: 0 1rem 3rem rgb(0 0 0 / 8%);
 }
 h1,
 h2 {
   line-height: 1.15;
+}
+h1 {
+  max-width: 14ch;
+  margin-block: 0.35rem 0.6rem;
+  font-size: clamp(2.25rem, 7vw, 4.75rem);
+  letter-spacing: -0.035em;
+}
+h2 {
+  margin-block-start: 2.5rem;
+  font-size: 1.35rem;
+}
+.dek {
+  max-width: 44rem;
+  font-size: 1.2rem;
+}
+article > p {
+  font-size: clamp(1.05rem, 2vw, 1.22rem);
 }
 .dek,
 aside,
@@ -59,7 +98,9 @@ footer {
 }
 .hebrew {
   direction: rtl;
-  font-family: "Segoe UI", Arial, sans-serif;
+  font-family: "Noto Serif Hebrew", "SBL Hebrew", "Times New Roman", serif;
+  font-size: 1.3rem;
+  line-height: 1.9;
 }
 .demo-panel {
   align-self: start;
@@ -68,6 +109,7 @@ footer {
   border-radius: 0.75rem;
   background: var(--surface);
   font-family: "Segoe UI", sans-serif;
+  box-shadow: 0 0.75rem 2rem rgb(0 0 0 / 6%);
 }
 button {
   min-height: 2.5rem;
@@ -77,6 +119,16 @@ button {
   background: var(--surface);
   color: var(--text);
   cursor: pointer;
+}
+button:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+button:focus-visible,
+a[data-sefaria-linker-owned]:focus-visible {
+  border-radius: 0.2rem;
+  outline: 3px solid var(--accent);
+  outline-offset: 0.18rem;
 }
 #status[role="alert"] {
   color: #c33;

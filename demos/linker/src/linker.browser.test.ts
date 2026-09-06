@@ -49,6 +49,12 @@ describe("linker extraction and DOM projection", () => {
     expect(
       document.querySelectorAll("a[data-sefaria-linker-owned]"),
     ).toHaveLength(2);
+    const firstLink = document.querySelector<HTMLAnchorElement>(
+      "a[data-sefaria-linker-owned]",
+    );
+    expect(firstLink?.style.color).toContain("--sefaria-link");
+    expect(firstLink?.style.color).toContain("light-dark");
+    expect(firstLink?.style.fontWeight).toBe("600");
 
     removeOwnedLinks();
     expect(

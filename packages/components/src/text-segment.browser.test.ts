@@ -94,6 +94,13 @@ test("renders payload language and direction with static footnotes", async () =>
   const sourceLink = element?.shadowRoot?.querySelector("a");
   expect(article?.lang).toBe("he");
   expect(article?.dir).toBe("ltr");
+  expect(
+    Number.parseFloat(
+      getComputedStyle(
+        element!.shadowRoot!.querySelector<HTMLElement>(".body")!,
+      ).lineHeight,
+    ),
+  ).toBeGreaterThan(30);
   expect(sourceLink).toBeNull();
   expect(element?.shadowRoot?.querySelector(".attribution")).toBeNull();
 });

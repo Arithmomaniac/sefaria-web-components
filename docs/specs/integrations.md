@@ -233,7 +233,7 @@ The current component also provides:
 
 The popup previews at most 20 aligned source-card positions. It declares when additional content is omitted. Popup dragging is not in Core scope.
 
-The popup hides source-card edition attribution to match the deployed v3 Linker presentation. Other source-card hosts show attribution by default and can opt out with `hide-attributions`.
+The popup keeps source-card edition attribution visible so the embedded preview identifies its source editions. Other source-card hosts also show attribution by default and can opt out with `hide-attributions`.
 
 ## Script and bookmarklet artifacts
 

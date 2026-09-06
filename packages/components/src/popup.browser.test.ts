@@ -85,15 +85,87 @@ test("renders supplied data without requesting", async () => {
   vi.stubGlobal("fetch", fetchMock);
   const { popup } = await renderPopup();
 
-  expect(popup.shadowRoot?.querySelector('[role="dialog"]')).not.toBeNull();
+  const dialog =
+    popup.shadowRoot?.querySelector<HTMLElement>('[role="dialog"]');
+  expect(dialog).not.toBeNull();
+  expect(getComputedStyle(dialog!).backgroundColor).toBe("rgb(255, 253, 248)");
+  expect(popup.shadowRoot?.querySelector(".brand")?.textContent).toContain(
+    "Sefaria",
+  );
   expect(popup.shadowRoot?.textContent).toContain("Showing the first 20");
   const card = popup.shadowRoot?.querySelector<SefariaSourceCard>(
     "sefaria-source-card",
   );
   await card?.updateComplete;
-  expect(card?.hideAttributions).toBe(true);
-  expect(card?.shadowRoot?.querySelector(".attributions")).toBeNull();
+  expect(card?.hideAttributions).toBe(false);
+  expect(card?.shadowRoot?.querySelector(".attributions")).not.toBeNull();
   expect(fetchMock).not.toHaveBeenCalled();
+});
+
+test("repositions within the viewport after a resize", async () => {
+  const { popup } = await renderPopup();
+  const anchor = popup.anchor!;
+  vi.spyOn(anchor, "getBoundingClientRect").mockReturnValue({
+    x: 1000,
+    y: 100,
+    left: 1000,
+    right: 1080,
+    top: 100,
+    bottom: 132,
+    width: 80,
+    height: 32,
+    toJSON: () => ({}),
+  });
+  vi.stubGlobal("innerWidth", 390);
+  window.dispatchEvent(new Event("resize"));
+  const close =
+    popup.shadowRoot?.querySelector<HTMLButtonElement>(".close-button");
+
+  expect(popup.style.left).toBe("8px");
+  expect(getComputedStyle(close!).minWidth).toBe("44px");
+  expect(getComputedStyle(close!).minHeight).toBe("44px");
+});
+
+test("keeps the popup visible when its anchor scrolls off-screen", async () => {
+  const { popup } = await renderPopup();
+  vi.spyOn(popup.anchor!, "getBoundingClientRect").mockReturnValue({
+    x: 100,
+    y: -82,
+    left: 100,
+    right: 180,
+    top: -82,
+    bottom: -50,
+    width: 80,
+    height: 32,
+    toJSON: () => ({}),
+  });
+
+  window.dispatchEvent(new Event("scroll"));
+
+  expect(popup.style.top).toBe("8px");
+});
+
+test("uses the solid accent for the close-button focus indicator", async () => {
+  const { popup } = await renderPopup();
+  const close =
+    popup.shadowRoot?.querySelector<HTMLButtonElement>(".close-button");
+  close?.focus();
+
+  expect(getComputedStyle(close!).outlineColor).toBe("rgb(142, 36, 73)");
+});
+
+test("allows the host to theme the error color", async () => {
+  const { popup } = await renderPopup();
+  popup.style.setProperty("--sefaria-danger", "rgb(1, 2, 3)");
+  popup.viewModel = {
+    state: "error",
+    errorKind: "projection",
+    message: "Unable to render source.",
+  };
+  await popup.updateComplete;
+
+  const alert = popup.shadowRoot?.querySelector<HTMLElement>('[role="alert"]');
+  expect(getComputedStyle(alert!).color).toBe("rgb(1, 2, 3)");
 });
 
 test("focuses the close button and restores the trigger on Escape", async () => {

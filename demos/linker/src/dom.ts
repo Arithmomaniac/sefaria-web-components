@@ -182,7 +182,11 @@ function wrapRange(
     link.dataset.sefariaRef = target.tref;
     link.setAttribute("aria-controls", "sefaria-linker-popup");
     link.setAttribute("aria-haspopup", "dialog");
+    link.style.color = "var(--sefaria-link, light-dark(#8e2449, #ff93b4))";
+    link.style.fontWeight = "600";
     link.style.textDecoration = "underline dotted";
+    link.style.textDecorationColor = "currentColor";
+    link.style.textDecorationThickness = "0.08em";
     link.style.textUnderlineOffset = "0.15em";
     link.style.cursor = "pointer";
     range.surroundContents(link);
