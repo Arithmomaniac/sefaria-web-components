@@ -35,9 +35,9 @@ The [development guide](docs/development.md) covers Corepack, the Python fixture
 
 ## What is available?
 
-The client, text transforms, text segment, bilingual segment, reference label, source card, request-free popup, embeddable Linker demonstration, and Core MCP App are implemented on the [documented implementation baseline](docs/development.md#implemented-on-this-baseline). A source card handles both a single segment and a collection of text from one response.
+The client, text transforms, text segment, bilingual segment, reference label, selectable source card, connections panel, request-free popup, contextual connections reader, embeddable Linker demonstration, and Core MCP App are implemented on the [documented implementation baseline](docs/development.md#implemented-on-this-baseline). A source card handles both a single segment and a collection of text from one response.
 
-The MCP App has rendered successfully in an authenticated, isolated VS Code Copilot Chat session. The repository includes the captured host screenshot, persistent profile bootstrap, and Playwright acceptance harness; the profile requires one manual Copilot sign-in before its first automated run. Connections and broader connected-reading surfaces remain **planned**. Public hosting and broad live-site qualification for the Linker are also outside the delivered demonstration. [Development](docs/development.md) separates current behavior, superseded plans, and remaining work.
+Run `pnpm dev:connections` for the contextual reader or `pnpm dev:linker` for the embeddable citation demonstration. The MCP App has rendered successfully in an authenticated, isolated VS Code Copilot Chat session; the repository includes the captured host screenshot, persistent profile bootstrap, and Playwright acceptance harness, and the profile requires one manual Copilot sign-in before its first automated run. Back/history navigation and broader recursive connected-reading surfaces remain **planned**. Public hosting and broad live-site qualification for the Linker are also outside the delivered demonstration. [Development](docs/development.md) separates current behavior, superseded plans, and remaining work.
 
 ## License and ownership
 

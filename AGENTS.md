@@ -1,4 +1,4 @@
-> Created/edited by GitHub Copilot; pending human review.
+> Created/edited by GitHub Copilot with human review/feedback by Avi Levin.
 
 # Contributor Instructions
 
@@ -128,6 +128,10 @@ Test each corrected schema against the pinned Sefaria implementation and its ups
 Use realistic Sefaria payload sizes for synchronous code. Add a limit to work that can expand with payload size.
 
 If code or configuration changes, run `pnpm check` before review.
+
+## Use repository-installed tools
+
+Prefer existing package scripts and locally installed executables over `npx` or `npm exec`. For focused Vitest runs, use `npm test -- <test-file>` or the equivalent `pnpm test -- <test-file>` rather than a transient executor. Use `npx` or `npm exec` only when the repository has neither an appropriate script nor an installed local binary; do not allow an executor to download an unpinned tool implicitly.
 
 ## Put information in one place
 

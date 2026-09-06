@@ -496,3 +496,17 @@ A September 6, 2026 probe of the deployed `Genesis` v3 text response returned ap
 One measured verse had 957 commentary links.
 
 Rendering every result creates 957 commentary items for this example.
+
+# Connections reader comparison (2026-09-06)
+
+The local Web checkout is pinned to `1f7d0844ca6a9eddc8e48168962aacb09de75bd6`; the local Mobile checkout is pinned to `925420dcf7dd00a16f8dc4c4191284792fc3f9fa`. Both were clean when inspected. These observations describe those commits, not an assertion about current deployed clients.
+
+Web [segment construction](https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/static/js/sefaria/sefaria.js#L2477-L2542) derives addresses from section metadata, offsets, and adapted address values. [Context loading](https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/static/js/sefaria/sefaria.js#L830-L846) obtains the target and its section separately. The [v3 builder](https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/sefaria/model/text_request_adapter.py#L94-L147) supplies normalized string addresses and trimmed offsets; the Web adapter's numeric assumptions cannot be copied directly. [Offset tests](https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/sefaria/model/tests/index_offsets_by_depth_tests.py) establish offset and Talmud counterexamples.
+
+The pinned [address-type definitions](https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/sefaria/model/schema.py#L2673-L2807) show that `Year`, `Aliyah`, `Perek`, `Pasuk`, `Mishnah`, `Volume`, `Siman`, `Halakhah`, `Seif`, `SeifKatan`, and `Section` inherit integer addressing. Deployed Genesis v3 payloads use `Perek` and `Pasuk`, so checking only the literal `Integer` transport value rejects valid ordinary text.
+
+Mobile [API adaptation](https://github.com/Sefaria/Sefaria-Mobile/blob/925420dcf7dd00a16f8dc4c4191284792fc3f9fa/api.js#L53-L75) derives offset-aware segment numbers. Its [reader loading](https://github.com/Sefaria/Sefaria-Mobile/blob/925420dcf7dd00a16f8dc4c4191284792fc3f9fa/ReaderApp.js#L665-L710) opens ranges at their first ref and separates requested target from displayed section. The planned demo follows first-segment behavior but not Mobile's string-splitting shortcut.
+
+Web [connection details](https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/static/js/TextList.jsx#L155-L184) render connected text ranges. Mobile [long-text handling](https://github.com/Sefaria/Sefaria-Mobile/blob/925420dcf7dd00a16f8dc4c4191284792fc3f9fa/ReaderApp.js#L1392-L1404) truncates near 3,500 raw characters. The planned preview intentionally counts rendered graphemes and preserves balanced markup instead. Mobile uses a virtualized list with visibility-triggered content loading; the planned library uses explicit 20-entry pages and text-inclusive links responses to avoid child requests. No upstream parity is claimed for page size or fetch policy.
+
+The planned source-card addressability contract supersedes the earlier blanket exclusion of leaf refs only for proven single-section numbered shapes. The planned all-category connections contract supersedes Commentary-only delivery language; it does not expand into sheets, other tools, or MCP acceptance.

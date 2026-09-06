@@ -69,6 +69,15 @@ importers:
         specifier: ^3.3.3
         version: 3.3.3
 
+  demos/connections-panel-live-demo:
+    dependencies:
+      '@sefaria/client':
+        specifier: workspace:*
+        version: link:../../packages/client
+      '@sefaria/components':
+        specifier: workspace:*
+        version: link:../../packages/components
+
   demos/linker:
     dependencies:
       '@mozilla/readability':

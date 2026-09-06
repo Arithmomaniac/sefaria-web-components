@@ -37,6 +37,16 @@ The extractor recognizes a marker followed by optional whitespace and a footnote
 
 Closing and reopening tags can make the output much larger for hostile deeply nested input. Body and note serialization therefore share one output limit. Exceeding the documented limit throws `RangeError` instead of producing unbounded synchronous output.
 
+### Bounded connected-text previews
+
+```ts
+import { createTextPreview } from "@sefaria/text-transform";
+
+const preview = createTextPreview(apiHtml, 3500);
+```
+
+The operation sanitizes its input, removes footnotes and interaction metadata, and returns balanced safe `html`, decoded visible `text`, and `truncated`. The limit counts rendered grapheme clusters rather than raw HTML or UTF-16 units, so entities and combining sequences are not cut incorrectly. It remains deterministic and DOM-free.
+
 ## Vocalization
 
 ```ts

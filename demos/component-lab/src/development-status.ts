@@ -2,6 +2,7 @@ import { SefariaElement } from "@sefaria/components";
 import { css, html } from "lit";
 
 import { bilingualSegmentScenarios } from "./bilingual-segment.scenarios.js";
+import { connectionsPanelScenarios } from "./connections-panel.scenarios.js";
 import { refLabelScenarios } from "./ref-label.scenarios.js";
 import { sourceCardScenarios } from "./source-card.scenarios.js";
 import { textSegmentScenarios } from "./text-segment.scenarios.js";
@@ -101,12 +102,38 @@ class SefariaDevelopmentStatus extends SefariaElement {
       </p>
       <div class="states">
         ${sourceCardScenarios.map(
-          ({ title, viewModel }) => html`
+          ({
+            title,
+            viewModel,
+            selectable = false,
+            selectedPosition,
+            showAddressLabels = true,
+          }) => html`
             <section>
               <h2>${title}</h2>
               <sefaria-source-card
+                ?selectable=${selectable}
+                .selectedPosition=${selectedPosition}
+                .showAddressLabels=${showAddressLabels}
                 .viewModel=${viewModel}
               ></sefaria-source-card>
+            </section>
+          `,
+        )}
+      </div>
+      <h2>Connections panel</h2>
+      <p>
+        Category summaries and bounded detail pages use authored, already
+        projected connection view models.
+      </p>
+      <div class="states">
+        ${connectionsPanelScenarios.map(
+          ({ title, viewModel }) => html`
+            <section>
+              <h2>${title}</h2>
+              <sefaria-connections-panel
+                .viewModel=${viewModel}
+              ></sefaria-connections-panel>
             </section>
           `,
         )}

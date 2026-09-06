@@ -37,5 +37,16 @@ export const sefariaTokenDefaults = css`
       "Times New Roman",
       serif
     );
+    --_sefaria-font-label-hebrew: var(
+      --sefaria-font-label-hebrew,
+      "Noto Sans Hebrew",
+      system-ui,
+      sans-serif
+    );
+    --_sefaria-font-label-english: var(
+      --sefaria-font-label-english,
+      system-ui,
+      sans-serif
+    );
   }
 `;

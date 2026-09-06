@@ -47,7 +47,7 @@ Guides explain use. Specifications own intended behavior and acceptance rules. G
 | --- | --- |
 | [Client specification](specs/client.md) | Pinned OpenAPI, corrections, eight GET and POST operations, validation, and failure contracts |
 | [Text-processing specification](specs/text-processing.md) | Exact sanitizer allowlists, vocalization, and footnote rules |
-| [Component specification](specs/components.md) | Requests, view models, factories, elements, popup behavior, and composition; later surfaces are marked planned |
-| [Integration specification](specs/integrations.md) | Current Linker and MCP boundaries, including host acceptance |
+| [Component specification](specs/components.md) | Requests, view models, factories, elements, connections, popup behavior, and composition |
+| [Integration specification](specs/integrations.md) | Current connections-reader, Linker, and MCP boundaries, including host acceptance |
 
 The [archive index](archive/README.md) preserves the pre-rewrite documents and demo captures as historical material. It is not a second set of current instructions.
