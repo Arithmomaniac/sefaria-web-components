@@ -22,6 +22,26 @@ import {
   projectTextSegmentValue,
   type TextSegmentDataViewModel,
 } from "./text-segment.js";
+import { sourceCardAddresses } from "./source-card-addresses.js";
+
+/** Proven contextual navigation capability, independent of rendered text presence. */
+export type SourceCardNavigation =
+  | {
+      readonly state: "available";
+      readonly sectionRef: string;
+      readonly firstRef: string;
+    }
+  | {
+      readonly state: "context-required";
+      /** First server-provided single-section range used to establish a segment target. */
+      readonly contextRef: string;
+    }
+  | {
+      readonly state: "unavailable";
+      readonly message: string;
+      /** Structured paths for malformed metadata that disabled selection. */
+      readonly paths?: readonly (readonly (string | number)[])[];
+    };
 
 /** Input owned by the non-DOM source-card factories. */
 export interface SourceCardRequest {
@@ -65,6 +85,10 @@ export interface SourceCardAttributionViewModel {
 export interface SourceCardItemViewModel {
   /** Zero-based indexes followed through recursive text arrays. */
   readonly position: readonly number[];
+  /** Canonical target derived only for qualified address shapes. */
+  readonly ref?: string;
+  /** Short final-address label derived with the canonical target. */
+  readonly addressLabel?: string;
   /** Ref-free bilingual rendering state for this position. */
   readonly pair: BilingualPairViewModel;
 }
@@ -87,6 +111,8 @@ export interface SourceCardDataViewModel {
   readonly attributions: readonly SourceCardAttributionViewModel[];
   /** Ordered bilingual items. */
   readonly items: readonly SourceCardItemViewModel[];
+  /** Context capability; absent on older host-constructed view models. */
+  readonly navigation?: SourceCardNavigation;
 }
 
 /** Valid payload with no renderable text. */
@@ -99,6 +125,8 @@ export interface SourceCardEmptyViewModel {
   readonly attributions: readonly SourceCardAttributionViewModel[];
   /** Both absent roles, in primary-then-translation order. */
   readonly absent: readonly [BilingualPairAbsentSide, BilingualPairAbsentSide];
+  /** Context capability even when the requested first slot has no text. */
+  readonly navigation?: SourceCardNavigation;
 }
 
 /** Valid payload that cannot be projected as an aligned source card. */
@@ -166,11 +194,16 @@ export function createSourceCardViewModel(
 
   const header = createHeader(payload);
   const attributions = createAttributions(resolved.versions);
+  const addresses = sourceCardAddresses(
+    payload,
+    SIDES.map((side) => resolved.versions[side]?.text),
+  );
   if (projected.items.length === 0) {
     return {
       state: "empty",
       header,
       attributions,
+      navigation: addresses.navigation,
       absent: [
         absentForSide(
           payload,
@@ -188,7 +221,19 @@ export function createSourceCardViewModel(
     };
   }
 
-  return { state: "data", header, attributions, items: projected.items };
+  return {
+    state: "data",
+    header,
+    attributions,
+    navigation: addresses.navigation,
+    items: projected.items.map((item) => {
+      const ref = addresses.refAt(item.position);
+      const addressLabel = addresses.labelAt(item.position);
+      return ref === undefined || addressLabel === undefined
+        ? item
+        : { ...item, ref, addressLabel };
+    }),
+  };
 }
 
 /**

@@ -32,6 +32,16 @@ If no permitted data source exists, the integration shows its own unavailable st
 
 An integration can use `@lit/task`, a reactive controller, or an equivalent task mechanism. The component package does not require one task framework.
 
+## Standalone connections reader [Current]
+
+The standalone demo has one source-card reader and one connections pane. The host owns the displayed container, active single-segment target, selection, cancellation, stale-result suppression, and English-versus-Hebrew address-label presentation. Selecting a reader row commits the controlled selection immediately, performs one links request and no text request, and renders an integration-owned failure if the request rejects. Opening a connection first obtains its target through the source-card async factory. Once a non-spanning response establishes the first target segment and server-provided section, the host starts the contextual-section request when needed and the first-segment links request concurrently. It commits the contextual reader as soon as the section is available while the connections pane remains loading independently. This is at most two text operations and one links operation; neither component factory performs hidden context loading.
+
+A same-section range opens at its first addressed segment, not a multisegment selection. A spanning target follows only the first server-provided `spanningRefs` entry, requests that bounded context, and selects its first qualified segment; it does not render the complete spanning range or parse a reference string. Missing first-target text is unavailable rather than silently replaced with the next nonempty row. Unsupported nested navigation is explicit, while source-card rendering remains supported. Repeated hops are allowed; history, Back, and MCP qualification remain deferred.
+
+For local category/page changes, the host explicitly captures the validated result of the generated `getLinks` operation and calls the connections pure factory. The capture records its exact reference and text-inclusion coverage and is discarded on target replacement. This is an explicit capture-and-project client path, alongside the one-request async view-model factory, not a cache or hidden observer hook. Both paths share the same pure projection. Category changes, paging, and showing/hiding already captured previews make zero requests. Metadata-only captures require an explicit Load previews action to replace them with one text-inclusive links response.
+
+The API has no transport paging parameter: UI paging bounds projection and rendering, not server work or downloaded response bytes. A superseded navigation, links load, or preview load must never overwrite a newer target or page. A failed contextual-section request leaves the previous reader committed and aborts its sibling links operation. A rejected links operation does not roll back an already established reader selection; the integration clears the loading connections surface and reports its own terminal failure outside the request-free element.
+
 ## MCP App purpose
 
 The MCP App renders Sefaria source material inside an MCP Apps-compatible host. The first render uses the tool result and makes no second request.

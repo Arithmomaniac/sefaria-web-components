@@ -34,9 +34,9 @@ The [development guide](docs/development.md) covers Corepack, the Python fixture
 
 ## What is available?
 
-The client, text transforms, text segment, bilingual segment, reference label, source card, request-free popup, and embeddable Linker demonstration are implemented on the [documented implementation baseline](docs/development.md#implemented-on-this-baseline). A source card handles both a single segment and a collection of text from one response.
+The client, text transforms, text segment, bilingual segment, reference label, selectable source card, connections panel, request-free popup, contextual connections reader, and embeddable Linker demonstration are implemented on the [documented implementation baseline](docs/development.md#implemented-on-this-baseline). A source card handles both a single segment and a collection of text from one response.
 
-The corrected-payload MCP integration, named-host acceptance, connections panel, and broader connected-reading surfaces remain **planned**. Public hosting and broad live-site qualification for the Linker are also outside the delivered demonstration. [Development](docs/development.md) separates current behavior, superseded plans, and remaining work.
+Run `pnpm dev:connections` for the contextual reader or `pnpm dev:linker` for the embeddable citation demonstration. The corrected-payload MCP integration, named-host acceptance, Back/history navigation, and broader connected-reading surfaces remain **planned**. Public hosting and broad live-site qualification for the Linker are also outside the delivered demonstration. [Development](docs/development.md) separates current behavior, superseded plans, and remaining work.
 
 ## License and ownership
 

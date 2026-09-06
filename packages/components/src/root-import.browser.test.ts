@@ -12,6 +12,7 @@ test("imports the browser root without factory runtime dependencies", async () =
 
   await expect(import("./index.js")).resolves.toMatchObject({
     SefariaBilingualSegment: expect.any(Function),
+    SefariaConnectionsPanel: expect.any(Function),
     SefariaRefLabel: expect.any(Function),
     SefariaTextSegment: expect.any(Function),
   });

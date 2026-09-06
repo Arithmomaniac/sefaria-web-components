@@ -4,9 +4,18 @@ import { primarySide, translationSide } from "./bilingual-segment.scenarios.js";
 
 export interface SourceCardScenario {
   readonly id:
-    "one-item" | "many-items" | "one-sided" | "loading" | "empty" | "error";
+    | "one-item"
+    | "many-items"
+    | "hidden-addresses"
+    | "one-sided"
+    | "loading"
+    | "empty"
+    | "error";
   readonly title: string;
   readonly viewModel: SourceCardViewModel;
+  readonly selectable?: boolean;
+  readonly selectedPosition?: readonly number[];
+  readonly showAddressLabels?: boolean;
 }
 
 const header = {
@@ -53,16 +62,45 @@ export const sourceCardOneItemScenario = {
 export const sourceCardManyItemsScenario = {
   id: "many-items",
   title: "Multi-item source card",
+  selectable: true,
+  selectedPosition: [1],
   viewModel: {
     state: "data",
     header,
     attributions,
+    navigation: {
+      state: "available",
+      sectionRef: "Genesis 1",
+      firstRef: "Genesis 1:1",
+    },
     items: [
-      { position: [0], pair: dataPair },
-      { position: [1], pair: dataPair },
-      { position: [2], pair: dataPair },
+      {
+        position: [0],
+        ref: "Genesis 1:1",
+        addressLabel: "1",
+        pair: dataPair,
+      },
+      {
+        position: [1],
+        ref: "Genesis 1:2",
+        addressLabel: "2",
+        pair: dataPair,
+      },
+      {
+        position: [2],
+        ref: "Genesis 1:3",
+        addressLabel: "3",
+        pair: dataPair,
+      },
     ],
   },
+} satisfies SourceCardScenario;
+
+export const sourceCardHiddenAddressesScenario = {
+  ...sourceCardManyItemsScenario,
+  id: "hidden-addresses",
+  title: "Selectable source card without visible labels",
+  showAddressLabels: false,
 } satisfies SourceCardScenario;
 
 export const sourceCardOneSidedScenario = {
@@ -121,6 +159,7 @@ export const sourceCardErrorScenario = {
 export const sourceCardScenarios: readonly SourceCardScenario[] = [
   sourceCardOneItemScenario,
   sourceCardManyItemsScenario,
+  sourceCardHiddenAddressesScenario,
   sourceCardOneSidedScenario,
   sourceCardLoadingScenario,
   sourceCardEmptyScenario,

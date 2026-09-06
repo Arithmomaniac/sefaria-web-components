@@ -6,6 +6,7 @@ export {
   type VocalizationOptions,
 } from "./vocalization.js";
 export { sanitize, type SanitizeOptions } from "./sanitize.js";
+export { createTextPreview, type TextPreview } from "./preview.js";
 export {
   extractFootnotes,
   type ExtractedFootnote,

@@ -235,9 +235,9 @@ Task lifecycle state and component view-model state must not compete for the sam
 | `<sefaria-text-segment>` | Current | `/api/v3/texts/{tref}` payload or parent payload slice | Safe text, direction, language, and static footnote data | None in the current contract |
 | `<sefaria-bilingual-segment>` | Current | `/api/v3/texts/{tref}` payload or parent payload slice | Primary and translation sides and absent-side state | `contentLanguage`, `layout`, and `sideOrder` |
 | `<sefaria-ref-label>` | Current | `/api/ref/{tref}` payload or parent payload slice | Canonical English and Hebrew labels, URL forms, owning index, node type, and unresolvable-reference state | `labelLanguage` and `linked` |
-| `<sefaria-source-card>` | Current | `/api/v3/texts/{tref}` payload | Payload-derived reference header, ordered bilingual pairs, attribution, and missing-content state | `referenceLabel`, `contentLanguage`, `layout`, `sideOrder`, and `hideAttributions` |
+| `<sefaria-source-card>` | Current | `/api/v3/texts/{tref}` payload | Payload-derived reference header, ordered bilingual pairs, attribution, addressability, and missing-content state | `referenceLabel`, `contentLanguage`, `layout`, `sideOrder`, `hideAttributions`, `showAddressLabels`, `selectable`, and `selectedPosition` |
 | `<sefaria-popup>` | Current | Source-card payload or parent payload | Bounded source-card preview and recoverable error state | Anchor, open state, placement, and focus behavior |
-| `<sefaria-connections-panel>` | Planned | `/api/links/{tref}` payload | Category and link view models with bounded paging | Selected category and expanded state |
+| `<sefaria-connections-panel>` | Current | `/api/links/{tref}` payload | Category and link view models with bounded paging | Selected category and preview visibility |
 
 The `/api/texts/versions/{index}`, `/api/v2/index/{title}`, and `/api/shape/{title}` operations can support component requests that need those payloads. A component must not request them without a concrete need.
 
@@ -375,7 +375,7 @@ The recursive `CoreV3TextValue` shape is authoritative. The factory walks arrays
 
 The primary and translation sides are aligned by the union of their leaf position paths. A path present on only one side produces a partial bilingual pair naming the absent role. An empty inner array contributes no item. A scalar on one side and an array at the same path on the other side is a projection error; the factory does not flatten through the disagreement or silently discard either side.
 
-Each card item carries positional identity and a ref-free `BilingualPairViewModel`. It does not carry or synthesize a leaf reference. The payload's `spanningRefs` identifies top-level groups rather than every leaf, and address formats vary by work. Offline reference parsing remains outside the architecture.
+Each card item carries positional identity and a ref-free `BilingualPairViewModel`. The addressability capability below adds narrowly derived item targets and short address labels without changing positional identity. The payload's `spanningRefs` does not establish arbitrary nested leaf addresses. Offline parsing of arbitrary reference strings remains outside the architecture.
 
 ### View model and states
 
@@ -392,13 +392,37 @@ The card has no card-level `partial` state. A one-sided work is `data` whose ite
 
 ### Element and rendering
 
-`<sefaria-source-card>` accepts only its view model, an optional host-supplied `RefLabelViewModel`, and the `contentLanguage`, `layout`, `sideOrder`, and `hideAttributions` presentation properties. `hideAttributions` defaults to false and changes rendering only; it does not remove attribution from the view model. The element performs no request. When `referenceLabel` is absent, it renders the payload-derived header without a link. Supplying `referenceLabel` renders the existing reference-label component and does not change request ownership.
+`<sefaria-source-card>` accepts only its view model, an optional host-supplied `RefLabelViewModel`, and the `contentLanguage`, `layout`, `sideOrder`, `hideAttributions`, `showAddressLabels`, `selectable`, and `selectedPosition` presentation and interaction properties. `hideAttributions` defaults to false and changes rendering only; it does not remove attribution from the view model. The element performs no request. When `referenceLabel` is absent, it renders the payload-derived header without a link. Supplying `referenceLabel` renders the existing reference-label component and does not change request ownership.
 
 The source card and `<sefaria-bilingual-segment>` use one shared pair renderer for side markup, ordering, absent-side slots, and layout CSS. The bilingual element is a thin public wrapper for one pair. The card renders its keyed item collection inside one shadow root, then renders the visible editions' attribution once outside that repeated collection. Three items from the same two editions therefore render two attribution entries, not six.
 
 The factory projects every leaf returned by the payload. It performs a single depth-first traversal plus keyed position alignment rather than imposing an artificial item cap. Tests use a realistic large payload to prove exact item count and linear work, and browser tests prove keyed DOM reuse across view-model updates.
 
-Numbering gutters, aliyah markers, highlights, selection events, pagination, virtualization, and continuous paragraph layout remain outside the current contract until a concrete consumer defines them.
+Structural chapter/parashah headings, aliyah markers, pagination, virtualization, and continuous paragraph layout remain outside the current contract. The compact address label below is a selection affordance, not a general structural-heading system.
+
+### Addressability and selection [Current]
+
+The pure source-card factory owns addressability. An available capability supplies the server's `sectionRef`, the first requested segment, and supported item targets. Each supported item also carries the short final-address label established by the same metadata, such as `2` for `Genesis 1:2`; the element does not parse the canonical ref to rediscover it. The capability supports scalar segments and flat single-section collections whose final address type is `Integer` or one of the pinned integer-derived address types (`Year`, `Aliyah`, `Perek`, `Pasuk`, `Mishnah`, `Volume`, `Siman`, `Halakhah`, `Seif`, `SeifKatan`, or `Section`). It preserves section prefixes, including Talmud and commentary names. A section starts at its leaf offset plus one; a same-section range starts at its normalized final `sections` address without adding the offset again. Depth-one items use a space delimiter. Empty or omitted text never renumbers subsequent positions.
+
+For a spanning payload, the factory exposes only a `context-required` capability containing the first nonempty server-provided `spanningRefs` entry. It does not derive leaf targets from the nested payload or parse the range string. A host can request that bounded first span and apply the same qualified mapper to establish the first canonical segment. A spanning payload without a server-provided first context, arbitrary nested non-spanning content, and other unsupported address shapes retain their text rendering with an explicit unavailable capability.
+
+Malformed consumed offset metadata also preserves text rendering and reports structured JSON paths on the unavailable capability rather than becoming a guessed zero offset or a card-level failure. Missing offsets mean zero only where the pinned server's absent-offset semantics permit it. The first target is determined before empty text is removed; it is not replaced by the first nonempty row.
+
+Selection is opt-in through `selectable` and a controlled `selectedPosition` property. When `showAddressLabels` is true, each visible text side receives its own compact real button: a Hebrew numeral in the Hebrew-side sans-serif font beside the primary side and an Arabic numeral in the English-side sans-serif font beside the translation side. The shared pair layout keeps those labels beside their corresponding text whether the pair is stacked or side by side. When `showAddressLabels` is false, neither numeral is visible; a visually hidden control preserves keyboard selection.
+
+Every selection control exposes the complete canonical ref through its accessible name, exposes `aria-pressed`, and emits `sefaria-source-select` with `{ position, ref }`, bubbling across shadow roots. Hebrew labels use conventional geresh/gershayim forms, including the special 15 and 16 forms. Label visibility changes only presentation; the canonical ref and event payload remain unchanged. An ordinary pointer click elsewhere in the selectable row emits the same event unless it originated from embedded interactive content or the user has a non-collapsed text selection. The rich bilingual content is not wrapped in a button, and embedded links retain their own action. Updating properties never emits the event. The element's request-free `revealSelection()` scrolls and focuses a selected control for host-driven contextual navigation. Existing nonselectable use remains unchanged.
+
+## Connections panel contract [Current]
+
+`@sefaria/components/connections-panel` owns the request, pure and async factories, and view-model union. The async factory performs one `getLinks` operation with explicit `with_text` and `with_sheet_links=0`; its pure projection is identical for the captured response. It never loads a connection's text separately. Loading, data, empty, API errors returned with HTTP 200, HTTP 400 errors, and projection failures are distinct. Network, abort, and JSON validation failures reject.
+
+The request separates the reference and text-inclusion choice from local category/page projection. All text-link categories have summaries and detail pages; sheets are excluded. Category IDs retain the API's exact values, with Commentary first and the remaining categories in deterministic name order. Entries group by `index_title`, then sort by `anchorVerse`, `commentaryNum`, `sourceRef`, and `_id`. Collective titles and source reference labels come from the payload; missing translated category or rich reference metadata is not invented.
+
+Counts use unique link IDs, not expanded anchor count. Identical duplicate records collapse; conflicting duplicates are projection errors. Different IDs remain different connections even when their targets match. Pages contain 20 entries. More and Previous replace the current page rather than accumulating an unbounded list. An out-of-range page is explicit and can return to page one. Only the active page receives preview projection. Category changes reset the page; a new target resets category and page.
+
+Previews default to visible and carry connected text across recursive leaves, not just the first leaf. Each legacy `he`/`text` channel is bounded to 3,500 rendered grapheme clusters through the pure text-preview operation. These channels are not falsely relabeled as v3 primary/translation roles. Available, absent, partially available, and not-requested text remain distinguishable. Preserve reported edition/license metadata without asserting fragment-level attribution that the payload does not establish.
+
+The element receives only its view model and interaction/presentation properties. It emits `sefaria-connections-category-change`, `sefaria-connections-page-change`, `sefaria-connection-select`, and `sefaria-connections-preview-request` events. Preview visibility is independent of data acquisition. A metadata-only view cannot automatically fetch previews; the preview-request event lets the host explicitly replace the active capture with preview data. See the integration specification for ownership of the active captured payload and zero-request local paging.
 
 ## Text and attribution
 
