@@ -1,10 +1,10 @@
-> Created/edited by GitHub Copilot; pending human review.
+> Created/edited by GitHub Copilot with human review/feedback by avilevin.
 
-# Integration specification [Planned]
+# Integration specification
 
 ## Status
 
-This specification defines the planned MCP App and Linker integration boundaries.
+This specification defines the planned MCP App boundary and the implemented Linker integration boundary.
 
 ## Shared integration rules
 
@@ -143,22 +143,32 @@ Standalone browser rendering does not prove host compatibility. Host limitations
 - Client and server modes produce equal view models for the same payload.
 - A wheel test reads every packaged runtime artifact.
 
-## Linker userscript purpose
+## Linker script purpose
 
-The Linker userscript demonstrates a request-free popup on a third-party page. It is not a migration program for the deployed Sefaria Linker.
+The current Linker integration demonstrates a request-free popup on a third-party page through one embeddable classic script and a bookmarklet that loads that same script. It is not a migration program for the deployed Sefaria Linker and does not load the deployed Linker bundle.
 
-The integration owns citation detection, request cancellation, client creation, and factory calls. The popup element owns only rendering and interaction.
+The integration owns article extraction, citation-detection submission and polling, host DOM mutation, request cancellation, client creation, and factory calls. The popup element owns only rendering and interaction.
+
+The integration calls the generated `POST /api/find-refs` operation once per scan with `with_text=0` and `debug=0`, then calls the generated `GET /api/async/{task_id}` operation until the known task reaches a terminal state or the bounded polling policy ends. The client supplies validated operations but owns no polling or retry policy.
+
+The integration sends extracted article title and body text to Sefaria. It does not send page-tracking metadata, call the website-selector endpoint, or submit citation reports.
 
 ## Linker flow
 
 ```mermaid
 sequenceDiagram
     participant Page as Host page
-    participant Linker as Userscript integration
+    participant Detection as Detection API
+    participant Linker as Script integration
     participant Factory as Popup async factory
     participant Client as @sefaria/client
     participant Element as sefaria-popup
 
+    Page->>Linker: explicit script invocation
+    Linker->>Detection: submit extracted title and body
+    Linker->>Detection: poll known task
+    Detection-->>Linker: validated citation matches
+    Linker->>Page: wrap proven host occurrences
     Page->>Linker: citation activation
     Linker->>Factory: PopupRequest and supplied client
     Factory->>Client: generated text operation
@@ -172,20 +182,32 @@ The element receives no reference and makes no request.
 
 If a newer citation replaces an older request, the integration aborts or ignores the obsolete operation. An old response must not replace the newer view model.
 
-## Linker host safety
+## Linker extraction and host safety
 
-Development metadata must not use `<all_urls>`.
+Each invocation performs one article scan. The default extraction uses Readability on an inert document clone, preserves paragraph boundaries, and can include additional content through explicit selectors. Dynamic pages invoke the public API again after their content changes; the integration does not install an automatic mutation observer.
 
-Default matches are limited to localhost and an explicit fixture host. A real site requires a deliberate metadata change.
+The integration maps validated detection results back to proven visible host-text occurrences. It leaves failed, ambiguous, overlapping, stale, or unprovable matches unchanged. It does not parse references locally or choose the first ambiguous result.
 
-The userscript:
+Citation anchors accept only URLs that resolve to the canonical HTTPS `www.sefaria.org` origin. Off-origin, malformed, inherited, or unsafe service values are skipped.
+
+The integration:
 
 - adds no global CSS
 - does not replace host keyboard handlers
-- does not rewrite unrelated links
+- does not rewrite existing links, editable controls, navigation, hidden content, scripts, styles, or excluded subtrees
 - sends host-page text only through the approved Sefaria detection path
 - sanitizes Sefaria HTML through the component factory
-- removes obsolete popups and listeners
+- removes only its own links, popup, timers, and listeners during destroy
+
+Work that expands with page or payload size has explicit measured limits. Crossing a limit produces an integration-owned error; it does not silently truncate citation detection or switch extraction strategies.
+
+## Linker polling
+
+The current polling policy performs at most 16 status requests. Inter-poll waits begin at 500 milliseconds, grow by a factor of 1.5, and stop growing at 5 seconds. The complete operation has a 120-second deadline that aborts in-flight work.
+
+A valid pending response schedules the next poll. A task failure, documented HTTP error, network failure, abort, contract mismatch, unexpected task identifier, unexpected state, attempt exhaustion, or deadline exhaustion stops the operation visibly. The integration never resubmits the original detection request automatically.
+
+A newer scan aborts and supersedes the older scan. A late obsolete response cannot modify the current page.
 
 ## Popup behavior
 
@@ -199,7 +221,7 @@ The integration preserves:
 - Escape closure
 - `aria-controls` on the trigger
 
-The planned component also provides:
+The current component also provides:
 
 - `aria-modal`
 - an accessible name
@@ -209,21 +231,42 @@ The planned component also provides:
 - token-based themes
 - shadow-root style isolation
 
-Popup dragging is not in Core scope.
+The popup previews at most 20 aligned source-card positions. It declares when additional content is omitted. Popup dragging is not in Core scope.
+
+The popup hides source-card edition attribution to match the deployed v3 Linker presentation. Other source-card hosts show attribution by default and can opt out with `hide-attributions`.
+
+## Script and bookmarklet artifacts
+
+The build produces one self-contained classic script, one generated bookmarklet loader, one article demo that invokes the script automatically, and one equivalent no-autostart article page for bookmarklet use.
+
+The browser API exposes explicit `link()` and `destroy()` operations on a versioned integration namespace. Repeated `link()` calls rescan without nesting owned links. Repeated insertion of the same compatible bundle reuses the existing API and does not duplicate custom-element definitions or listeners.
+
+The bookmarklet click is the user invocation and starts immediately. It loads the same script artifact used by the embed snippet. Its artifact URL is build configuration: localhost for local development and an explicit HTTPS URL for intended public use.
+
+The integration documents Content Security Policy, Trusted Types, mixed-content, network, CORS, and restricted-page limitations. It does not bypass browser protections with a proxy, extension, or privileged userscript.
 
 ## Linker acceptance criteria
 
-- The built file installs in Tampermonkey or a compatible engine.
-- The default build runs only on approved fixture hosts.
+- The built classic script can be embedded in an ordinary page without a package manager or module loader.
+- The generated bookmarklet loads that same built script and invokes it immediately.
+- The authored article demo contains no precomputed citation matches and links automatically on load.
+- The no-autostart article demo proves bookmarklet activation.
+- A scan makes one detection submission and only the bounded status requests required by that task.
+- Default detection makes no source-text request, page-tracking request, website-selector request, or citation-report request.
 - A detected citation calls the popup async factory when the integration selects the client path.
+- One citation activation performs one v3 text request.
 - The popup element receives only a view model and interaction properties.
 - Host styles do not enter the popup.
 - Popup styles do not enter the host page.
 - Keyboard users can open, traverse, and close the popup.
 - Closing restores focus.
 - Rapid citation changes do not show obsolete data.
+- Rapid scans do not apply obsolete DOM mutations.
+- Repeated scans do not nest owned links.
+- Destroy removes owned mutations and aborts pending work.
 - API HTML is sanitized before it reaches the element.
-- The userscript needs no deployed project-specific service.
+- The script needs no deployed project-specific service.
+- Built artifacts contain no development-server URL or unresolved package import.
 
 ## Integration failure rules
 

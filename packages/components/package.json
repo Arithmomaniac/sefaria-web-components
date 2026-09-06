@@ -6,6 +6,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./bilingual-segment": "./src/bilingual-segment.ts",
+    "./popup": "./src/popup.ts",
     "./ref-label": "./src/ref-label.ts",
     "./source-card": "./src/source-card.ts",
     "./text-segment": "./src/text-segment.ts"

@@ -1,15 +1,17 @@
 {
-  "name": "@sefaria-demo/linker-userscript",
+  "name": "@sefaria-demo/linker",
   "version": "0.0.0",
   "private": true,
   "type": "module",
   "dependencies": {
+    "@mozilla/readability": "^0.6.0",
+    "@sefaria/client": "workspace:*",
     "@sefaria/components": "workspace:*",
     "lit": "^3.3.3"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json && vite build",
-    "dev": "vite",
+    "build": "tsc -p tsconfig.json && node build.mjs",
+    "dev": "tsc -p tsconfig.json && node build.mjs && vite preview",
     "preview": "vite preview",
     "typecheck": "tsc -p tsconfig.json"
   }

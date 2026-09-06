@@ -1,6 +1,6 @@
 ---
 description: "Rules for MCP and Linker integrations"
-applyTo: "demos/mcp/**,demos/linker-userscript/**,docs/specs/integrations.md"
+applyTo: "demos/mcp/**,demos/linker/**,docs/specs/integrations.md"
 ---
 
 # Integration Instructions
@@ -19,8 +19,8 @@ applyTo: "demos/mcp/**,demos/linker-userscript/**,docs/specs/integrations.md"
 - Replace an alternate private wire format atomically.
 - Do not add a dual-reader compatibility path.
 - Keep host-page CSS isolated.
-- Use explicit origin allowlists and userscript match rules.
-- Do not use a match rule for all sites.
+- Make embedded scripts and bookmarklets run only after explicit host-page or user invocation.
+- Document host Content Security Policy, mixed-content, and network restrictions without bypassing them.
 - Test real tool, resource, package, host, request-count, and cancellation boundaries.
 - Keep fixture data representative, fixed, and source-pinned or dated.
 - State host limitations separately from component failures.

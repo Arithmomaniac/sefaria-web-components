@@ -129,7 +129,12 @@ function createDataViewModel(label: string): SourceCardDataViewModel {
       categories: ["Tanakh", "Torah"],
     },
     attributions: [
-      { side: "primary", versionTitle: label, versionSource: null },
+      {
+        side: "primary",
+        versionTitle: label,
+        versionSource: null,
+        versionSourceUrl: null,
+      },
     ],
     items: [
       {

@@ -4,6 +4,8 @@ export { SefariaBilingualSegment } from "./bilingual-segment-element.js";
 export type * from "./bilingual-segment.js";
 export { SefariaRefLabel, type RefLabelLanguage } from "./ref-label-element.js";
 export type * from "./ref-label.js";
+export { SefariaPopup } from "./popup-element.js";
+export type * from "./popup.js";
 export { SefariaSourceCard } from "./source-card-element.js";
 export type * from "./source-card.js";
 export { SefariaTextSegment } from "./text-segment-element.js";

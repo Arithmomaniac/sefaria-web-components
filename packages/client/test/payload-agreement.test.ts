@@ -16,6 +16,8 @@ const coreOperationFixturePaths = [
   ["get-index-v2", "/api/v2/index/"],
   ["get-shape", "/api/shape/"],
   ["get-links", "/api/links/"],
+  ["post-find-refs", "/api/find-refs"],
+  ["get-async-task-status", "/api/async/"],
 ] as const;
 
 describe("generated payload type and validator agreement", () => {
@@ -25,7 +27,7 @@ describe("generated payload type and validator agreement", () => {
     expect(validateGetIndexV2200(response)).toBe(true);
   });
 
-  it("has representative fixture manifest entries for all six Core operations", () => {
+  it("has representative fixture manifest entries for all eight Core operations", () => {
     const fixturePaths = Object.values(fixtureManifest).map(
       ({ source }) => new URL(source).pathname,
     );

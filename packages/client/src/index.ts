@@ -9,12 +9,14 @@ export {
   type SefariaContractErrorOptions,
 } from "./contract-error.js";
 export {
+  getAsyncTaskStatus,
   getIndexV2,
   getLinks,
   getRef,
   getShape,
   getTextVersions,
   getV3Texts,
+  postFindRefs,
   type Options,
 } from "./generated/sdk.gen.js";
 export type * from "./generated/contracts.gen.js";

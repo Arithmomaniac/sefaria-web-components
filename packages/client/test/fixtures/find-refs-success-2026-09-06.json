@@ -1,0 +1,48 @@
+{
+  "task_id": "72a1b515-eb68-4df8-a9ec-ce541bb89195",
+  "state": "SUCCESS",
+  "ready": true,
+  "result": {
+    "title": {
+      "results": [],
+      "refData": {}
+    },
+    "body": {
+      "results": [
+        {
+          "startChar": 31,
+          "endChar": 42,
+          "text": "Genesis 1:1",
+          "linkFailed": false,
+          "refs": ["Genesis 1:1"]
+        },
+        {
+          "startChar": 47,
+          "endChar": 57,
+          "text": "Shabbat 2a",
+          "linkFailed": false,
+          "refs": ["Shabbat 2a"]
+        },
+        {
+          "startChar": 76,
+          "endChar": 92,
+          "text": "NotAReference 99",
+          "linkFailed": true,
+          "refs": null
+        }
+      ],
+      "refData": {
+        "Genesis 1:1": {
+          "heRef": "בראשית א׳:א׳",
+          "url": "Genesis.1.1",
+          "primaryCategory": "Tanakh"
+        },
+        "Shabbat 2a": {
+          "heRef": "שבת ב׳ א",
+          "url": "Shabbat.2a",
+          "primaryCategory": "Talmud"
+        }
+      }
+    }
+  }
+}

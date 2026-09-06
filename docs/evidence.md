@@ -1,4 +1,4 @@
-> Created/edited by GitHub Copilot; pending human review.
+> Created/edited by GitHub Copilot with human review/feedback by avilevin.
 
 # Evidence
 
@@ -351,6 +351,22 @@ Current browsers ignore the removed `scoped` attribute. Popup rules and font imp
 Generic selectors can change host elements. Each host also receives imports for Crimson Text, Frank Ruhl Libre, and Heebo.
 
 A shadow root supplies the isolation that the existing markup assumes.
+
+## Linker detection and browser-test observations
+
+The Linker source observations in this section use Sefaria commit [`1f7d0844ca6a9eddc8e48168962aacb09de75bd6`](https://github.com/Sefaria/Sefaria-Project/tree/1f7d0844ca6a9eddc8e48168962aacb09de75bd6).
+
+The pinned [`find_refs_api`](https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/sefaria/views.py#L519-L538) always enqueues a task and returns HTTP 202 with a task identifier. The pinned [`async_task_status_api`](https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/sefaria/views.py#L540-L586) returns HTTP 202 while pending, HTTP 200 on success, and HTTP 500 on task failure.
+
+The pinned response builder [`_make_find_refs_response_inner`](https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/sefaria/helper/linker/linker.py#L236-L263) records failed matches with `refs: null` and keys `refData` by canonical reference. The pinned OpenAPI input instead models `refs` only as an array and models a literal `RefTitle` property. These are transport-contract mismatches that require guarded correction before the Linker integration can consume generated validators.
+
+The pinned browser script [`static/js/linker.v3/main.js`](https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/static/js/linker.v3/main.js) uses Readability over a document clone, removes tables and superscripts from extraction, supports an additional whitelist selector, excludes existing anchors from wrapping, submits one find-refs task, and polls the task. Its configured polling has 15 retries after the first attempt, waits from 500 milliseconds up to 5 seconds with factor 1.5, and sets a 120-second retry-time limit. Popup mode requests up to 20 text segments per reference per language.
+
+The script does not install a mutation observer. Its `dynamic` option changes canonical-URL selection; a host calls the public `link()` function again to process changed content.
+
+The pinned [`static/test/linker_test.html`](https://github.com/Sefaria/Sefaria-Project/blob/1f7d0844ca6a9eddc8e48168962aacb09de75bd6/static/test/linker_test.html) is a manually exercised page with English and Hebrew citations, ranges, punctuation, inline markup, exclusions, existing links, and negative text. It loads Linker v2 rather than v3.
+
+The pinned Python tests cover helper response construction, preferred versions, truncation, server-side resolution, and paragraph splitting. Several helper tests refer to an older private helper name while the inspected implementation exports `unpack_find_refs_request`; no dedicated v3 browser or asynchronous route test was located in the inspected JavaScript, E2E, or Python test paths. This project therefore treats those files as scenario and source evidence, not as proof that an upstream v3 browser suite currently passes.
 
 ## Linker theme behavior
 

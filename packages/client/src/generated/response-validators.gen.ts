@@ -3,18 +3,22 @@
 // Do not edit.
 
 import {
+  zAsyncTaskEnqueued,
+  zAsyncTaskFailure,
+  zAsyncTaskPending,
+  zAsyncTaskSuccess,
   zCoreErrorResponse,
+  zCoreIndexResponse,
+  zCoreLinkResponse,
   zCoreLinksErrorResponse,
-  zGetIndexV2Response,
-  zGetLinksResponse,
-  zGetRefResponse,
-  zGetShapeResponse,
-  zGetV3TextsResponse,
+  zCoreRefResponse,
+  zCoreShapeResponse,
+  zCoreV3TextsResponse,
   zGetVersionsResponse,
 } from "./zod.gen.js";
 
 export function validateGetV3Texts200(value: unknown): boolean {
-  return zGetV3TextsResponse.safeParse(value).success;
+  return zCoreV3TextsResponse.safeParse(value).success;
 }
 
 export function validateGetV3Texts400(value: unknown): boolean {
@@ -30,7 +34,7 @@ export function validateGetTextVersions200(value: unknown): boolean {
 }
 
 export function validateGetRef200(value: unknown): boolean {
-  return zGetRefResponse.safeParse(value).success;
+  return zCoreRefResponse.safeParse(value).success;
 }
 
 export function validateGetRef404(value: unknown): boolean {
@@ -38,17 +42,33 @@ export function validateGetRef404(value: unknown): boolean {
 }
 
 export function validateGetIndexV2200(value: unknown): boolean {
-  return zGetIndexV2Response.safeParse(value).success;
+  return zCoreIndexResponse.safeParse(value).success;
 }
 
 export function validateGetShape200(value: unknown): boolean {
-  return zGetShapeResponse.safeParse(value).success;
+  return zCoreShapeResponse.safeParse(value).success;
 }
 
 export function validateGetLinks200(value: unknown): boolean {
-  return zGetLinksResponse.safeParse(value).success;
+  return zCoreLinkResponse.safeParse(value).success;
 }
 
 export function validateGetLinks400(value: unknown): boolean {
   return zCoreLinksErrorResponse.safeParse(value).success;
+}
+
+export function validatePostFindRefs202(value: unknown): boolean {
+  return zAsyncTaskEnqueued.safeParse(value).success;
+}
+
+export function validateGetAsyncTaskStatus200(value: unknown): boolean {
+  return zAsyncTaskSuccess.safeParse(value).success;
+}
+
+export function validateGetAsyncTaskStatus202(value: unknown): boolean {
+  return zAsyncTaskPending.safeParse(value).success;
+}
+
+export function validateGetAsyncTaskStatus500(value: unknown): boolean {
+  return zAsyncTaskFailure.safeParse(value).success;
 }

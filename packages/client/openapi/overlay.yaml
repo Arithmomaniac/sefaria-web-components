@@ -2,7 +2,7 @@ overlay: 1.1.0
 info:
   title: Sefaria Core API corrections
   version: 1.0.0
-  description: Source-backed corrections for the six generated Core operations.
+  description: Source-backed corrections for the eight generated Core operations.
 extends: ./upstream.json
 x-sefaria-guards:
   - id: versions-contract
@@ -217,7 +217,237 @@ x-sefaria-guards:
       - target: $.paths['/api/links/{tref}'].get.responses['400']
         expected:
           absent: true
+  - id: linker-detection-contract
+    preconditions:
+      - target: $.paths['/api/find-refs'].post
+        expected:
+          sha256: ace9410fb005a89ab37ea0d3fdb2faaed8a67031fd63b01a2ed075b9e710713f
+      - target: $.paths['/api/find-refs'].post.parameters
+        expected:
+          absent: true
+      - target: $.paths['/api/find-refs'].post.responses['200']
+        expected:
+          value:
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/FindRefsAPIResponse"
+            description: Shape of the `result` field returned by `GET /api/async/{task_id}` on successful completion.
+      - target: $.components.schemas.FindRefsAPIResponse
+        expected:
+          sha256: ab16f29518e4f10882b49c3a69393b79e83a42dc04eeb6d7a55848cbf4dd6584
+      - target: $.components.schemas.AsyncTaskSuccess
+        expected:
+          sha256: 4ef7fa7235442af57daa37f19e414eada996fc4286229cf022ef7fe66e149c65
+      - target: $.components.schemas.CoreFindRefsRequest
+        expected:
+          absent: true
+      - target: $.components.schemas.CoreFindRefsReferenceData
+        expected:
+          absent: true
+      - target: $.components.schemas.CoreFindRefsMatch
+        expected:
+          absent: true
+      - target: $.components.schemas.CoreFindRefsSection
+        expected:
+          absent: true
+      - target: $.components.schemas.CoreFindRefsResponse
+        expected:
+          absent: true
 actions:
+  - x-action-id: linker-detection-schemas
+    x-correction-id: linker-detection-contract
+    target: "$.components.schemas"
+    description: Add source-backed request and response schemas for asynchronous citation detection.
+    update:
+      CoreFindRefsRequest:
+        type: object
+        additionalProperties: false
+        required:
+          - text
+        properties:
+          text:
+            type: object
+            additionalProperties: false
+            required:
+              - title
+              - body
+            properties:
+              title:
+                type: string
+              body:
+                type: string
+          lang:
+            type: string
+            enum:
+              - he
+              - en
+          metaDataForTracking:
+            type: object
+            additionalProperties: false
+            properties:
+              url:
+                type: string
+              description:
+                type: string
+              title:
+                type: string
+          version_preferences_by_corpus:
+            type: object
+            nullable: true
+            additionalProperties:
+              type: object
+              additionalProperties:
+                type: string
+      CoreFindRefsReferenceData:
+        type: object
+        additionalProperties: false
+        required:
+          - heRef
+          - url
+          - primaryCategory
+        properties:
+          heRef:
+            type: string
+          url:
+            type: string
+          primaryCategory:
+            type: string
+          he:
+            type: array
+            items:
+              type: string
+          en:
+            type: array
+            items:
+              type: string
+          isTruncated:
+            type: boolean
+      CoreFindRefsMatch:
+        type: object
+        additionalProperties: false
+        required:
+          - startChar
+          - endChar
+          - text
+          - linkFailed
+          - refs
+        properties:
+          startChar:
+            type: integer
+            minimum: 0
+          endChar:
+            type: integer
+            minimum: 0
+          text:
+            type: string
+          linkFailed:
+            type: boolean
+          refs:
+            type: array
+            nullable: true
+            items:
+              $ref: "#/components/schemas/ref"
+      CoreFindRefsSection:
+        type: object
+        additionalProperties: false
+        required:
+          - results
+          - refData
+        properties:
+          results:
+            type: array
+            items:
+              $ref: "#/components/schemas/CoreFindRefsMatch"
+          refData:
+            type: object
+            additionalProperties:
+              $ref: "#/components/schemas/CoreFindRefsReferenceData"
+          debugData:
+            type: array
+            items: {}
+      CoreFindRefsResponse:
+        type: object
+        additionalProperties: false
+        required:
+          - title
+          - body
+        properties:
+          title:
+            $ref: "#/components/schemas/CoreFindRefsSection"
+          body:
+            $ref: "#/components/schemas/CoreFindRefsSection"
+          url:
+            type: string
+  - x-action-id: linker-detection-request
+    x-correction-id: linker-detection-contract
+    target: "$.paths['/api/find-refs'].post.requestBody.content['application/json']"
+    description: Match the validated request accepted by the pinned handler.
+    update:
+      schema:
+        $ref: "#/components/schemas/CoreFindRefsRequest"
+  - x-action-id: linker-detection-query
+    x-correction-id: linker-detection-contract
+    target: "$.paths['/api/find-refs'].post"
+    description: Add the query options read by the pinned response builder.
+    update:
+      parameters:
+        - name: with_text
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - "0"
+              - "1"
+        - name: debug
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - "0"
+              - "1"
+        - name: max_segments
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+  - x-action-id: linker-detection-synchronous-response-remove
+    x-correction-id: linker-detection-contract
+    target: "$.paths['/api/find-refs'].post.responses['200']"
+    description: Remove the synchronous response that the pinned handler never returns.
+    remove: true
+  - x-action-id: linker-pending-ready
+    x-correction-id: linker-detection-contract
+    target: "$.components.schemas.AsyncTaskPending.properties.ready"
+    description: Model the pinned pending response invariant.
+    update:
+      enum:
+        - false
+  - x-action-id: linker-success-ready
+    x-correction-id: linker-detection-contract
+    target: "$.components.schemas.AsyncTaskSuccess.properties.ready"
+    description: Model the pinned success response invariant.
+    update:
+      enum:
+        - true
+  - x-action-id: linker-success-result
+    x-correction-id: linker-detection-contract
+    target: "$.components.schemas.AsyncTaskSuccess.properties.result"
+    description: Preserve the generic task result as unknown keyed JSON for boundary-specific validation.
+    update:
+      additionalProperties: true
+      x-sefaria-known-result-schema:
+        $ref: "#/components/schemas/CoreFindRefsResponse"
+  - x-action-id: linker-failure-ready
+    x-correction-id: linker-detection-contract
+    target: "$.components.schemas.AsyncTaskFailure.properties.ready"
+    description: Model the pinned failure response invariant.
+    update:
+      enum:
+        - true
   - x-action-id: versions-path-seed
     x-correction-id: versions-contract
     target: "$.paths"

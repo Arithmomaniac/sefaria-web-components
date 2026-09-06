@@ -1,4 +1,4 @@
-> Created/edited by GitHub Copilot; pending human review.
+> Created/edited by GitHub Copilot with human review/feedback by avilevin.
 
 # Development
 
@@ -8,15 +8,16 @@ This guide describes current commands and remaining planned architecture work.
 
 | Area | Current behavior | Planned change |
 | --- | --- | --- |
-| `packages/client` | Generates six named Core SDK functions, contracts, Zod validators, and a status-aware fetch client from a pinned corrected OpenAPI document | Expand only when a reviewed contract adds another operation |
+| `packages/client` | Generates eight named Core SDK functions, contracts, Zod validators, and a status-aware GET/POST fetch client from a pinned corrected OpenAPI document | Expand only when a reviewed contract adds another operation |
 | `packages/text-transform` | Implements parser-backed sanitization, Hebrew vocalization modes, and structured footnote extraction without browser DOM globals | Broader corpus comparison remains planned |
-| `packages/components` | Exports the base element, token defaults, `<sefaria-text-segment>`, `<sefaria-bilingual-segment>`, `<sefaria-ref-label>`, `<sefaria-source-card>`, and their component-specific pure and async factory subpaths | Add later component-specific vertical slices as their consumers require them |
+| `packages/components` | Exports the base element, token defaults, current text components, `<sefaria-popup>`, and their component-specific pure and async factory subpaths | Add later component-specific vertical slices as their consumers require them |
 | `demos/component-lab` | Shows authored view models for the current text-segment, bilingual-segment, reference-label, and source-card elements | Add states and interactions with each production component |
 | `demos/ref-label-live-demo` | Provides an interactive HTML form and presets that call the deployed reference endpoint and render `<sefaria-ref-label>` | Add live examples only when the production component needs them |
 | `demos/text-segment-live-demo` | Provides an interactive HTML form and presets that call the deployed Sefaria API and render `<sefaria-text-segment>` | Add live examples only when a production component needs them |
 | `demos/bilingual-segment-live-demo` | Provides an interactive HTML form, presets, and display controls that make one deployed Sefaria API request and render `<sefaria-bilingual-segment>` | Add live examples only when a production component needs them |
 | `demos/source-card-live-demo` | Makes one deployed v3 text request for segment, range, spanning, nested non-spanning, and one-sided presets, renders `<sefaria-source-card>`, and attributes each selected edition once at card level | Add live examples only when the production component needs them |
 | `demos/mcp` | Packages an App shell and returns a text-only tool result | Add corrected payload validation and component projection |
+| `demos/linker` | Builds one embeddable classic script, a bookmarklet loader, and automatic/no-autostart article pages | Public hosting and broader live-site qualification remain external |
 | `tests/compatibility` | Runs focused pinned client/transform comparisons, a composed v3 validate-to-transform smoke case, and grouped qualification output without network access | Broader corpus comparison and compatibility publication remain planned |
 
 ## Technology
@@ -49,7 +50,7 @@ TypeScript emits reusable ES modules. Vite builds the browser demonstrations and
 | `demos/bilingual-segment-live-demo` | Interactive live API page for the bilingual-segment component |
 | `demos/source-card-live-demo` | Interactive live API page for the source-card component |
 | `demos/mcp` | Corrected-payload MCP boundary and FastMCP fixture |
-| `demos/linker-userscript` | Third-party popup integration |
+| `demos/linker` | Third-party citation detection, DOM linking, and popup integration |
 
 Workspace dependencies use `workspace:*`. All workspace packages remain private during the hackathon.
 
@@ -60,7 +61,7 @@ Workspace dependencies use `workspace:*`. All workspace packages remain private 
 - uv 0.11.23
 - Chromium through Playwright
 
-Tampermonkey or a compatible userscript engine is optional. An MCP Apps-compatible host is optional for local App development and required for host acceptance.
+An MCP Apps-compatible host is optional for local App development and required for host acceptance.
 
 ## Install the workspace
 
@@ -139,7 +140,7 @@ It then applies the local overlay, creates the corrected document in temporary s
 pnpm openapi:generate
 ```
 
-The operation validates the checksum and co-located overlay guards, applies `openapi/overlay.yaml` through `openapi-format` 1.33.6, extracts the six Core GET operations and recursive references into temporary storage, and runs `@hey-api/openapi-ts` 0.99.0.
+The operation validates the checksum and co-located overlay guards, applies `openapi/overlay.yaml` through `openapi-format` 1.33.6, extracts eight reviewed Core GET/POST operations and recursive references into temporary storage, and runs `@hey-api/openapi-ts` 0.99.0.
 
 The generator configures a deterministic Zod object resolver for every retained `additionalProperties: false` schema. It also maps the explicitly typed OpenAPI 3.0 null-only branches to `z.null()` and applies the `minProperties: 1` warning-record correction that Hey API 0.99 does not emit correctly.
 
@@ -265,17 +266,22 @@ pnpm --filter @sefaria-demo/mcp-app dev
 
 The development URL uses `?standalone=1`.
 
-## Run the Linker userscript
+## Run the Linker demonstration
 
 ```powershell
 pnpm dev:linker
 ```
 
-Install the development `.user.js` URL in Tampermonkey.
+The development server shows the authored article page. It loads the same classic script produced for embedding and calls `SefariaLinker.link()` after the artifact is ready.
 
-The default script runs only on localhost and `example.com`. To use another test page, add an explicit `match` value in `demos/linker-userscript/vite.config.ts`.
+Build the distributable files with:
 
-Do not use a match value for all sites.
+```powershell
+$env:SEFARIA_LINKER_ARTIFACT_URL = "https://example.org/assets/sefaria-linker.js"
+pnpm --filter @sefaria-demo/linker build
+```
+
+The configured URL is written only into `dist/bookmarklet.txt`. The script itself keeps the Sefaria API origin configurable through `SefariaLinker.link({ baseUrl })`.
 
 ## Build artifacts
 
@@ -292,6 +298,13 @@ pnpm build:mcp
 ```
 
 The App build creates `demos/mcp/app/dist/mcp-app.html`.
+
+The Linker build creates:
+
+- `demos/linker/dist/sefaria-linker.js`
+- `demos/linker/dist/bookmarklet.txt`
+- `demos/linker/dist/index.html`
+- `demos/linker/dist/bookmarklet-demo.html`
 
 If a required input file is missing, staging stops.
 

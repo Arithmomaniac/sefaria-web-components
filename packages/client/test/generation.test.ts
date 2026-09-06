@@ -261,12 +261,12 @@ describe("OpenAPI generation", () => {
     });
   });
 
-  it("extracts only the six Core GET operations", () => {
+  it("extracts only the eight selected Core operations", () => {
     const paths = Object.fromEntries(
-      CORE_OPERATIONS.map(({ path, operationId }) => [
+      CORE_OPERATIONS.map(({ method, path, operationId }) => [
         path,
         {
-          get: {
+          [method]: {
             operationId,
             responses: {
               "200": {
@@ -283,7 +283,7 @@ describe("OpenAPI generation", () => {
               },
             },
           },
-          post: {
+          [method === "get" ? "post" : "get"]: {
             operationId: `${operationId}-post`,
             responses: {},
           },
@@ -313,8 +313,12 @@ describe("OpenAPI generation", () => {
     });
 
     expect(Object.keys(core.paths as object)).toEqual(CORE_PATHS);
-    for (const path of CORE_PATHS) {
-      expect((core.paths as JsonObject)[path]).not.toHaveProperty("post");
+    for (const operation of CORE_OPERATIONS) {
+      const pathItem = (core.paths as JsonObject)[operation.path];
+      expect(pathItem).toHaveProperty(operation.method);
+      expect(pathItem).not.toHaveProperty(
+        operation.method === "get" ? "post" : "get",
+      );
     }
     expect(
       Object.keys(
@@ -325,10 +329,10 @@ describe("OpenAPI generation", () => {
 
   it("fails when a retained schema has an unresolved reference", () => {
     const paths = Object.fromEntries(
-      CORE_OPERATIONS.map(({ path, operationId }) => [
+      CORE_OPERATIONS.map(({ method, path, operationId }) => [
         path,
         {
-          get: {
+          [method]: {
             operationId,
             responses: {
               "200": {
@@ -620,7 +624,35 @@ describe("reviewed Core corrections", () => {
     );
     expect(
       artifacts.get("src/generated/zod.gen.ts")?.match(/\.strict\(\)/g)?.length,
-    ).toBe(2);
+    ).toBe(9);
+  });
+
+  it("models asynchronous citation detection and its nullable failed matches", () => {
+    const core = correctedCore();
+    const paths = core.paths as JsonObject;
+    const findRefs = (paths["/api/find-refs"] as JsonObject).post as JsonObject;
+    const responses = findRefs.responses as JsonObject;
+    const schemas = (core.components as JsonObject).schemas as JsonObject;
+    const match = schemas.CoreFindRefsMatch as JsonObject;
+    const refs = (match.properties as JsonObject).refs as JsonObject;
+    const section = schemas.CoreFindRefsSection as JsonObject;
+    const refData = (section.properties as JsonObject).refData as JsonObject;
+
+    expect(responses).not.toHaveProperty("200");
+    expect(responses).toHaveProperty("202");
+    expect(findRefs.parameters).toEqual([
+      expect.objectContaining({ name: "with_text", in: "query" }),
+      expect.objectContaining({ name: "debug", in: "query" }),
+      expect.objectContaining({ name: "max_segments", in: "query" }),
+    ]);
+    expect(refs).toMatchObject({ type: "array", nullable: true });
+    expect(refData).toHaveProperty(
+      "additionalProperties.$ref",
+      "#/components/schemas/CoreFindRefsReferenceData",
+    );
+    expect(artifacts.get("src/generated/types.gen.ts")).toContain(
+      "refs: Array<Ref> | null",
+    );
   });
 
   it("models ref parse failure and conditional success fields", () => {
