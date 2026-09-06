@@ -3,6 +3,8 @@ description: "Rules for repository documentation"
 applyTo: "**/*.md"
 ---
 
+> Created/edited by GitHub Copilot; pending human review.
+
 # Documentation Instructions
 
 - Put normative behavior and acceptance rules in `docs/specs`.
@@ -11,6 +13,8 @@ applyTo: "**/*.md"
 - Put current and planned workflows in `docs/development.md`.
 - Put review gates in `docs/review.md`.
 - Use complete commit SHAs for upstream source links.
+- Check current upstream documentation before claiming a behavior is undocumented. Record the reviewed page, date, and scope in `docs/evidence.md`; absence from a limited review is not proof of absence.
+- Present our guides as explanations of upstream concepts plus local handling, not as discoveries of concepts already documented by Sefaria. Preserve historical provenance when later documentation changes a coverage assessment.
 - Mark behavior as current, planned, observed, or superseded.
 - Treat corrected generated declarations as the field-level API reference.
 - Do not duplicate complete generated interfaces in specifications or READMEs.

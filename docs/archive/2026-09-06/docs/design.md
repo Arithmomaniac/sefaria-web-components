@@ -2,8 +2,6 @@
 
 # Design: Generated API Contracts and Request-Free Components
 
-For a first explanation with examples, read [How the pieces fit together](guides/data-flow.md). This document is the ownership and dependency reference.
-
 ## Summary
 
 This design defines a generated API foundation with corrections and component-owned view models. Elements render view models and never request data. The client, text-processing packages, text-segment, bilingual-segment, reference-label, and source-card vertical slices are current; the remaining component and integration contracts are planned.
@@ -18,7 +16,7 @@ This design defines a generated API foundation with corrections and component-ow
 
 Core is the stable first product boundary. It is not a delivery phase or issue plan.
 
-Core includes the six API operations, all three text-processing capabilities, the text primitives, and the source card with its bounded text collection. The popup, MCP source-card App, and completed Linker demonstration are also in the intended Core boundary, but remain planned on this baseline. See [Development](development.md) for current implementation and scaffolding.
+Core includes the six API operations and all three text-processing capabilities. It also includes the text primitives, source card with its bounded text collection, popup, MCP source-card App, and Linker demonstration.
 
 The connections panel and recursive connected reading remain outside Core. Their later implementation must obey the same request, projection, and rendering boundaries.
 
@@ -83,7 +81,7 @@ flowchart LR
     CHILD -->|"component view models"| ELEMENTS["Lit elements"]
     PURE -->|"component view models"| ELEMENTS
     ELEMENTS -->|"DOM rendering"| DOM["Shadow DOM"]
-    MCP["Planned MCP structuredContent"] ==>|"external corrected API payload"| BOUNDARY["Planned MCP validation boundary"]
+    MCP["MCP structuredContent"] ==>|"external corrected API payload"| BOUNDARY["Integration validation boundary"]
     BOUNDARY -->|"validated payload"| PURE
 ```
 
@@ -121,7 +119,7 @@ Unknown inputs from MCP or another external boundary receive validation before c
 
 ## Component boundary
 
-Each component has a non-DOM public subpath. This subpath owns its request type, view-model union, pure projection factory, and async request factory. The pure factory converts a corrected API payload into one component view model. The async factory obtains the payload through a supplied client and passes it to the pure factory. The current subpaths are `@sefaria/components/text-segment`, `@sefaria/components/bilingual-segment`, `@sefaria/components/ref-label`, and `@sefaria/components/source-card`.
+Each component has a non-DOM public subpath. This subpath owns its request type, view-model union, pure projection factory, and async request factory. The pure factory converts a corrected API payload into one component view model. The async factory obtains the payload through a supplied client and passes it to the pure factory. `@sefaria/components/text-segment` and `@sefaria/components/ref-label` are current implementations of this boundary.
 
 A composite can resolve a child input by payload role before projection. The child subpath owns the pure resolved-input projection, so the composite does not repeat child transformation logic.
 
@@ -171,7 +169,7 @@ It must not call child async factories. Ten child views from one composite respo
 
 ## MCP boundary
 
-**Planned:** MCP `structuredContent` carries a corrected API payload. The App validates the payload, calls the same pure factory as client mode, and renders the resulting view model.
+MCP `structuredContent` carries a corrected API payload. The App validates the payload, calls the same pure factory as client mode, and renders the resulting view model.
 
 ## Failure contracts
 
@@ -195,7 +193,7 @@ It must not call child async factories. Ten child views from one composite respo
 
 ## Integrations
 
-**Planned:** the completed MCP App and Linker demonstration consume public contracts and built artifacts. They do not copy Sefaria applications or define alternate component data models.
+The MCP App and Linker demonstration consume public contracts and built artifacts. They do not copy Sefaria applications or define alternate component data models.
 
 The MCP App validates corrected API-shaped JSON before projection. The Linker integration calls an async component factory outside the element.
 
@@ -207,8 +205,8 @@ This repository does not replace the Sefaria reader, mobile app, Linker, or MCP 
 
 Correct text, direction, sanitization, attribution, and accessible interaction have priority over pixel parity.
 
-## Current tooling and future names
+## Open implementation choices
 
-The client implementation has selected its generator, Zod validators, and committed artifact paths. [Development](development.md#openapi-workflow) records the current tools and workflow. These choices must continue to satisfy the offline, deterministic, and stale-output contracts.
+The exact generator packages, validator generator, and committed artifact paths remain implementation choices. Each choice must satisfy the offline, deterministic, and stale-output contracts.
 
-The text-segment, bilingual-segment, reference-label, and source-card export names are established by their vertical slices. Names for later component subpaths remain open until their implementation. The ownership and request-free element boundaries are not open.
+The text-segment and reference-label export names are established by their vertical slices. Names for later component subpaths remain open until their implementation. The ownership and request-free element boundaries are not open.

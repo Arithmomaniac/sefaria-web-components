@@ -4,8 +4,6 @@
 
 `@sefaria/text-transform` provides deterministic, DOM-free operations for Sefaria text HTML and Hebrew vocalization.
 
-For an illustrated tour of the input, read [Text markup](../../docs/guides/text-markup.md). For the surrounding client and component pipeline, read [How the pieces fit together](../../docs/guides/data-flow.md).
-
 ## Processing order
 
 Component pure factories process text in this order:
@@ -88,4 +86,4 @@ Extraction rejects adversarial inputs with a `RangeError` when closing and reope
 
 ## Evidence and compatibility
 
-The [text-processing specification](../../docs/specs/text-processing.md) defines every accepted and removed markup family. [Evidence](../../docs/evidence.md) records the pinned Sefaria source and dated deployed examples. The current qualification is representative, not exhaustive; [Development](../../docs/development.md) distinguishes delivered qualification from broader corpus work.
+The [text-processing specification](../../docs/specs/text-processing.md) defines every accepted and removed markup family. [Evidence](../../docs/evidence.md) records the pinned Sefaria source and dated deployed examples. Broad corpus comparison remains in issue #14.

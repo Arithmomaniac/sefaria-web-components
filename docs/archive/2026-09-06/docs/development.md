@@ -2,61 +2,22 @@
 
 # Development
 
-This contributor guide describes the implementation baseline at `origin/main` commit `7f631685961b3ff6243d812570e1ffbd85aa53c6` as of September 6, 2026.
+This guide describes current commands and remaining planned architecture work.
 
-The sections below separate delivered baseline behavior, changes from older plans, and work that remains intended. A runnable command is not proof that the corresponding integration is finished.
+## Current implementation
 
-## Contributor guides
-
-For reader-oriented explanations, use the friendly guides rather than the archived demo transcripts:
-
-- [How the pieces fit together](guides/data-flow.md)
-- [Render text](guides/render-text.md)
-- [Text markup](guides/text-markup.md)
-- [Intentional differences from Sefaria](guides/differences.md)
-
-## Implemented on this baseline
-
-| Area | Baseline status |
-| --- | --- |
-| `packages/client` | Delivers six named Core SDK functions, committed corrected TypeScript contracts, Zod validators, and a status-aware fetch client. The corrected Core OpenAPI document is temporary generation output. |
-| `packages/text-transform` | Delivers DOM-free sanitization, Hebrew vocalization modes, and structured footnote extraction. |
-| `packages/components` | Delivers the current component-specific view models, pure and async factory subpaths, and request-free elements for the current text, bilingual, reference-label, and source-card surfaces. |
-| `demos/component-lab` | Shows authored view models for current elements. It is a development surface, not a complete interaction catalog or compatibility oracle. |
-| `demos/ref-label-live-demo` | Provides an interactive HTML form and presets that call the deployed reference endpoint and render `<sefaria-ref-label>`. |
-| `demos/text-segment-live-demo` | Provides an interactive HTML form and presets that call the deployed Sefaria API and render `<sefaria-text-segment>`. |
-| `demos/bilingual-segment-live-demo` | Provides an interactive HTML form, presets, and display controls that make one deployed Sefaria API request and render `<sefaria-bilingual-segment>`. |
-| `demos/source-card-live-demo` | Makes one deployed v3 text request for segment, range, spanning, nested non-spanning, and one-sided presets, renders `<sefaria-source-card>`, and attributes each selected edition once at card level. |
-| `demos/mcp` | Provides a runnable App shell and text-only FastMCP fixture. This is a scaffold, not the finished corrected-payload integration. |
-| `demos/linker-userscript` | Provides a runnable development userscript scaffold. This is not a claim that a finished production Linker integration has shipped. |
-| `tests/compatibility` | Delivers focused pinned client and transform comparisons, a composed v3 validate-to-transform smoke case, and grouped qualification output without network access. The evidence is representative and non-exhaustive. |
-
-## What changed from earlier plans
-
-These are superseded decisions, not an uncompleted backlog:
-
-- The generalized `@sefaria/model` foundation and broad offline reference parser are no longer the delivery architecture. The corrected OpenAPI contract and thin `@sefaria/client` own transport data; component factories own projections.
-- The default cache, retries, and request coalescing proposed by an earlier client plan are not part of the thin-client baseline.
-- A separate text-range request and view-model stack was replaced by a bounded source-card collection. A single segment is a one-item collection, while a range remains one outer request with card-level reference data.
-- Attribution belongs once at the source-card level for each displayed edition, not inside every repeated text segment.
-- The private `SourceCardData` MCP wire format is superseded. The intended integration contract is corrected API-shaped JSON, but the validation and projection path is still planned.
-
-The [historical decision record](evidence.md#historical-decision-provenance) explains the sources and supersession behind these changes. Work on other branches is not included in this baseline. Use the [repository issues](https://github.com/Arithmomaniac/sefaria-web-components/issues) page for live delivery tracking, not as the definition of a component contract.
-
-## Still intended
-
-These are remaining intended capabilities, not removed plans. A scaffold, command, or specification does not make them delivered.
-
-| Planned capability | Intended result | Contract |
+| Area | Current behavior | Planned change |
 | --- | --- | --- |
-| Request-free popup and Linker demonstration | The host detects a citation and calls a factory; the popup renders its view model with isolated styles and accessible keyboard interaction | [Components](specs/components.md), [Linker integration](specs/integrations.md#linker-userscript-purpose) |
-| Corrected-payload MCP App | Validate tool-provided API JSON, call the source-card pure factory, and render without a second first-render request | [MCP boundary](specs/integrations.md#mcp-payload-boundary) |
-| Named-host acceptance | Demonstrate the supported Core interaction in a recorded MCP host and version; a standalone browser preview is not sufficient | [Host acceptance](specs/integrations.md#mcp-host-acceptance) |
-| Connections panel, beyond Core | Project links into bounded category and connection views using the same pure/async factory separation | [Component surfaces](specs/components.md#component-surfaces) |
-| Reader state and navigation, beyond Core | Build later connected reading on explicit request/view-model state and host-owned task lifecycles | [Design scope](design.md#core-scope), [Interaction flow](specs/integrations.md#interaction-task-flow) |
-| Broader compatibility coverage | Extend the small current suite with additional source-backed cases, without promising exhaustive corpus equivalence | [Compatibility evidence](evidence.md#current-focused-compatibility-qualification) |
-
-The current client and text-transform foundations are already delivered. New component slices still need concrete consumers; they do not justify restoring the superseded generalized model or hidden client policies.
+| `packages/client` | Generates six named Core SDK functions, contracts, Zod validators, and a status-aware fetch client from a pinned corrected OpenAPI document | Expand only when a reviewed contract adds another operation |
+| `packages/text-transform` | Implements parser-backed sanitization, Hebrew vocalization modes, and structured footnote extraction without browser DOM globals | Broader corpus comparison remains planned |
+| `packages/components` | Exports the base element, token defaults, `<sefaria-text-segment>`, `<sefaria-bilingual-segment>`, `<sefaria-ref-label>`, `<sefaria-source-card>`, and their component-specific pure and async factory subpaths | Add later component-specific vertical slices as their consumers require them |
+| `demos/component-lab` | Shows authored view models for the current text-segment, bilingual-segment, reference-label, and source-card elements | Add states and interactions with each production component |
+| `demos/ref-label-live-demo` | Provides an interactive HTML form and presets that call the deployed reference endpoint and render `<sefaria-ref-label>` | Add live examples only when the production component needs them |
+| `demos/text-segment-live-demo` | Provides an interactive HTML form and presets that call the deployed Sefaria API and render `<sefaria-text-segment>` | Add live examples only when a production component needs them |
+| `demos/bilingual-segment-live-demo` | Provides an interactive HTML form, presets, and display controls that make one deployed Sefaria API request and render `<sefaria-bilingual-segment>` | Add live examples only when a production component needs them |
+| `demos/source-card-live-demo` | Makes one deployed v3 text request for segment, range, spanning, nested non-spanning, and one-sided presets, renders `<sefaria-source-card>`, and attributes each selected edition once at card level | Add live examples only when the production component needs them |
+| `demos/mcp` | Packages an App shell and returns a text-only tool result | Add corrected payload validation and component projection |
+| `tests/compatibility` | Runs focused pinned client/transform comparisons, a composed v3 validate-to-transform smoke case, and grouped qualification output without network access | Broader corpus comparison and compatibility publication remain planned |
 
 ## Technology
 
@@ -76,7 +37,7 @@ TypeScript emits reusable ES modules. Vite builds the browser demonstrations and
 
 ## Workspace
 
-| Path | Responsibility (status described above) |
+| Path | Planned responsibility |
 | --- | --- |
 | `packages/client` | Pinned OpenAPI input, formal guarded overlay, generated contracts, Zod schemas, validators, and named SDK functions |
 | `packages/text-transform` | Pure sanitization, vocalization, and footnotes |
@@ -87,55 +48,37 @@ TypeScript emits reusable ES modules. Vite builds the browser demonstrations and
 | `demos/text-segment-live-demo` | Interactive live API page for the text-segment component |
 | `demos/bilingual-segment-live-demo` | Interactive live API page for the bilingual-segment component |
 | `demos/source-card-live-demo` | Interactive live API page for the source-card component |
-| `demos/mcp` | MCP App shell and text-only FastMCP fixture; corrected-payload boundary planned |
-| `demos/linker-userscript` | Development userscript scaffold; completed third-party popup integration planned |
+| `demos/mcp` | Corrected-payload MCP boundary and FastMCP fixture |
+| `demos/linker-userscript` | Third-party popup integration |
 
 Workspace dependencies use `workspace:*`. All workspace packages remain private during the hackathon.
 
 ## Required tools
 
-Running the browser demos requires:
-
 - Node.js 22 or later
 - pnpm 11.22.0
-
-Browser tests also require Chromium through Playwright.
-
-Full `pnpm check` and MCP fixture checks also require:
-
 - uv 0.11.23
-- Python 3.10 or later
-- The locked Python dependencies, including FastMCP 3, installed by `pnpm install:python`
+- Chromium through Playwright
 
 Tampermonkey or a compatible userscript engine is optional. An MCP Apps-compatible host is optional for local App development and required for host acceptance.
 
 ## Install the workspace
 
-For browser-only TypeScript work, run these commands from the repository root:
+Run these commands from the repository root:
 
 ```powershell
 corepack enable
 pnpm install
-pnpm exec playwright install chromium
-```
-
-Before running the full check or Python/MCP fixture checks, also install the pinned Python fixture environment:
-
-```powershell
 pnpm install:python
+pnpm exec playwright install chromium
 ```
 
 If Corepack is unavailable, use the pinned fallback:
 
 ```powershell
 npx --yes pnpm@11.22.0 install
-npx --yes pnpm@11.22.0 exec playwright install chromium
-```
-
-For the full Python fixture setup with the fallback, run:
-
-```powershell
 npx --yes pnpm@11.22.0 install:python
+npx --yes pnpm@11.22.0 exec playwright install chromium
 ```
 
 ## Current complete check
@@ -145,8 +88,6 @@ pnpm check
 ```
 
 The current command checks stale OpenAPI output, then runs Prettier, ESLint, TypeScript checks, tests, the offline focused compatibility qualification, builds, Python checks, MCP staging, and wheel package-data checks. The qualification prints grouped pass, failure, unavailable-source, and intentional-difference results. It does not refresh network fixtures.
-
-The full check includes the Python fixture environment and MCP staging. Browser-only TypeScript demos do not require that Python setup.
 
 ## Current focused checks
 
@@ -259,7 +200,7 @@ Do not edit generated declarations by hand.
 pnpm dev
 ```
 
-The current page shows authored view models for the current elements, including `<sefaria-text-segment>`, `<sefaria-bilingual-segment>`, and `<sefaria-ref-label>`. These examples exercise production elements without making requests; they are development states, not a complete interaction catalog.
+The current page shows authored view models for `<sefaria-text-segment>`, `<sefaria-bilingual-segment>`, and `<sefaria-ref-label>`. These examples exercise the production elements without making requests or defining a generic fixture catalog.
 
 ## Run the interactive text-segment page
 
@@ -289,15 +230,11 @@ The current command:
 2. Stages the App.
 3. Starts the text-only FastMCP fixture over standard input and output.
 
-This proves that the runnable scaffold can build and start. It does not prove that the finished integration validates a corrected API payload or projects it into a component view model.
-
 The planned integration will also stage:
 
 - the built HTML
-- the corrected API-shaped payload fixture
-- the generated TypeScript validator used by the integration boundary
-
-After validation, the integration will call the same pure component factory used by client mode and supply the resulting view model to the request-free element. The old private `SourceCardData` wire format is superseded; this path is planned, not delivered by the current text-only fixture.
+- the corrected API payload fixture
+- the generated TypeScript validator used by the App for the staged API payload
 
 An MCP host can use this current configuration:
 
@@ -334,7 +271,7 @@ The development URL uses `?standalone=1`.
 pnpm dev:linker
 ```
 
-Install the development `.user.js` URL in Tampermonkey. This command provides a runnable development scaffold; it is not evidence that a finished production Linker integration has shipped.
+Install the development `.user.js` URL in Tampermonkey.
 
 The default script runs only on localhost and `example.com`. To use another test page, add an explicit `match` value in `demos/linker-userscript/vite.config.ts`.
 

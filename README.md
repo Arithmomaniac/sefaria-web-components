@@ -2,83 +2,40 @@
 
 # Sefaria Web Components
 
-> **Experimental.** This Microsoft Global Hackathon 2026 project has no support or stability guarantee. It is not an official Sefaria product.
+Render Sefaria passages in your own application without bringing along the Sefaria reader. Use a typed client to obtain text, a factory to prepare it, and a Web Component to display it.
 
-## Purpose
+> **Experimental.** This Microsoft Global Hackathon 2026 project has no support or stability guarantee. It is not an official Sefaria product. Packages are currently private workspace packages, not a published installation offering.
 
-[Sefaria](https://www.sefaria.org) provides an open library of Jewish texts and a public API for texts, versions, references, indexes, shapes, and links.
+## Start here
 
-This repository separates transport contracts, pure text processing, component data projection, DOM rendering, and external integrations. The planned architecture uses corrected generated API contracts directly. It does not define a generalized Sefaria domain-model package.
-
-The Web Components render component-specific view models. They never accept references, clients, hosts, fetch functions, or raw API payloads.
-
-## Implementation status
-
-The client, text-transform package, text-segment component, bilingual-segment component, reference-label component, and source-card component are implemented. The remaining documents define the planned architecture. The [development guide](docs/development.md) distinguishes current behavior from remaining work.
-
-## Documentation
-
-| Goal | Document |
+| I want to... | Read |
 | --- | --- |
-| Understand ownership and dependency boundaries | [Design](docs/design.md) |
-| Implement the OpenAPI supply chain and thin client | [Client specification](docs/specs/client.md) |
-| Implement sanitization, vocalization, and footnotes | [Text-processing specification](docs/specs/text-processing.md) |
-| Implement component factories and elements | [Component specification](docs/specs/components.md) |
-| Replay the text-segment demonstration | [Text segment demonstration](docs/text-segment-demo.md) |
-| Replay the reference-label demonstration | [Reference label demonstration](docs/ref-label-demo.md) |
-| Replay the bilingual-segment demonstration | [Bilingual segment demonstration](docs/bilingual-segment-demo.md) |
-| Replay the source-card demonstration | [Source card demonstration](docs/source-card-demo.md) |
-| Implement the MCP App or Linker demonstration | [Integration specification](docs/specs/integrations.md) |
-| Install tools and run the repository | [Development guide](docs/development.md) |
-| Review generated contracts and request boundaries | [Review guide](docs/review.md) |
-| Read observations and source provenance | [Evidence](docs/evidence.md) |
+| Try the components or display a passage | [Render text](docs/guides/render-text.md) |
+| Understand the client, view models, and Web Components | [How the pieces fit together](docs/guides/data-flow.md) |
+| Understand HTML tags inside Sefaria text | [Text markup, with examples](docs/guides/text-markup.md) |
+| Know where this project deliberately differs from Sefaria | [Intentional differences](docs/guides/differences.md) |
+| Contribute, understand changed plans, or see what remains | [Development](docs/development.md) |
 
-The specifications are normative. `docs/evidence.md` records observations and source provenance. GitHub issues track delivery status and do not define architecture.
+The [documentation home](docs/README.md) also leads to specifications, upstream concepts, source evidence, and review guidance.
 
-## Repository map
+## Try a source card
 
-| Path | Responsibility |
-| --- | --- |
-| `packages/client` | Pinned OpenAPI input, guarded overlay, generated contracts, Zod schemas, validators, and thin generated client |
-| `packages/text-transform` | Pure sanitization, vocalization, and footnote operations |
-| `packages/components` | Non-DOM component factories and request-free Lit elements |
-| `tests/compatibility` | Focused compatibility evidence for retained pure behavior |
-| `demos/component-lab` | Browser states for component view models and interactions |
-| `demos/ref-label-live-demo` | Interactive live Sefaria request page for the reference-label component |
-| `demos/text-segment-live-demo` | Interactive live Sefaria request page for the text-segment component |
-| `demos/bilingual-segment-live-demo` | Interactive live Sefaria request page for the bilingual-segment component |
-| `demos/source-card-live-demo` | Interactive live Sefaria request page for segment, range, spanning, nested, and one-sided source cards with card-level edition attribution |
-| `demos/mcp` | MCP corrected-payload boundary and self-contained App |
-| `demos/linker-userscript` | Third-party integration through an async component factory |
-
-## Start development
-
-The repository requires Node.js 22, pnpm 11.22.0, uv 0.11.23, and Chromium through Playwright.
+With Node.js 22 or later and pnpm 11.22.0 installed, run these commands from the repository root:
 
 ```powershell
-corepack enable
 pnpm install
-pnpm install:python
-pnpm exec playwright install chromium
-pnpm check
-pnpm dev
+pnpm dev:source-card
 ```
 
-If Corepack is unavailable, use `npx --yes pnpm@11.22.0` instead of `pnpm`. The [development guide](docs/development.md) lists the current and planned workflows.
+Open the local URL printed by Vite. Select a passage preset to see the production client, factory, and element working together. This demo requests the deployed Sefaria API; the authored-state component lab (`pnpm dev`) does not.
 
-## Demonstrations
+The [development guide](docs/development.md) covers Corepack, the Python fixture, and the full contributor setup.
 
-| Demonstration                      | Command                      |
-| ---------------------------------- | ---------------------------- |
-| Component lab                      | `pnpm dev`                   |
-| Interactive reference-label page   | `pnpm dev:ref-label`         |
-| Interactive text-segment page      | `pnpm dev:text-segment`      |
-| Interactive bilingual-segment page | `pnpm dev:bilingual-segment` |
-| Interactive source-card page       | `pnpm dev:source-card`       |
-| MCP App with a FastMCP fixture     | `pnpm dev:mcp`               |
-| Linker userscript                  | `pnpm dev:linker`            |
+## What is available?
 
-The [integration specification](docs/specs/integrations.md) defines the planned contracts for these demonstrations.
+The client, text transforms, text segment, bilingual segment, reference label, and source card are implemented on the [documented implementation baseline](docs/development.md#implemented-on-this-baseline). A source card handles both a single segment and a collection of text from one response.
+
+The request-free popup, connections panel, completed Linker integration, and corrected-payload MCP integration are **planned**, not completed by the existence of demo scaffolding. [Development](docs/development.md) separates current behavior, superseded plans, and remaining work.
 
 ## License and ownership
 
