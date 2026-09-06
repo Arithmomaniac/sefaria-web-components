@@ -3,9 +3,10 @@ import type {
   SourceCardDataViewModel,
   SourceCardViewModel,
 } from "@sefaria/components";
-import { beforeEach, expect, test, vi } from "vitest";
+import { afterEach, beforeEach, expect, test, vi } from "vitest";
 
 import { startSourceCardLiveDemo, type SourceCardLoader } from "./app.js";
+import v3Fixture from "../../../packages/client/test/fixtures/v3-text-spanning-2026-08-29.json" with { type: "json" };
 
 const FIRST_RESULT = createDataViewModel("First");
 const SECOND_RESULT = createDataViewModel("Second");
@@ -28,6 +29,28 @@ beforeEach(() => {
     <p id="host-error" hidden></p>
     <sefaria-source-card id="source-card-result"></sefaria-source-card>
   `;
+});
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
+
+test("reuses the default client's cached response when revisiting a request", async () => {
+  const fetchMock = vi.fn<typeof fetch>(
+    async () =>
+      new Response(JSON.stringify(v3Fixture), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      }),
+  );
+  vi.stubGlobal("fetch", fetchMock);
+  const demo = startSourceCardLiveDemo(document);
+
+  await demo.loadCurrentRequest();
+  await demo.loadCurrentRequest();
+
+  expect(fetchMock).toHaveBeenCalledOnce();
+  expect(resultElement().viewModel.state).not.toBe("loading");
 });
 
 test("loads a preset and supplies the result to the request-free element", async () => {

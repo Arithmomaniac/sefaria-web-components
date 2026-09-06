@@ -13,14 +13,21 @@ import {
   getV3Texts,
   postFindRefs,
   type CoreFindRefsResponse,
+  type CoreBilingualText,
   type GetAsyncTaskStatusResponses,
   type CoreErrorResponse,
+  type CoreLinkDisplayMetadata,
+  type CoreLinkObject,
   type CoreLinkResponse,
+  type CoreLinksErrorResponse,
   type CoreShapeChapter,
   type CoreShapeCollapsedRecord,
   type CoreShapeLeafRecord,
+  type CoreShapeMetadata,
+  type CoreSheetLinkObject,
   type CoreStringArrayOrNull,
   type CoreV3TextValue,
+  type SefariaCacheOptions,
   type GetLinksErrors,
   type GetLinksData,
   type GetLinksResponses,
@@ -166,6 +173,12 @@ describe("generated request and response contracts", () => {
     expectTypeOf<
       NonNullable<PostFindRefsData["query"]>["with_text"]
     >().toEqualTypeOf<"0" | "1" | undefined>();
+    expectTypeOf<SefariaCacheOptions>().toMatchTypeOf<{
+      ttlMs?: number;
+      maxEntries?: number;
+      maxBytes?: number;
+    }>();
+    expectTypeOf(client.clearCache).toEqualTypeOf<() => void>();
   });
 
   it("preserves generated success and documented error status types", () => {
@@ -219,5 +232,24 @@ describe("generated request and response contracts", () => {
     expectTypeOf<
       z.infer<typeof zCoreShapeCollapsedRecord>
     >().toEqualTypeOf<CoreShapeCollapsedRecord>();
+  });
+
+  it("exposes semantic-preserving reusable Core schema relationships", () => {
+    expectTypeOf<
+      Pick<CoreLinkObject, keyof CoreLinkDisplayMetadata>
+    >().toEqualTypeOf<CoreLinkDisplayMetadata>();
+    expectTypeOf<
+      Pick<CoreSheetLinkObject, keyof CoreLinkDisplayMetadata>
+    >().toEqualTypeOf<CoreLinkDisplayMetadata>();
+    expectTypeOf<
+      CoreLinkDisplayMetadata["collectiveTitle"]
+    >().toEqualTypeOf<CoreBilingualText>();
+    expectTypeOf<
+      Pick<CoreShapeLeafRecord, keyof CoreShapeMetadata>
+    >().toEqualTypeOf<CoreShapeMetadata>();
+    expectTypeOf<
+      Pick<CoreShapeCollapsedRecord, keyof CoreShapeMetadata>
+    >().toEqualTypeOf<CoreShapeMetadata>();
+    expectTypeOf<CoreLinksErrorResponse>().toMatchTypeOf<CoreErrorResponse>();
   });
 });

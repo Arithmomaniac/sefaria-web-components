@@ -51,7 +51,7 @@ High-risk changes include public API contracts, OpenAPI corrections, generated o
 
 ## Keep one owner for each concern
 
-- `@sefaria/client` owns the pinned OpenAPI input, checksum, guarded overlay, generated contracts, Zod schemas, validators, and thin client.
+- `@sefaria/client` owns the pinned OpenAPI input, checksum, guarded overlay, generated contracts, Zod schemas, validators, thin client, and its bounded per-client response cache.
 - `@sefaria/text-transform` owns pure sanitization, vocalization, and footnote operations.
 - Non-DOM `@sefaria/components` subpaths own component request types, view models, pure factories, and async factories.
 - Component elements own layout, interaction, accessibility, theming, and DOM rendering.
@@ -67,7 +67,7 @@ Do not add offline reference parsing without a concrete production consumer and 
 
 Consume corrected generated API contracts directly.
 
-Keep the public client thin. Do not add a generalized facade, default cache, retries, request coalescing, or component-specific methods.
+Keep the public client thin. Its only transport policy is the specified bounded per-client response cache. Do not add a generalized facade, retries, request coalescing, stale fallback, persistence, or component-specific methods.
 
 Preserve generated-client and Fetch API semantics. Documented HTTP errors remain typed error payloads.
 

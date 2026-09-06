@@ -5,7 +5,13 @@ import {
   type RequestResult,
 } from "@hey-api/client-fetch";
 
+import {
+  createSefariaResponseCache,
+  type SefariaCacheOptions,
+} from "./response-cache.js";
 import { validateResponse } from "./validation.js";
+
+export type { SefariaCacheOptions } from "./response-cache.js";
 
 /** Configuration used to create an isolated Sefaria API client. */
 export interface SefariaClientOptions {
@@ -13,6 +19,8 @@ export interface SefariaClientOptions {
   readonly baseUrl?: string;
   /** Fetch implementation used for requests, testing, or host integration. */
   readonly fetch?: typeof fetch;
+  /** Bounded per-client response caching. Enabled with defaults when omitted. */
+  readonly cache?: false | SefariaCacheOptions;
 }
 
 const sefariaClientBrand: unique symbol = Symbol("SefariaClient");
@@ -36,6 +44,8 @@ type SefariaPostOptions<ThrowOnError extends boolean> = Omit<
 export interface SefariaClient {
   /** Compile-time brand preventing accidental structural substitutes. */
   readonly [sefariaClientBrand]: true;
+  /** Removes all responses retained by this client. */
+  readonly clearCache: () => void;
   /** Performs a validated GET request using fields-style responses. */
   readonly get: <
     TData = unknown,
@@ -58,12 +68,20 @@ export interface SefariaClient {
 export function createSefariaClient(
   options: SefariaClientOptions = {},
 ): SefariaClient {
+  const fetchImplementation: typeof fetch = (input, init) =>
+    (options.fetch ?? globalThis.fetch)(input, init);
+  const responseCache =
+    options.cache === false
+      ? undefined
+      : createSefariaResponseCache(fetchImplementation, options.cache);
   const config: Config = {
     baseUrl: options.baseUrl ?? "https://www.sefaria.org",
+    ...(responseCache !== undefined
+      ? { fetch: responseCache.fetch }
+      : options.fetch !== undefined
+        ? { fetch: options.fetch }
+        : {}),
   };
-  if (options.fetch !== undefined) {
-    config.fetch = options.fetch;
-  }
 
   const client = createClient(config);
   client.interceptors.response.use(
@@ -73,6 +91,7 @@ export function createSefariaClient(
         path: requestOptions.url,
         response,
       });
+      await responseCache?.admit(response, request, requestOptions.url);
       return response;
     },
   );
@@ -84,6 +103,7 @@ export function createSefariaClient(
   });
   const facade: SefariaClient = {
     [sefariaClientBrand]: true,
+    clearCache: () => responseCache?.clear(),
     get: client.get,
     post: client.post,
   };

@@ -1002,52 +1002,46 @@ import type {
   );
   const collapsedShape = replaceGeneratedFragment(
     shapeChapter,
-    `export const zCoreShapeCollapsedRecord = z.object({
-  isComplex: z.literal(true),
-  section: z.string(),
-  length: z.int(),
-  chapters: z.array(z.lazy((): any => zCoreShapeLeafRecord)),
-  book: z.string(),
-  heBook: z.string(),
-});`,
-    `export const zCoreShapeCollapsedRecord: z.ZodType<CoreShapeCollapsedRecord> =
+    `export const zCoreShapeCollapsedRecord = zCoreShapeMetadata.and(
   z.lazy(() =>
     z.object({
       isComplex: z.literal(true),
-      section: z.string(),
-      length: z.int(),
-      chapters: z.array(zCoreShapeLeafRecord),
-      book: z.string(),
-      heBook: z.string(),
+      chapters: z.array(z.lazy((): any => zCoreShapeLeafRecord)),
     }),
+  ),
+);`,
+    `export const zCoreShapeCollapsedRecord: z.ZodType<CoreShapeCollapsedRecord> =
+  z.lazy(() =>
+    zCoreShapeMetadata.and(
+      z.object({
+        isComplex: z.literal(true),
+        chapters: z.array(zCoreShapeLeafRecord),
+      }),
+    ),
   );`,
     "CoreShapeCollapsedRecord recursive type",
   );
   return replaceGeneratedFragment(
     collapsedShape,
-    `export const zCoreShapeLeafRecord = z.object({
-  section: z.string(),
-  heTitle: z.string(),
-  title: z.string(),
-  length: z.int(),
-  chapters: zCoreShapeChapter,
-  book: z.string(),
-  heBook: z.string(),
-  isComplex: z.boolean().optional(),
-});`,
+    `export const zCoreShapeLeafRecord = zCoreShapeMetadata.and(
+  z.object({
+    heTitle: z.string(),
+    title: z.string(),
+    chapters: zCoreShapeChapter,
+    isComplex: z.boolean().optional(),
+  }),
+);`,
     `export const zCoreShapeLeafRecord: z.ZodType<CoreShapeLeafRecord> = z.lazy(
   () =>
-    z
-      .object({
-        section: z.string(),
-        heTitle: z.string(),
-        title: z.string(),
-        length: z.int(),
-        chapters: zCoreShapeChapter,
-        book: z.string(),
-        heBook: z.string(),
-        isComplex: z.boolean().optional(),
-      })
+    zCoreShapeMetadata
+      .and(
+        z.object({
+          heTitle: z.string(),
+          title: z.string(),
+          chapters: zCoreShapeChapter,
+          isComplex: z.boolean().optional(),
+        }),
+      )
       .transform(({ isComplex, ...value }): CoreShapeLeafRecord =>
         isComplex === undefined ? value : { ...value, isComplex },
       ),

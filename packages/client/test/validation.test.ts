@@ -185,6 +185,45 @@ describe("public generated response validators", () => {
     ).toBe(true);
   });
 
+  it("preserves link and shape requiredness through reusable schemas", () => {
+    expect(
+      validateGetLinks200([
+        {
+          isSheet: true,
+          index_title: "Sheet",
+          category: "Sheets",
+          collectiveTitle: { en: "Sheet" },
+          sourceRef: "A sheet title",
+          sourceHeRef: "A sheet title",
+        },
+      ]),
+    ).toBe(false);
+    expect(
+      validateGetShape200([
+        {
+          isComplex: true,
+          section: "Minor Tractates",
+          length: 2,
+          chapters: [],
+          book: "Derekh Eretz",
+          heBook: "Derekh Eretz",
+        },
+      ]),
+    ).toBe(true);
+    expect(
+      validateGetShape200([
+        {
+          section: "Torah",
+          heTitle: "Bereshit",
+          length: 50,
+          chapters: [31],
+          book: "Genesis",
+          heBook: "Bereshit",
+        },
+      ]),
+    ).toBe(false);
+  });
+
   it("validates the known find-refs result separately from generic task success", async () => {
     const success = (await readFixture(
       "find-refs-success-2026-09-06.json",
