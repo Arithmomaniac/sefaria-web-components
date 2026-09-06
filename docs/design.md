@@ -18,7 +18,7 @@ This design defines a generated API foundation with corrections and component-ow
 
 Core is the stable first product boundary. It is not a delivery phase or issue plan.
 
-Core includes the eight API operations, all three text-processing capabilities, the text primitives, the source card with its bounded text collection, the popup, and the Linker demonstration. The MCP source-card App is also in the intended Core boundary but remains planned on this baseline. See [Development](development.md) for current implementation and scaffolding.
+Core includes the eight API operations, all three text-processing capabilities, the text primitives, the source card with its bounded text collection, the popup, the Linker demonstration, and the MCP source-card App. See [Development](development.md) for current implementation details.
 
 The connections panel and recursive connected reading remain outside Core. Their later implementation must obey the same request, projection, and rendering boundaries.
 
@@ -83,7 +83,7 @@ flowchart LR
     CHILD -->|"component view models"| ELEMENTS["Lit elements"]
     PURE -->|"component view models"| ELEMENTS
     ELEMENTS -->|"DOM rendering"| DOM["Shadow DOM"]
-    MCP["Planned MCP structuredContent"] ==>|"external corrected API payload"| BOUNDARY["Planned MCP validation boundary"]
+    MCP["MCP structuredContent + status/request metadata"] ==>|"external corrected API payload"| BOUNDARY["Integration validation boundary"]
     BOUNDARY -->|"validated payload"| PURE
 ```
 
@@ -171,7 +171,7 @@ It must not call child async factories. Ten child views from one composite respo
 
 ## MCP boundary
 
-**Planned:** MCP `structuredContent` carries a corrected API payload. The App validates the payload, calls the same pure factory as client mode, and renders the resulting view model.
+MCP `structuredContent` carries a corrected API payload. Namespaced tool-result metadata carries the exact request reference and documented response status so the App can select the generated schema and construct the component request. The metadata carries no payload fields or view model. The App validates both boundaries, calls the same pure factory as client mode for a successful payload, and renders the resulting view model.
 
 ## Failure contracts
 
@@ -197,7 +197,7 @@ It must not call child async factories. Ten child views from one composite respo
 
 The current Linker demonstration consumes public contracts and built artifacts. It owns citation extraction, asynchronous detection, DOM linking, cancellation, stale-result suppression, and popup factory calls outside the element.
 
-**Planned:** the completed MCP App validates corrected API-shaped JSON before projection. Both integrations preserve the same request-free element boundary and do not copy Sefaria applications or define alternate component data models.
+The MCP App validates its namespaced request/status metadata and corrected API-shaped JSON before projection. The Linker integration calls an async component factory outside the element.
 
 See the [integration specification](specs/integrations.md).
 
