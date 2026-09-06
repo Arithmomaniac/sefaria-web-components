@@ -1,0 +1,30 @@
+{
+  "status": "passed",
+  "completedStages": [
+    "source-card",
+    "connections-default",
+    "connections-category",
+    "connections-paging",
+    "connected-source",
+    "connections-metadata-only",
+    "connections-load-previews"
+  ],
+  "selectedReference": "Agra DeKala, Balak 18",
+  "artifacts": {
+    "source-card": "docs/images/mcp-app-vscode.png",
+    "connections": "docs/images/mcp-app-vscode-connections.png",
+    "connections-category": "docs/images/mcp-app-vscode-category.png",
+    "connections-page-2": "docs/images/mcp-app-vscode-page-2.png",
+    "connected-source-composer": "docs/images/mcp-app-vscode-connected-source-composer.png",
+    "connected-source": "docs/images/mcp-app-vscode-connected-source.png",
+    "connections-metadata-only": "docs/images/mcp-app-vscode-metadata-only.png",
+    "load-previews-composer": "docs/images/mcp-app-vscode-load-previews-composer.png",
+    "connections-loaded-previews": "docs/images/mcp-app-vscode-loaded-previews.png"
+  },
+  "deliveryModes": {
+    "connected-source": "composer-submitted",
+    "load-previews": "composer-submitted"
+  },
+  "executable": "Code.exe",
+  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.136.1 Chrome/148.0.7778.280 Electron/42.10.0 Safari/537.36"
+}

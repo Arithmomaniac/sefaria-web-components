@@ -6,7 +6,11 @@ import {
   type McpUiHostContext,
 } from "@modelcontextprotocol/ext-apps";
 
-import { renderStatus, renderToolResult } from "./app.js";
+import {
+  createConnectionsInteraction,
+  renderStatus,
+  renderToolResult,
+} from "./app.js";
 
 function findRoot(): HTMLElement {
   const root = document.querySelector<HTMLElement>("#app");
@@ -33,20 +37,30 @@ const root = findRoot();
 if (new URLSearchParams(window.location.search).has("standalone")) {
   renderStatus(
     root,
-    "Call get_text in an MCP Apps host to render a Sefaria source card.",
+    "Call get_text or get_links_between_texts in an MCP Apps host to render Sefaria content.",
   );
 } else {
   const app = new App({ name: "Sefaria MCP App", version: "0.0.0" });
+  let disposeResult = (): void => {};
+  const interaction = createConnectionsInteraction(app);
 
   app.ontoolresult = (result) => {
-    renderToolResult(root, result);
+    disposeResult();
+    disposeResult = renderToolResult(root, result, interaction);
   };
   app.ontoolcancelled = () => {
+    disposeResult();
+    disposeResult = (): void => {};
     renderStatus(root, "The Sefaria text request was cancelled.");
   };
   app.onhostcontextchanged = applyHostContext;
   app.onerror = (error) => {
     renderStatus(root, `MCP App error: ${String(error)}`);
+  };
+  app.onteardown = () => {
+    disposeResult();
+    disposeResult = (): void => {};
+    return {};
   };
 
   void app
