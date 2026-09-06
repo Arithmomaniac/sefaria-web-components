@@ -45,6 +45,11 @@ export const zAsyncTaskPending = z.object({
   meta: z.record(z.string(), z.unknown()).optional(),
 });
 
+export const zCoreBilingualText = z.object({
+  en: z.string(),
+  he: z.string(),
+});
+
 export const zCoreErrorResponse = z.object({
   error: z.string(),
 });
@@ -82,6 +87,12 @@ export const zCoreFindRefsRequest = z
       .nullish(),
   })
   .strict();
+
+export const zCoreLinkDisplayMetadata = z.object({
+  index_title: z.string(),
+  category: z.string(),
+  collectiveTitle: zCoreBilingualText,
+});
 
 export const zCoreLinkVersion = z.object({
   title: z.string(),
@@ -139,17 +150,20 @@ export const zCoreRefResponse = z.union([
   zCoreRefSuccess,
 ]);
 
-export const zCoreSheetLinkObject = z.object({
-  isSheet: z.literal(true),
-  index_title: z.string(),
-  category: z.string(),
-  collectiveTitle: z.object({
-    en: z.string(),
-    he: z.string(),
-  }),
-  sourceRef: z.string(),
-  sourceHeRef: z.string(),
+export const zCoreShapeMetadata = z.object({
+  section: z.string(),
+  length: z.int(),
+  book: z.string(),
+  heBook: z.string(),
 });
+
+export const zCoreSheetLinkObject = zCoreLinkDisplayMetadata.and(
+  z.object({
+    isSheet: z.literal(true),
+    sourceRef: z.string(),
+    sourceHeRef: z.string(),
+  }),
+);
 
 /**
  * A string, null, or recursively nested list of the same values.
@@ -264,54 +278,46 @@ export const zAsyncTaskSuccess = z.object({
   result: z.record(z.string(), z.unknown()),
 });
 
-export const zCoreLinkObject = z.object({
-  _id: z.string(),
-  index_title: z.string(),
-  category: z.string(),
-  type: z.string(),
-  ref: zRef,
-  anchorRef: zRef,
-  anchorRefExpanded: z.array(zRef),
-  sourceRef: zRef,
-  sourceHeRef: z.string(),
-  anchorVerse: z.int(),
-  sourceHasEn: z.boolean(),
-  compDate: z.array(z.int()).optional(),
-  commentaryNum: z.number(),
-  collectiveTitle: z.object({
-    en: z.string(),
-    he: z.string(),
+export const zCoreLinkObject = zCoreLinkDisplayMetadata.and(
+  z.object({
+    _id: z.string(),
+    type: z.string(),
+    ref: zRef,
+    anchorRef: zRef,
+    anchorRefExpanded: z.array(zRef),
+    sourceRef: zRef,
+    sourceHeRef: z.string(),
+    anchorVerse: z.int(),
+    sourceHasEn: z.boolean(),
+    compDate: z.array(z.int()).optional(),
+    commentaryNum: z.number(),
+    he: zCoreStringArrayOrNull.optional(),
+    text: zCoreStringArrayOrNull.optional(),
+    heVersionTitle: zCoreStringArrayOrNull.optional(),
+    versionTitle: zCoreStringArrayOrNull.optional(),
+    heLicense: zCoreStringArrayOrNull.optional(),
+    license: zCoreStringArrayOrNull.optional(),
+    heVersionTitleInHebrew: zCoreStringArrayOrNull.optional(),
+    versionTitleInHebrew: zCoreStringArrayOrNull.optional(),
+    inline_reference: z.record(z.string(), z.unknown()).optional(),
+    highlightedWords: z.unknown().optional(),
+    anchorVersion: zCoreLinkVersion.optional(),
+    sourceVersion: zCoreLinkVersion.optional(),
+    displayedText: zCoreBilingualText.optional(),
+    heTitle: z.string().optional(),
   }),
-  he: zCoreStringArrayOrNull.optional(),
-  text: zCoreStringArrayOrNull.optional(),
-  heVersionTitle: zCoreStringArrayOrNull.optional(),
-  versionTitle: zCoreStringArrayOrNull.optional(),
-  heLicense: zCoreStringArrayOrNull.optional(),
-  license: zCoreStringArrayOrNull.optional(),
-  heVersionTitleInHebrew: zCoreStringArrayOrNull.optional(),
-  versionTitleInHebrew: zCoreStringArrayOrNull.optional(),
-  inline_reference: z.record(z.string(), z.unknown()).optional(),
-  highlightedWords: z.unknown().optional(),
-  anchorVersion: zCoreLinkVersion.optional(),
-  sourceVersion: zCoreLinkVersion.optional(),
-  displayedText: z
-    .object({
-      en: z.string(),
-      he: z.string(),
-    })
-    .optional(),
-  heTitle: z.string().optional(),
-});
+);
 
 export const zCoreLinkResponse = z.union([
   z.array(z.union([zCoreLinkObject, zCoreSheetLinkObject])),
   zCoreErrorResponse,
 ]);
 
-export const zCoreLinksErrorResponse = z.object({
-  error: z.string(),
-  ref: zRef,
-});
+export const zCoreLinksErrorResponse = zCoreErrorResponse.and(
+  z.object({
+    ref: zRef,
+  }),
+);
 
 /**
  * Root Type for VersionJSON
@@ -417,28 +423,24 @@ export const zCoreShapeChapter: z.ZodType<CoreShapeChapter> = z.lazy(() =>
 
 export const zCoreShapeCollapsedRecord: z.ZodType<CoreShapeCollapsedRecord> =
   z.lazy(() =>
-    z.object({
-      isComplex: z.literal(true),
-      section: z.string(),
-      length: z.int(),
-      chapters: z.array(zCoreShapeLeafRecord),
-      book: z.string(),
-      heBook: z.string(),
-    }),
+    zCoreShapeMetadata.and(
+      z.object({
+        isComplex: z.literal(true),
+        chapters: z.array(zCoreShapeLeafRecord),
+      }),
+    ),
   );
 
 export const zCoreShapeLeafRecord: z.ZodType<CoreShapeLeafRecord> = z.lazy(() =>
-  z
-    .object({
-      section: z.string(),
-      heTitle: z.string(),
-      title: z.string(),
-      length: z.int(),
-      chapters: zCoreShapeChapter,
-      book: z.string(),
-      heBook: z.string(),
-      isComplex: z.boolean().optional(),
-    })
+  zCoreShapeMetadata
+    .and(
+      z.object({
+        heTitle: z.string(),
+        title: z.string(),
+        chapters: zCoreShapeChapter,
+        isComplex: z.boolean().optional(),
+      }),
+    )
     .transform(({ isComplex, ...value }): CoreShapeLeafRecord =>
       isComplex === undefined ? value : { ...value, isComplex },
     ),

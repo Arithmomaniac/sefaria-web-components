@@ -441,6 +441,14 @@ These patterns show consumer demand for reference handling and a rendered source
 
 `bisl-torah` has a two-state vowel control and three layout modes. Those choices support separate vocalization controls and an `auto` bilingual layout.
 
+## Sefaria web response caching
+
+**Observed on September 6, 2026:** the Sefaria web frontend at commit [`05863b62ce0b7aa176b74df3bc8bfbdeb0bf171f`](https://github.com/Sefaria/Sefaria-Project/blob/05863b62ce0b7aa176b74df3bc8bfbdeb0bf171f/static/js/sefaria/sefaria.js) uses process-local JavaScript objects for completed API data and a separate `_ajaxObjects` store for in-flight request reuse.
+
+`getTextsFromAPIV3` uses the complete generated URL as both the request URL and `_textsStore` cache key. `getVersions` uses a reference-keyed `_versions` store. `_cachedApiPromise` returns a stored value or delegates to `_ApiPromise`, then stores the completed payload. `_ApiPromise` shares an in-flight request by URL and removes it after settlement.
+
+The inspected helper has no TTL, entry-count limit, retained-byte limit, persistence, or stale-return branch. Older text-cache paths also seed or reconstruct related reference entries. This repository adopts only bounded reuse of completed validated responses. It intentionally does not copy Sefaria's global stores, in-flight coalescing, reference-derived cache population, or text-range reconstruction.
+
 ## MCP server observations
 
 At `d409602`, `Sefaria/sefaria-mcp` is a Python and FastMCP service.

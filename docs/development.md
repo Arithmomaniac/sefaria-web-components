@@ -19,7 +19,7 @@ For reader-oriented explanations, use the friendly guides rather than the archiv
 
 | Area | Baseline status |
 | --- | --- |
-| `packages/client` | Delivers eight named Core GET and POST SDK functions, committed corrected TypeScript contracts, Zod validators, and a status-aware fetch client. The corrected Core OpenAPI document is temporary generation output. |
+| `packages/client` | Delivers eight named Core GET and POST SDK functions, committed corrected TypeScript contracts, Zod validators, and a status-aware fetch client. A bounded per-client response cache is planned on this baseline. The corrected Core OpenAPI document is temporary generation output. |
 | `packages/text-transform` | Delivers DOM-free sanitization, Hebrew vocalization modes, and structured footnote extraction. |
 | `packages/components` | Delivers the current component-specific view models, pure and async factory subpaths, and request-free elements for the current text, bilingual, reference-label, source-card, and popup surfaces. |
 | `demos/component-lab` | Shows authored view models for current elements. It is a development surface, not a complete interaction catalog or compatibility oracle. |
@@ -36,7 +36,7 @@ For reader-oriented explanations, use the friendly guides rather than the archiv
 These are superseded decisions, not an uncompleted backlog:
 
 - The generalized `@sefaria/model` foundation and broad offline reference parser are no longer the delivery architecture. The corrected OpenAPI contract and thin `@sefaria/client` own transport data; component factories own projections.
-- The default cache, retries, and request coalescing proposed by an earlier client plan are not part of the thin-client baseline.
+- The earlier unbounded or implicit cache proposal was removed from the baseline. The current client specification instead plans one bounded, default-on, per-client response cache with explicit opt-out; retries and request coalescing remain excluded.
 - A separate text-range request and view-model stack was replaced by a bounded source-card collection. A single segment is a one-item collection, while a range remains one outer request with card-level reference data.
 - Attribution belongs once at the source-card level for each displayed edition, not inside every repeated text segment.
 - The private `SourceCardData` MCP wire format is superseded. The intended integration contract is corrected API-shaped JSON, but the validation and projection path is still planned.

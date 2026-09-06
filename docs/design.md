@@ -12,7 +12,7 @@ This design defines a generated API foundation with corrections and component-ow
 
 **In scope:** the Sefaria OpenAPI supply chain, the thin public client, text processing, component factories, request-free elements, the MCP payload boundary, and the Linker demonstration.
 
-**Out of scope:** a generalized domain-model package and offline reference parsing without a concrete consumer. Default caching, retries, request coalescing, HTML server rendering, and hydration are also out of scope.
+**Out of scope:** a generalized domain-model package and offline reference parsing without a concrete consumer. Cache persistence, stale fallback, retries, request coalescing, HTML server rendering, and hydration are also out of scope.
 
 ## Core scope
 
@@ -49,7 +49,7 @@ Each OpenAPI correction starts with the original Sefaria route, handler, respons
 | Concern | Boundary |
 | --- | --- |
 | Transport contracts | Pinned OpenAPI input, guarded overlay, and generated declarations |
-| Client | Thin configured `@hey-api/client-fetch` capability with a configurable base URL and injectable `fetch` |
+| Client | Thin configured `@hey-api/client-fetch` capability with a configurable base URL, injectable `fetch`, and bounded per-client response cache |
 | Public API data | Generated API contracts consumed directly |
 | Component data | One view-model union per component |
 | Element input | View models only |
@@ -61,7 +61,7 @@ Each OpenAPI correction starts with the original Sefaria route, handler, respons
 
 | Owner | Responsibility | Must not own |
 | --- | --- | --- |
-| `@sefaria/client` | Pinned OpenAPI input, checksum, guarded overlay, generated contracts, Zod schemas, TypeScript validators, and thin client | Rendering, component view models, default caches, retries, coalescing, or component methods |
+| `@sefaria/client` | Pinned OpenAPI input, checksum, guarded overlay, generated contracts, Zod schemas, TypeScript validators, thin client, and bounded per-client response cache | Rendering, component view models, persistent or shared caches, retries, coalescing, stale fallback, or component methods |
 | `@sefaria/text-transform` | Pure sanitization, vocalization, and footnote operations | Requests, DOM rendering, or API contract correction |
 | Non-DOM `@sefaria/components` subpaths | Component request types, view-model unions, pure factories, and async factories | Hidden global clients or DOM state |
 | `@sefaria/components` elements | Layout, interaction, accessibility, theming, and DOM rendering | References, raw JSON, clients, hosts, fetch functions, or requests |

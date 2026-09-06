@@ -94,6 +94,11 @@ export type AsyncTaskSuccess = {
   };
 };
 
+export type CoreBilingualText = {
+  en: string;
+  he: string;
+};
+
 export type CoreErrorResponse = {
   error: string;
 };
@@ -149,10 +154,14 @@ export type CoreFindRefsSection = {
 
 export type CoreIndexResponse = IndexJson | CoreErrorResponse;
 
-export type CoreLinkObject = {
-  _id: string;
+export type CoreLinkDisplayMetadata = {
   index_title: string;
   category: string;
+  collectiveTitle: CoreBilingualText;
+};
+
+export type CoreLinkObject = CoreLinkDisplayMetadata & {
+  _id: string;
   type: string;
   ref: Ref;
   anchorRef: Ref;
@@ -163,10 +172,6 @@ export type CoreLinkObject = {
   sourceHasEn: boolean;
   compDate?: Array<number>;
   commentaryNum: number;
-  collectiveTitle: {
-    en: string;
-    he: string;
-  };
   he?: CoreStringArrayOrNull;
   text?: CoreStringArrayOrNull;
   heVersionTitle?: CoreStringArrayOrNull;
@@ -181,18 +186,14 @@ export type CoreLinkObject = {
   highlightedWords?: unknown;
   anchorVersion?: CoreLinkVersion;
   sourceVersion?: CoreLinkVersion;
-  displayedText?: {
-    en: string;
-    he: string;
-  };
+  displayedText?: CoreBilingualText;
   heTitle?: string;
 };
 
 export type CoreLinkResponse =
   Array<CoreLinkObject | CoreSheetLinkObject> | CoreErrorResponse;
 
-export type CoreLinksErrorResponse = {
-  error: string;
+export type CoreLinksErrorResponse = CoreErrorResponse & {
   ref: Ref;
 };
 
@@ -253,38 +254,31 @@ export type CoreRefSuccess = {
 export type CoreShapeChapter =
   number | Array<CoreShapeChapter> | CoreShapeLeafRecord;
 
-export type CoreShapeCollapsedRecord = {
+export type CoreShapeCollapsedRecord = CoreShapeMetadata & {
   isComplex: true;
-  section: string;
-  length: number;
   chapters: Array<CoreShapeLeafRecord>;
-  book: string;
-  heBook: string;
 };
 
-export type CoreShapeLeafRecord = {
-  section: string;
+export type CoreShapeLeafRecord = CoreShapeMetadata & {
   heTitle: string;
   title: string;
-  length: number;
   chapters: CoreShapeChapter;
+  isComplex?: boolean;
+};
+
+export type CoreShapeMetadata = {
+  section: string;
+  length: number;
   book: string;
   heBook: string;
-  isComplex?: boolean;
 };
 
 export type CoreShapeRecord = CoreShapeLeafRecord | CoreShapeCollapsedRecord;
 
 export type CoreShapeResponse = Array<CoreShapeRecord> | CoreErrorResponse;
 
-export type CoreSheetLinkObject = {
+export type CoreSheetLinkObject = CoreLinkDisplayMetadata & {
   isSheet: true;
-  index_title: string;
-  category: string;
-  collectiveTitle: {
-    en: string;
-    he: string;
-  };
   sourceRef: string;
   sourceHeRef: string;
 };

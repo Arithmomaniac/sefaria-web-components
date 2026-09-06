@@ -1,6 +1,7 @@
 export {
   createSefariaClient,
   type SefariaClient,
+  type SefariaCacheOptions,
   type SefariaClientOptions,
 } from "./client.js";
 export {
