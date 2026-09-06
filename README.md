@@ -1,4 +1,4 @@
-> Created/edited by GitHub Copilot; pending human review.
+> Created/edited by GitHub Copilot with human review/feedback by avilevin.
 
 # Sefaria Web Components
 
@@ -12,6 +12,7 @@ Render Sefaria passages in your own application without bringing along the Sefar
 | --- | --- |
 | Try the components or display a passage | [Render text](docs/guides/render-text.md) |
 | Understand the client, view models, and Web Components | [How the pieces fit together](docs/guides/data-flow.md) |
+| Add citation links and popups to an article | [Linker demonstration](docs/linker-demo.md) |
 | Understand HTML tags inside Sefaria text | [Text markup, with examples](docs/guides/text-markup.md) |
 | Know where this project deliberately differs from Sefaria | [Intentional differences](docs/guides/differences.md) |
 | Contribute, understand changed plans, or see what remains | [Development](docs/development.md) |
@@ -33,9 +34,9 @@ The [development guide](docs/development.md) covers Corepack, the Python fixture
 
 ## What is available?
 
-The client, text transforms, text segment, bilingual segment, reference label, and source card are implemented on the [documented implementation baseline](docs/development.md#implemented-on-this-baseline). A source card handles both a single segment and a collection of text from one response.
+The client, text transforms, text segment, bilingual segment, reference label, source card, request-free popup, and embeddable Linker demonstration are implemented on the [documented implementation baseline](docs/development.md#implemented-on-this-baseline). A source card handles both a single segment and a collection of text from one response.
 
-The request-free popup, connections panel, completed Linker integration, and corrected-payload MCP integration are **planned**, not completed by the existence of demo scaffolding. [Development](docs/development.md) separates current behavior, superseded plans, and remaining work.
+The corrected-payload MCP integration, named-host acceptance, connections panel, and broader connected-reading surfaces remain **planned**. Public hosting and broad live-site qualification for the Linker are also outside the delivered demonstration. [Development](docs/development.md) separates current behavior, superseded plans, and remaining work.
 
 ## License and ownership
 

@@ -4,7 +4,7 @@
 
 [Documentation](../README.md) / How the pieces fit together
 
-**Current:** the text-segment, bilingual-segment, reference-label, and source-card paths described here are implemented. The same pattern is intended for later components, but their names and integration examples are not current APIs.
+**Current:** the text-segment, bilingual-segment, reference-label, source-card, popup, and Linker paths described here are implemented. The same pattern is intended for later components, but their names and integration examples are not current APIs.
 
 The client gets data. A factory turns that data into something a particular component can display. The Web Component renders the result. Your application connects these steps and owns the lifetime of the request.
 
@@ -14,6 +14,7 @@ The client gets data. A factory turns that data into something a particular comp
 flowchart TB
     API["Sefaria API"]
     SITE["Regular website<br/>@sefaria/client + async factory"]
+    LINKER["Linker integration<br/>detection + popup async factory"]
     MCP["MCP App<br/>structuredContent + validation<br/>(planned)"]
     FACTORY["Component factory<br/>API payload → rendering data"]
     VM["Component view model"]
@@ -21,8 +22,10 @@ flowchart TB
     UI["Host-composed UI"]
 
     API --> SITE
+    API --> LINKER
     API --> MCP
     SITE --> FACTORY
+    LINKER --> FACTORY
     MCP --> FACTORY
     FACTORY --> VM
     VM --> ELEMENT
@@ -36,11 +39,11 @@ The central layers are the same in both cases:
 3. A **factory** projects the validated payload into a component-specific **view model**.
 4. A request-free **Web Component** renders that view model.
 
-The difference is where the request happens. A regular site supplies `@sefaria/client` to an async factory. In the planned MCP path, the server obtains the payload, the App validates `structuredContent`, and the App calls the same pure factory directly. Neither path sends raw API JSON to the element.
+The difference is where the request happens. A regular site supplies `@sefaria/client` to an async factory. The current Linker integration owns citation detection and polling, then calls the popup async factory when a reader activates a generated link. In the planned MCP path, the server obtains the payload, the App validates `structuredContent`, and the App calls the same pure factory directly. None of these paths sends raw API JSON to the element.
 
 Web Components are composable because the host can arrange several request-free elements and supply each one a view model. Composite data projection happens before rendering: a composite pure factory can call child pure factories using one captured payload. One element does not reach out to fetch data or ask another element to do so; interactive elements emit events and the host decides what data to obtain next.
 
-The planned MCP lane is shown to explain the intended boundary; its complete integration is not implemented on the documented baseline. The [design diagram](../design.md#package-dependency-diagram) provides the detailed dependency view.
+The Linker lane is current. The planned MCP lane is shown to explain the intended boundary; its complete integration is not implemented on the documented baseline. The [design diagram](../design.md#package-dependency-diagram) provides the detailed dependency view.
 
 ## Four things that are easy to confuse
 
@@ -70,7 +73,7 @@ The [render-text guide](render-text.md#put-a-source-card-in-a-browser-app) imple
 | --- | --- | --- |
 | `@sefaria/client` | Generated operations, API contracts, response validation, configurable API origin and `fetch` | Component methods, rendering, caching, or retry policy |
 | `@sefaria/text-transform` | Pure processing of HTML and Hebrew text | Fetching, component state, or DOM rendering |
-| `@sefaria/components/source-card` and other non-DOM subpaths | Component request types, view-model unions, pure and async factories | Browser elements or the host's active selection |
+| `@sefaria/components/source-card`, `@sefaria/components/popup`, and other non-DOM subpaths | Component request types, view-model unions, pure and async factories | Browser elements or the host's active selection |
 | `@sefaria/components` browser exports | Registered Lit elements, layout, theme, accessibility, and rendering | Fetching or interpreting raw API payloads |
 | Your application or integration | Client creation, input, loading state, cancellation, stale-result handling, and assigning view models | A second copy of the factory's projection logic |
 

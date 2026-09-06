@@ -1,4 +1,4 @@
-> Created/edited by GitHub Copilot; pending human review.
+> Created/edited by GitHub Copilot with human review/feedback by avilevin.
 
 # Review guide
 
@@ -113,7 +113,7 @@ Review the initial corrections for:
 - [ ] Empty states preserve server warning messages.
 - [ ] Direction comes from the selected version even when it differs from language expectations.
 - [ ] Static footnote markers and available bodies render without adding interaction.
-- [ ] Version source remains inert text rather than an unvalidated link.
+- [ ] A version source becomes a link only after absolute HTTP(S) validation.
 
 ### Bilingual segment
 
@@ -207,6 +207,18 @@ Review the initial corrections for:
 - [ ] Remove the alternate private wire format in that change.
 - [ ] No dual-reader compatibility path remains.
 
+## Linker integration
+
+- [ ] The built embed and bookmarklet load the same classic script.
+- [ ] Detection makes one POST and bounded GET polls with no tracking metadata.
+- [ ] Generic async task output is validated as a find-refs result before use.
+- [ ] Existing links, excluded elements, and foreign DOM remain untouched.
+- [ ] Inline citation fragments preserve their host elements and listeners.
+- [ ] Unicode code-point offsets are converted before DOM ranges are created.
+- [ ] Rescan and destroy remove only Linker-owned wrappers and abort stale work.
+- [ ] Each popup activation makes one v3 request; the popup element makes none.
+- [ ] CSP, mixed-content, CORS, and restricted-page limitations are documented.
+
 ## Text processing
 
 - [ ] Vocalization runs on text content, not raw markup.
@@ -227,7 +239,9 @@ Review the initial corrections for:
 - [ ] Direction comes from view-model data.
 - [ ] Text segments contain no repeated edition attribution.
 - [ ] A source card renders each visible resolved edition's attribution once outside its item collection.
-- [ ] A source card renders `versionSource` as inert text rather than an unvalidated link.
+- [ ] `hideAttributions` defaults to false, and enabling it changes rendering without discarding view-model attribution.
+- [ ] A source card links the edition title for a validated HTTP(S) `versionSourceUrl` and keeps other source text inert.
+- [ ] The Linker popup disables source-card attribution.
 - [ ] Interactive controls use native elements and accessible names.
 - [ ] Focus is visible.
 - [ ] Modal popups cycle Tab and Shift+Tab.

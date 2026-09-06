@@ -5,20 +5,24 @@
 import type { ZodType } from "zod";
 
 import {
+  zAsyncTaskEnqueued,
+  zAsyncTaskFailure,
+  zAsyncTaskPending,
+  zAsyncTaskSuccess,
   zCoreErrorResponse,
+  zCoreIndexResponse,
+  zCoreLinkResponse,
   zCoreLinksErrorResponse,
-  zGetIndexV2Response,
-  zGetLinksResponse,
-  zGetRefResponse,
-  zGetShapeResponse,
-  zGetV3TextsResponse,
+  zCoreRefResponse,
+  zCoreShapeResponse,
+  zCoreV3TextsResponse,
   zGetVersionsResponse,
 } from "./zod.gen.js";
 
 export interface GeneratedResponseContract {
   readonly operationId: string;
   readonly functionName: string;
-  readonly method: "GET";
+  readonly method: "GET" | "POST";
   readonly path: string;
   readonly status: number;
   readonly contentTypes: readonly string[];
@@ -38,7 +42,7 @@ export const responseContracts = [
     schemaPath:
       "/paths/~1api~1v3~1texts~1{tref}/get/responses/200/content/application~1json/schema",
     validatorName: "validateGetV3Texts200",
-    schema: zGetV3TextsResponse,
+    schema: zCoreV3TextsResponse,
   },
   {
     operationId: "get-v3-texts",
@@ -86,7 +90,7 @@ export const responseContracts = [
     schemaPath:
       "/paths/~1api~1ref~1{tref}/get/responses/200/content/application~1json/schema",
     validatorName: "validateGetRef200",
-    schema: zGetRefResponse,
+    schema: zCoreRefResponse,
   },
   {
     operationId: "get-ref",
@@ -110,7 +114,7 @@ export const responseContracts = [
     schemaPath:
       "/paths/~1api~1v2~1index~1{title}/get/responses/200/content/application~1json/schema",
     validatorName: "validateGetIndexV2200",
-    schema: zGetIndexV2Response,
+    schema: zCoreIndexResponse,
   },
   {
     operationId: "get-shape",
@@ -122,7 +126,7 @@ export const responseContracts = [
     schemaPath:
       "/paths/~1api~1shape~1{title}/get/responses/200/content/application~1json/schema",
     validatorName: "validateGetShape200",
-    schema: zGetShapeResponse,
+    schema: zCoreShapeResponse,
   },
   {
     operationId: "get-links",
@@ -134,7 +138,7 @@ export const responseContracts = [
     schemaPath:
       "/paths/~1api~1links~1{tref}/get/responses/200/content/application~1json/schema",
     validatorName: "validateGetLinks200",
-    schema: zGetLinksResponse,
+    schema: zCoreLinkResponse,
   },
   {
     operationId: "get-links",
@@ -147,5 +151,53 @@ export const responseContracts = [
       "/paths/~1api~1links~1{tref}/get/responses/400/content/application~1json/schema",
     validatorName: "validateGetLinks400",
     schema: zCoreLinksErrorResponse,
+  },
+  {
+    operationId: "post-find-refs",
+    functionName: "postFindRefs",
+    method: "POST",
+    path: "/api/find-refs",
+    status: 202,
+    contentTypes: ["application/json"],
+    schemaPath:
+      "/paths/~1api~1find-refs/post/responses/202/content/application~1json/schema",
+    validatorName: "validatePostFindRefs202",
+    schema: zAsyncTaskEnqueued,
+  },
+  {
+    operationId: "get-async-task-status",
+    functionName: "getAsyncTaskStatus",
+    method: "GET",
+    path: "/api/async/{task_id}",
+    status: 200,
+    contentTypes: ["application/json"],
+    schemaPath:
+      "/paths/~1api~1async~1{task_id}/get/responses/200/content/application~1json/schema",
+    validatorName: "validateGetAsyncTaskStatus200",
+    schema: zAsyncTaskSuccess,
+  },
+  {
+    operationId: "get-async-task-status",
+    functionName: "getAsyncTaskStatus",
+    method: "GET",
+    path: "/api/async/{task_id}",
+    status: 202,
+    contentTypes: ["application/json"],
+    schemaPath:
+      "/paths/~1api~1async~1{task_id}/get/responses/202/content/application~1json/schema",
+    validatorName: "validateGetAsyncTaskStatus202",
+    schema: zAsyncTaskPending,
+  },
+  {
+    operationId: "get-async-task-status",
+    functionName: "getAsyncTaskStatus",
+    method: "GET",
+    path: "/api/async/{task_id}",
+    status: 500,
+    contentTypes: ["application/json"],
+    schemaPath:
+      "/paths/~1api~1async~1{task_id}/get/responses/500/content/application~1json/schema",
+    validatorName: "validateGetAsyncTaskStatus500",
+    schema: zAsyncTaskFailure,
   },
 ] as const satisfies readonly GeneratedResponseContract[];

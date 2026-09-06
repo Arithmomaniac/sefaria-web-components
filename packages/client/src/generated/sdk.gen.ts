@@ -9,6 +9,9 @@ import type {
 } from "@hey-api/client-fetch";
 
 import type {
+  GetAsyncTaskStatusData,
+  GetAsyncTaskStatusErrors,
+  GetAsyncTaskStatusResponses,
   GetIndexV2Data,
   GetIndexV2Responses,
   GetLinksData,
@@ -24,14 +27,18 @@ import type {
   GetV3TextsResponses,
   GetVersionsData,
   GetVersionsResponses,
+  PostFindRefsData,
+  PostFindRefsResponses,
 } from "./types.gen.js";
 import {
+  zGetAsyncTaskStatusResponse,
   zGetIndexV2Response,
   zGetLinksResponse,
   zGetRefResponse,
   zGetShapeResponse,
   zGetV3TextsResponse,
   zGetVersionsResponse,
+  zPostFindRefsResponse,
 } from "./zod.gen.js";
 
 import { requireSefariaClient, type SefariaClient } from "../client.js";
@@ -197,4 +204,70 @@ export const getLinks = <ThrowOnError extends boolean = false>(
     responseTransformer: async (data) => data,
     responseValidator: async (data) => await zGetLinksResponse.parseAsync(data),
     url: "/api/links/{tref}",
+  });
+
+/**
+ * Find Refs
+ *
+ * Initially designed to find links on websites using [Sefaria's Linker](https://www.sefaria.org/linker), the Find Refs API can identify textual references in any arbitrary text that gets sent to it via a structured POST request.
+ *
+ * **This is an asynchronous API.** The endpoint immediately returns a `task_id` with HTTP 202. You must poll `GET /api/async/{task_id}` to retrieve the task status. When the task completes successfully, the `/api/async/{task_id}` response will include a `result` field containing the same `FindRefsAPIResponse` object described in the 200 response schema below.
+ */
+export const postFindRefs = <ThrowOnError extends boolean = false>(
+  options: Options<PostFindRefsData, ThrowOnError>,
+): RequestResult<PostFindRefsResponses, unknown, ThrowOnError> =>
+  requireSefariaClient(options.client).post<
+    PostFindRefsResponses,
+    unknown,
+    ThrowOnError
+  >({
+    ...options,
+    parseAs: "json",
+    responseStyle: "fields",
+    responseTransformer: async (data) => data,
+    responseValidator: async (data) =>
+      await zPostFindRefsResponse.parseAsync(data),
+    url: "/api/find-refs",
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
+  });
+
+/**
+ * Get Async Task Status
+ *
+ * Poll the status of an asynchronous task. Returns the current state of the task and, when complete, the result or error. This endpoint is generic — it works for any task enqueued by an asynchronous Sefaria API (e.g. `POST /api/find-refs`).
+ *
+ * **States:**
+ * - `PENDING` — The task has not yet started (or the task ID is unknown).
+ * - `STARTED` — The task is currently being executed.
+ * - `RETRY` — The task failed and is being retried.
+ * - `SUCCESS` — The task completed successfully. The `result` field contains the task output; its shape depends on which API enqueued the task.
+ * - `FAILURE` — The task failed permanently. The `error` field contains the error message.
+ *
+ * **HTTP status codes:**
+ * - `202` — Task is still running (state is `PENDING`, `STARTED`, or `RETRY`).
+ * - `200` — Task completed successfully.
+ * - `500` — Task failed permanently.
+ */
+export const getAsyncTaskStatus = <ThrowOnError extends boolean = false>(
+  options: Options<GetAsyncTaskStatusData, ThrowOnError>,
+): RequestResult<
+  GetAsyncTaskStatusResponses,
+  GetAsyncTaskStatusErrors,
+  ThrowOnError
+> =>
+  requireSefariaClient(options.client).get<
+    GetAsyncTaskStatusResponses,
+    GetAsyncTaskStatusErrors,
+    ThrowOnError
+  >({
+    ...options,
+    parseAs: "json",
+    responseStyle: "fields",
+    responseTransformer: async (data) => data,
+    responseValidator: async (data) =>
+      await zGetAsyncTaskStatusResponse.parseAsync(data),
+    url: "/api/async/{task_id}",
   });

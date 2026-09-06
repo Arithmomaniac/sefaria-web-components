@@ -41,9 +41,6 @@ importers:
       vite:
         specifier: ^8.2.1
         version: 8.2.2(@types/node@26.2.0)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.12)(yaml@2.9.0)
-      vite-plugin-monkey:
-        specifier: ^8.1.0
-        version: 8.1.0(postcss@8.5.26)(vite@8.2.2(@types/node@26.2.0)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.12)(yaml@2.9.0))
       vite-plugin-singlefile:
         specifier: ^2.3.3
         version: 2.3.3(rollup@4.62.5)(vite@8.2.2(@types/node@26.2.0)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.12)(yaml@2.9.0))
@@ -72,8 +69,14 @@ importers:
         specifier: ^3.3.3
         version: 3.3.3
 
-  demos/linker-userscript:
+  demos/linker:
     dependencies:
+      '@mozilla/readability':
+        specifier: ^0.6.0
+        version: 0.6.0
+      '@sefaria/client':
+        specifier: workspace:*
+        version: link:../../packages/client
       '@sefaria/components':
         specifier: workspace:*
         version: link:../../packages/components
@@ -164,6 +167,10 @@ importers:
         version: link:../../packages/text-transform
 
 packages:
+
+  '@mozilla/readability@0.6.0':
+    resolution: {integrity: sha1-E0484/8WdnFuVQ3guN6Ve8xZIIs=}
+    engines: {node: '>=14.0.0'}
 
   '@blazediff/core@1.9.1':
     resolution: {integrity: sha1-rWHE7EjcEaKRO5dTyMdJAuBejxQ=}
@@ -2085,6 +2092,8 @@ packages:
     resolution: {integrity: sha1-toDxcohdGLvr8hqDTqJeVaG781Y=}
 
 snapshots:
+
+  '@mozilla/readability@0.6.0': {}
 
   '@blazediff/core@1.9.1': {}
 

@@ -41,11 +41,17 @@ const DATA: SourceCardDataViewModel = {
     categories: ["Tanakh", "Torah"],
   },
   attributions: [
-    { side: "primary", versionTitle: "Primary", versionSource: null },
+    {
+      side: "primary",
+      versionTitle: "Primary",
+      versionSource: null,
+      versionSourceUrl: null,
+    },
     {
       side: "translation",
       versionTitle: "Translation",
       versionSource: "Translation publisher",
+      versionSourceUrl: null,
     },
   ],
   items: [
@@ -174,6 +180,16 @@ test("renders each edition attribution once outside the repeated pairs", async (
   ).toBe(false);
 });
 
+test("can hide edition attribution without changing the view model", async () => {
+  const host = await renderCard();
+  host.setAttribute("hide-attributions", "");
+  await host.updateComplete;
+
+  expect(host.hideAttributions).toBe(true);
+  expect(host.shadowRoot?.querySelector(".attributions")).toBeNull();
+  expect(host.shadowRoot?.textContent).not.toContain("Translation publisher");
+});
+
 test("renders an untrusted version source as inert text", async () => {
   const host = await renderCard({
     ...DATA,
@@ -182,6 +198,7 @@ test("renders an untrusted version source as inert text", async () => {
         side: "primary",
         versionTitle: "Primary",
         versionSource: "javascript:still plain text",
+        versionSourceUrl: null,
       },
     ],
   });
@@ -190,6 +207,31 @@ test("renders an untrusted version source as inert text", async () => {
 
   expect(attribution?.textContent).toContain("javascript:still plain text");
   expect(attribution?.querySelector("a")).toBeNull();
+});
+
+test("links the edition title instead of displaying a source URL", async () => {
+  const host = await renderCard({
+    ...DATA,
+    attributions: [
+      {
+        side: "translation",
+        versionTitle: "Linked translation",
+        versionSource: "https://example.test/translation",
+        versionSourceUrl: "https://example.test/translation",
+      },
+    ],
+  });
+  const attribution =
+    host.shadowRoot?.querySelector<HTMLElement>(".attribution");
+  const link = attribution?.querySelector<HTMLAnchorElement>(
+    ".version-title-link",
+  );
+
+  expect(link?.textContent).toBe("Linked translation");
+  expect(link?.href).toBe("https://example.test/translation");
+  expect(attribution?.textContent).not.toContain(
+    "https://example.test/translation",
+  );
 });
 
 test("forwards pair presentation properties to every item", async () => {
@@ -227,6 +269,7 @@ test("contains a long unbroken attribution source", async () => {
         side: "primary",
         versionTitle: "Primary",
         versionSource: `https://example.test/${"%D7%A9".repeat(100)}`,
+        versionSourceUrl: `https://example.test/${"%D7%A9".repeat(100)}`,
       },
     ],
   });

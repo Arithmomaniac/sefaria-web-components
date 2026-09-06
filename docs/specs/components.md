@@ -1,10 +1,10 @@
-> Created/edited by GitHub Copilot; pending human review.
+> Created/edited by GitHub Copilot with human review/feedback by avilevin.
 
 # Component specification
 
 ## Status
 
-The text-segment, bilingual-segment, reference-label, and source-card vertical slices are current. The remaining component surfaces are planned.
+The text-segment, bilingual-segment, reference-label, source-card, and popup vertical slices are current. The remaining component surfaces are planned.
 
 ## Boundary
 
@@ -48,7 +48,7 @@ Planned names follow this pattern:
 | Popup | `PopupRequest` | `PopupViewModel` | `createPopupViewModel` | `loadPopupViewModel` |
 | Connections panel | `ConnectionsPanelRequest` | `ConnectionsPanelViewModel` | `createConnectionsPanelViewModel` | `loadConnectionsPanelViewModel` |
 
-The text-segment, bilingual-segment, reference-label, and source-card names are current. The remaining names are planned and can be refined by their first implementation slice without changing ownership or request boundaries.
+The text-segment, bilingual-segment, reference-label, source-card, and popup names are current. The connections-panel name is planned and can be refined by its first implementation slice without changing ownership or request boundaries.
 
 ## View-model states
 
@@ -235,8 +235,8 @@ Task lifecycle state and component view-model state must not compete for the sam
 | `<sefaria-text-segment>` | Current | `/api/v3/texts/{tref}` payload or parent payload slice | Safe text, direction, language, and static footnote data | None in the current contract |
 | `<sefaria-bilingual-segment>` | Current | `/api/v3/texts/{tref}` payload or parent payload slice | Primary and translation sides and absent-side state | `contentLanguage`, `layout`, and `sideOrder` |
 | `<sefaria-ref-label>` | Current | `/api/ref/{tref}` payload or parent payload slice | Canonical English and Hebrew labels, URL forms, owning index, node type, and unresolvable-reference state | `labelLanguage` and `linked` |
-| `<sefaria-source-card>` | Current | `/api/v3/texts/{tref}` payload | Payload-derived reference header, ordered bilingual pairs, attribution, and missing-content state | `referenceLabel`, `contentLanguage`, `layout`, and `sideOrder` |
-| `<sefaria-popup>` | Planned | Source-card payload or parent payload | Popup content view model and recoverable error state | Anchor, open state, placement, and focus behavior |
+| `<sefaria-source-card>` | Current | `/api/v3/texts/{tref}` payload | Payload-derived reference header, ordered bilingual pairs, attribution, and missing-content state | `referenceLabel`, `contentLanguage`, `layout`, `sideOrder`, and `hideAttributions` |
+| `<sefaria-popup>` | Current | Source-card payload or parent payload | Bounded source-card preview and recoverable error state | Anchor, open state, placement, and focus behavior |
 | `<sefaria-connections-panel>` | Planned | `/api/links/{tref}` payload | Category and link view models with bounded paging | Selected category and expanded state |
 
 The `/api/texts/versions/{index}`, `/api/v2/index/{title}`, and `/api/shape/{title}` operations can support component requests that need those payloads. A component must not request them without a concrete need.
@@ -273,7 +273,7 @@ String text passes through `sanitize`, full-mark HTML vocalization, and `extract
 
 The element supports mixed scripts, punctuation, and long unbroken text without inferring direction from language. Poetry- and paragraph-specific presentation remain outside the current contract until an exact behavior is defined.
 
-Text-segment and bilingual-segment view models do not carry or render edition attribution. Attribution describes the selected text editions for a containing source card rather than an individual repeated leaf. A host that needs attributed bilingual text uses a source card instead of adding an attribution-suppression mode to either segment element.
+Text-segment and bilingual-segment view models do not carry or render edition attribution. Attribution describes the selected text editions for a containing source card rather than an individual repeated leaf. A host that needs attributed bilingual text uses a source card.
 
 ## Reference label contract [Current]
 
@@ -379,7 +379,7 @@ Each card item carries positional identity and a ref-free `BilingualPairViewMode
 
 ### View model and states
 
-The data state carries a payload-derived header, one attribution entry for each resolved edition, and an ordered item array. The empty state carries the same header and attribution collection. A resolved edition remains attributed when its selected text has no renderable leaf, because the attribution identifies the edition selected for the card rather than an individual rendered item. The header preserves `ref`, `heRef`, `indexTitle`, `heIndexTitle`, `primary_category`, and `categories` from the corrected payload. Each attribution entry preserves its role, `versionTitle`, and inert `versionSource` text. The factory does not construct a `RefLabelViewModel`, because the v3 texts payload does not contain the reference endpoint's `url_ref` and `node_type` fields.
+The data state carries a payload-derived header, one attribution entry for each resolved edition, and an ordered item array. The empty state carries the same header and attribution collection. A resolved edition remains attributed when its selected text has no renderable leaf, because the attribution identifies the edition selected for the card rather than an individual rendered item. The header preserves `ref`, `heRef`, `indexTitle`, `heIndexTitle`, `primary_category`, and `categories` from the corrected payload. Each attribution entry preserves its role, `versionTitle`, and `versionSource`. The factory separately exposes `versionSourceUrl` only when `versionSource` is an absolute HTTP(S) URL. The factory does not construct a `RefLabelViewModel`, because the v3 texts payload does not contain the reference endpoint's `url_ref` and `node_type` fields.
 
 | Situation | State |
 | --- | --- |
@@ -392,7 +392,7 @@ The card has no card-level `partial` state. A one-sided work is `data` whose ite
 
 ### Element and rendering
 
-`<sefaria-source-card>` accepts only its view model, an optional host-supplied `RefLabelViewModel`, and the `contentLanguage`, `layout`, and `sideOrder` presentation properties. It performs no request. When `referenceLabel` is absent, it renders the payload-derived header without a link. Supplying `referenceLabel` renders the existing reference-label component and does not change request ownership.
+`<sefaria-source-card>` accepts only its view model, an optional host-supplied `RefLabelViewModel`, and the `contentLanguage`, `layout`, `sideOrder`, and `hideAttributions` presentation properties. `hideAttributions` defaults to false and changes rendering only; it does not remove attribution from the view model. The element performs no request. When `referenceLabel` is absent, it renders the payload-derived header without a link. Supplying `referenceLabel` renders the existing reference-label component and does not change request ownership.
 
 The source card and `<sefaria-bilingual-segment>` use one shared pair renderer for side markup, ordering, absent-side slots, and layout CSS. The bilingual element is a thin public wrapper for one pair. The card renders its keyed item collection inside one shadow root, then renders the visible editions' attribution once outside that repeated collection. Three items from the same two editions therefore render two attribution entries, not six.
 
@@ -406,7 +406,7 @@ Direction comes from version or corrected API data. A factory must not infer dir
 
 Text that can contain markup passes through `@sefaria/text-transform` before the view model reaches an element.
 
-Edition attribution belongs to the source-card container. Text-segment and bilingual-segment elements do not render it, and no element has an attribution-suppression property. The source card renders each visible resolved edition once, treating `versionSource` as inert text rather than an unvalidated link.
+Edition attribution belongs to the source-card container. Text-segment and bilingual-segment elements do not render it. By default, the source card renders each visible resolved edition once; a host can set `hideAttributions` when its surface intentionally omits edition details. The Linker popup does so to match the v3 Linker presentation. When `versionSourceUrl` is present, the edition title is the link and the raw URL is not repeated. A non-URL or unsafe `versionSource` remains inert text.
 
 ## Theming
 

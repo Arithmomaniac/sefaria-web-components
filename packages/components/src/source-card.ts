@@ -57,6 +57,8 @@ export interface SourceCardAttributionViewModel {
   readonly versionTitle: string;
   /** Free-form source text, without URL interpretation. */
   readonly versionSource: string | null;
+  /** Validated HTTP(S) source URL, when the source text is a URL. */
+  readonly versionSourceUrl?: string | null;
 }
 
 /** One positionally identified bilingual item in a source card. */
@@ -394,9 +396,24 @@ function createAttributions(
             side,
             versionTitle: version.versionTitle,
             versionSource: version.versionSource,
+            versionSourceUrl: parseVersionSourceUrl(version.versionSource),
           },
         ];
   });
+}
+
+function parseVersionSourceUrl(source: string | null): string | null {
+  if (source === null) {
+    return null;
+  }
+  try {
+    const url = new URL(source);
+    return url.protocol === "http:" || url.protocol === "https:"
+      ? url.href
+      : null;
+  } catch {
+    return null;
+  }
 }
 
 function formatPosition(position: readonly number[]): string {

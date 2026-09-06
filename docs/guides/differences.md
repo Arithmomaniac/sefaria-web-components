@@ -6,7 +6,7 @@
 
 This project is intentionally not a clone of the Sefaria Web reader, Sefaria Mobile, or the deployed Linker. The pinned source and dated fixtures are evidence for compatibility decisions, not an instruction to reproduce every implementation detail. This page records differences that the local specifications intentionally make, and separates them from upstream behavior that the project preserves.
 
-The local specifications remain normative: [client](../specs/client.md), [components](../specs/components.md), [text processing](../specs/text-processing.md), and the planned [integrations](../specs/integrations.md). The detailed source citations live in [Evidence](../evidence.md).
+The local specifications remain normative: [client](../specs/client.md), [components](../specs/components.md), [text processing](../specs/text-processing.md), and [integrations](../specs/integrations.md). The detailed source citations live in [Evidence](../evidence.md).
 
 ## Difference map
 
@@ -67,17 +67,16 @@ The local bilingual component names its sides `primary` and `translation`, keeps
 
 These choices preserve data ownership and work when the primary side is left-to-right as well as right-to-left. They intentionally avoid copying private Sefaria Web layout mechanics or claiming identical geometry. The evidence supports CSS-based alignment without measurement scripts, but the local element remains free to use its own shadow-DOM layout. See [Bilingual segment contract](../specs/components.md#bilingual-segment-contract-current), [Source card contract](../specs/components.md#source-card-contract-current), and [Bilingual layout and alignment](../evidence.md#bilingual-layout-and-alignment).
 
-## Planned Linker improvements are not implemented
+## The local Linker fixes dated deployed-Linker limitations
 
-The following are **PLANNED**, not current claims about the baseline implementation:
+The current local popup and Linker demonstration implement:
 
 - shadow-root isolation so popup rules and fonts do not leak into the host page;
-- token-based theme inheritance rather than a fixed light popup;
-- an accessible close control with a name and keyboard behavior;
-- visible focus and a real Tab and Shift+Tab focus cycle; and
-- explicit stale-result suppression and host-owned cancellation around popup data.
+- host-overridable theme tokens with light and dark defaults;
+- an accessible close control, Escape handling, focus restoration, and a real Tab and Shift+Tab focus cycle; and
+- cancellation and stale-result suppression for article scans and popup requests.
 
-The recorded August 2026 Linker observations explain why these are planned: popup styles leaked, dark hosts received a light popup, and the inspected Tab handler suppressed Tab without moving focus. These are dated observations, not a fresh claim about every current Linker deployment or local implementation status. See [Integration specification](../specs/integrations.md#popup-behavior), [Linker style isolation](../evidence.md#linker-style-isolation), [Linker theme behavior](../evidence.md#linker-theme-behavior), and [Linker keyboard behavior](../evidence.md#linker-keyboard-behavior).
+The recorded August 2026 observations explain the intentional difference: the inspected deployed Linker leaked popup styles, used a fixed light theme, and suppressed Tab without moving focus. Those are dated upstream observations, not claims about every current Linker deployment or the local implementation. Public hosting and broader live-site qualification for the local demonstration remain external. See [Linker demonstration](../linker-demo.md), [Integration specification](../specs/integrations.md#popup-behavior), [Linker style isolation](../evidence.md#linker-style-isolation), [Linker theme behavior](../evidence.md#linker-theme-behavior), and [Linker keyboard behavior](../evidence.md#linker-keyboard-behavior).
 
 ## Upstream behavior we preserve rather than fix
 

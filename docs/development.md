@@ -1,8 +1,8 @@
-> Created/edited by GitHub Copilot; pending human review.
+> Created/edited by GitHub Copilot with human review/feedback by avilevin.
 
 # Development
 
-This contributor guide describes the implementation baseline at `origin/main` commit `7f631685961b3ff6243d812570e1ffbd85aa53c6` as of September 6, 2026.
+This contributor guide describes the implementation baseline at `origin/main` commit `d5c16517becb92f2c721b07639ad9ac6f63ac332` as of September 6, 2026.
 
 The sections below separate delivered baseline behavior, changes from older plans, and work that remains intended. A runnable command is not proof that the corresponding integration is finished.
 
@@ -19,16 +19,16 @@ For reader-oriented explanations, use the friendly guides rather than the archiv
 
 | Area | Baseline status |
 | --- | --- |
-| `packages/client` | Delivers six named Core SDK functions, committed corrected TypeScript contracts, Zod validators, and a status-aware fetch client. The corrected Core OpenAPI document is temporary generation output. |
+| `packages/client` | Delivers eight named Core GET and POST SDK functions, committed corrected TypeScript contracts, Zod validators, and a status-aware fetch client. The corrected Core OpenAPI document is temporary generation output. |
 | `packages/text-transform` | Delivers DOM-free sanitization, Hebrew vocalization modes, and structured footnote extraction. |
-| `packages/components` | Delivers the current component-specific view models, pure and async factory subpaths, and request-free elements for the current text, bilingual, reference-label, and source-card surfaces. |
+| `packages/components` | Delivers the current component-specific view models, pure and async factory subpaths, and request-free elements for the current text, bilingual, reference-label, source-card, and popup surfaces. |
 | `demos/component-lab` | Shows authored view models for current elements. It is a development surface, not a complete interaction catalog or compatibility oracle. |
 | `demos/ref-label-live-demo` | Provides an interactive HTML form and presets that call the deployed reference endpoint and render `<sefaria-ref-label>`. |
 | `demos/text-segment-live-demo` | Provides an interactive HTML form and presets that call the deployed Sefaria API and render `<sefaria-text-segment>`. |
 | `demos/bilingual-segment-live-demo` | Provides an interactive HTML form, presets, and display controls that make one deployed Sefaria API request and render `<sefaria-bilingual-segment>`. |
 | `demos/source-card-live-demo` | Makes one deployed v3 text request for segment, range, spanning, nested non-spanning, and one-sided presets, renders `<sefaria-source-card>`, and attributes each selected edition once at card level. |
 | `demos/mcp` | Provides a runnable App shell and text-only FastMCP fixture. This is a scaffold, not the finished corrected-payload integration. |
-| `demos/linker-userscript` | Provides a runnable development userscript scaffold. This is not a claim that a finished production Linker integration has shipped. |
+| `demos/linker` | Builds an embeddable classic script, bookmarklet loader, automatic and no-autostart article pages, asynchronous citation detection, safe DOM linking, and request-free popups. Public hosting and broad live-site qualification remain external. |
 | `tests/compatibility` | Delivers focused pinned client and transform comparisons, a composed v3 validate-to-transform smoke case, and grouped qualification output without network access. The evidence is representative and non-exhaustive. |
 
 ## What changed from earlier plans
@@ -49,14 +49,14 @@ These are remaining intended capabilities, not removed plans. A scaffold, comman
 
 | Planned capability | Intended result | Contract |
 | --- | --- | --- |
-| Request-free popup and Linker demonstration | The host detects a citation and calls a factory; the popup renders its view model with isolated styles and accessible keyboard interaction | [Components](specs/components.md), [Linker integration](specs/integrations.md#linker-userscript-purpose) |
 | Corrected-payload MCP App | Validate tool-provided API JSON, call the source-card pure factory, and render without a second first-render request | [MCP boundary](specs/integrations.md#mcp-payload-boundary) |
 | Named-host acceptance | Demonstrate the supported Core interaction in a recorded MCP host and version; a standalone browser preview is not sufficient | [Host acceptance](specs/integrations.md#mcp-host-acceptance) |
+| Public Linker hosting and broader live-site qualification | Host the built artifact and prove the bounded integration against representative third-party sites and browser policies | [Linker demonstration](linker-demo.md), [Linker integration](specs/integrations.md#linker-script-purpose) |
 | Connections panel, beyond Core | Project links into bounded category and connection views using the same pure/async factory separation | [Component surfaces](specs/components.md#component-surfaces) |
 | Reader state and navigation, beyond Core | Build later connected reading on explicit request/view-model state and host-owned task lifecycles | [Design scope](design.md#core-scope), [Interaction flow](specs/integrations.md#interaction-task-flow) |
 | Broader compatibility coverage | Extend the small current suite with additional source-backed cases, without promising exhaustive corpus equivalence | [Compatibility evidence](evidence.md#current-focused-compatibility-qualification) |
 
-The current client and text-transform foundations are already delivered. New component slices still need concrete consumers; they do not justify restoring the superseded generalized model or hidden client policies.
+The client, text-transform foundations, popup, and Linker demonstration are already delivered. New component slices still need concrete consumers; they do not justify restoring the superseded generalized model or hidden client policies.
 
 ## Technology
 
@@ -88,7 +88,7 @@ TypeScript emits reusable ES modules. Vite builds the browser demonstrations and
 | `demos/bilingual-segment-live-demo` | Interactive live API page for the bilingual-segment component |
 | `demos/source-card-live-demo` | Interactive live API page for the source-card component |
 | `demos/mcp` | MCP App shell and text-only FastMCP fixture; corrected-payload boundary planned |
-| `demos/linker-userscript` | Development userscript scaffold; completed third-party popup integration planned |
+| `demos/linker` | Third-party citation detection, DOM linking, and popup integration |
 
 Workspace dependencies use `workspace:*`. All workspace packages remain private during the hackathon.
 
@@ -107,7 +107,7 @@ Full `pnpm check` and MCP fixture checks also require:
 - Python 3.10 or later
 - The locked Python dependencies, including FastMCP 3, installed by `pnpm install:python`
 
-Tampermonkey or a compatible userscript engine is optional. An MCP Apps-compatible host is optional for local App development and required for host acceptance.
+An MCP Apps-compatible host is optional for local App development and required for host acceptance.
 
 ## Install the workspace
 
@@ -198,7 +198,7 @@ It then applies the local overlay, creates the corrected document in temporary s
 pnpm openapi:generate
 ```
 
-The operation validates the checksum and co-located overlay guards, applies `openapi/overlay.yaml` through `openapi-format` 1.33.6, extracts the six Core GET operations and recursive references into temporary storage, and runs `@hey-api/openapi-ts` 0.99.0.
+The operation validates the checksum and co-located overlay guards, applies `openapi/overlay.yaml` through `openapi-format` 1.33.6, extracts eight reviewed Core GET/POST operations and recursive references into temporary storage, and runs `@hey-api/openapi-ts` 0.99.0.
 
 The generator configures a deterministic Zod object resolver for every retained `additionalProperties: false` schema. It also maps the explicitly typed OpenAPI 3.0 null-only branches to `z.null()` and applies the `minProperties: 1` warning-record correction that Hey API 0.99 does not emit correctly.
 
@@ -328,17 +328,24 @@ pnpm --filter @sefaria-demo/mcp-app dev
 
 The development URL uses `?standalone=1`.
 
-## Run the Linker userscript
+## Run the Linker demonstration
 
 ```powershell
 pnpm dev:linker
 ```
 
-Install the development `.user.js` URL in Tampermonkey. This command provides a runnable development scaffold; it is not evidence that a finished production Linker integration has shipped.
+The development server shows the authored article page. It loads the same classic script produced for embedding and calls `SefariaLinker.link()` after the artifact is ready.
 
-The default script runs only on localhost and `example.com`. To use another test page, add an explicit `match` value in `demos/linker-userscript/vite.config.ts`.
+The [Linker demonstration guide](linker-demo.md) covers embedding, the bookmarklet, configuration, safety bounds, and host-policy limitations. The local integration is implemented; public hosting and broader live-site qualification remain external.
 
-Do not use a match value for all sites.
+Build the distributable files with:
+
+```powershell
+$env:SEFARIA_LINKER_ARTIFACT_URL = "https://example.org/assets/sefaria-linker.js"
+pnpm --filter @sefaria-demo/linker build
+```
+
+The configured URL is written only into `dist/bookmarklet.txt`. The script itself keeps the Sefaria API origin configurable through `SefariaLinker.link({ baseUrl })`.
 
 ## Build artifacts
 
@@ -355,6 +362,13 @@ pnpm build:mcp
 ```
 
 The App build creates `demos/mcp/app/dist/mcp-app.html`.
+
+The Linker build creates:
+
+- `demos/linker/dist/sefaria-linker.js`
+- `demos/linker/dist/bookmarklet.txt`
+- `demos/linker/dist/index.html`
+- `demos/linker/dist/bookmarklet-demo.html`
 
 If a required input file is missing, staging stops.
 

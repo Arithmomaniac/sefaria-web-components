@@ -16,4 +16,4 @@ Do not update or reformat the snapshot. Its original wording, status claims, tim
 
 Specifications, architecture ownership, and source evidence remain at their established current paths. The rewrite adds reader-oriented guides; it does not retire valid contracts or silently replace deliberate local behavior with Sefaria defaults.
 
-Old demo capture pages remain reachable at their former locations through short pointers to the current guide and this archive. New prose should link to current guides, not treat a dated capture as an API reference.
+The former demo-capture paths were removed from the active documentation. Their historical versions remain under the dated snapshot. New prose should link to current guides, not treat a dated capture as an API reference.

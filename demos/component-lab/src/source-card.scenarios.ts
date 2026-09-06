@@ -23,11 +23,13 @@ const attributions = [
     side: "primary",
     versionTitle: "Component lab source edition",
     versionSource: "Authored demonstration data",
+    versionSourceUrl: null,
   },
   {
     side: "translation",
     versionTitle: "Component lab translation edition",
     versionSource: "Authored demonstration data",
+    versionSourceUrl: null,
   },
 ] as const;
 

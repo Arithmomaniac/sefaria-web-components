@@ -6,8 +6,145 @@ export type ClientOptions = {
   baseUrl: "https://www.sefaria.org" | (string & {});
 };
 
+/**
+ * Async Task Enqueued
+ *
+ * Response returned when an asynchronous task has been successfully enqueued.
+ */
+export type AsyncTaskEnqueued = {
+  /**
+   * Unique identifier for the enqueued task. Pass this to `GET /api/async/{task_id}` to poll for results.
+   */
+  task_id: string;
+};
+
+/**
+ * Async Task Failure
+ *
+ * Response returned when a task has failed permanently.
+ */
+export type AsyncTaskFailure = {
+  /**
+   * The task identifier.
+   */
+  task_id: string;
+  /**
+   * Always `FAILURE` for this response.
+   */
+  state: "FAILURE";
+  /**
+   * Always `true` when the task has failed permanently.
+   */
+  ready: true;
+  /**
+   * Human-readable description of the error that caused the task to fail.
+   */
+  error: string;
+};
+
+/**
+ * Async Task Pending
+ *
+ * Response returned while a task is still in progress.
+ */
+export type AsyncTaskPending = {
+  /**
+   * The task identifier.
+   */
+  task_id: string;
+  /**
+   * Current state of the task. `PENDING` means not yet started; `STARTED` means actively running; `RETRY` means the task failed and is being retried.
+   */
+  state: "PENDING" | "STARTED" | "RETRY";
+  /**
+   * Always `false` while the task is in progress.
+   */
+  ready: false;
+  /**
+   * Optional progress or metadata reported by the task while it is running.
+   */
+  meta?: {
+    [key: string]: unknown;
+  };
+};
+
+/**
+ * Async Task Success
+ *
+ * Response returned when a task has completed successfully. The shape of `result` depends on which API enqueued the task.
+ */
+export type AsyncTaskSuccess = {
+  /**
+   * The task identifier.
+   */
+  task_id: string;
+  /**
+   * Always `SUCCESS` for this response.
+   */
+  state: "SUCCESS";
+  /**
+   * Always `true` when the task has completed.
+   */
+  ready: true;
+  /**
+   * The task output. Its shape depends on which API enqueued the task. For `POST /api/find-refs` tasks, this is a `FindRefsAPIResponse` object.
+   */
+  result: {
+    [key: string]: unknown;
+  };
+};
+
 export type CoreErrorResponse = {
   error: string;
+};
+
+export type CoreFindRefsMatch = {
+  startChar: number;
+  endChar: number;
+  text: string;
+  linkFailed: boolean;
+  refs: Array<Ref> | null;
+};
+
+export type CoreFindRefsReferenceData = {
+  heRef: string;
+  url: string;
+  primaryCategory: string;
+  he?: Array<string>;
+  en?: Array<string>;
+  isTruncated?: boolean;
+};
+
+export type CoreFindRefsRequest = {
+  text: {
+    title: string;
+    body: string;
+  };
+  lang?: "he" | "en";
+  metaDataForTracking?: {
+    url?: string;
+    description?: string;
+    title?: string;
+  };
+  version_preferences_by_corpus?: {
+    [key: string]: {
+      [key: string]: string;
+    };
+  } | null;
+};
+
+export type CoreFindRefsResponse = {
+  title: CoreFindRefsSection;
+  body: CoreFindRefsSection;
+  url?: string;
+};
+
+export type CoreFindRefsSection = {
+  results: Array<CoreFindRefsMatch>;
+  refData: {
+    [key: string]: CoreFindRefsReferenceData;
+  };
+  debugData?: Array<unknown>;
 };
 
 export type CoreIndexResponse = IndexJson | CoreErrorResponse;
@@ -612,3 +749,60 @@ export type GetLinksResponses = {
 };
 
 export type GetLinksResponse = GetLinksResponses[keyof GetLinksResponses];
+
+export type PostFindRefsData = {
+  body: CoreFindRefsRequest;
+  path?: never;
+  query?: {
+    with_text?: "0" | "1";
+    debug?: "0" | "1";
+    max_segments?: number;
+  };
+  url: "/api/find-refs";
+};
+
+export type PostFindRefsResponses = {
+  /**
+   * Task enqueued. Poll `GET /api/async/{task_id}` to retrieve results. When the task completes successfully, the result will have the shape described by `FindRefsAPIResponse`.
+   */
+  202: AsyncTaskEnqueued;
+};
+
+export type PostFindRefsResponse =
+  PostFindRefsResponses[keyof PostFindRefsResponses];
+
+export type GetAsyncTaskStatusData = {
+  body?: never;
+  path: {
+    /**
+     * The task ID returned by an asynchronous API endpoint (e.g. `POST /api/find-refs`).
+     */
+    task_id: string;
+  };
+  query?: never;
+  url: "/api/async/{task_id}";
+};
+
+export type GetAsyncTaskStatusErrors = {
+  /**
+   * Task failed permanently. The `error` field contains the error message.
+   */
+  500: AsyncTaskFailure;
+};
+
+export type GetAsyncTaskStatusError =
+  GetAsyncTaskStatusErrors[keyof GetAsyncTaskStatusErrors];
+
+export type GetAsyncTaskStatusResponses = {
+  /**
+   * Task completed successfully. The shape of the `result` field depends on which API enqueued the task. For tasks started by `POST /api/find-refs`, `result` is a `FindRefsAPIResponse` object.
+   */
+  200: AsyncTaskSuccess;
+  /**
+   * Task is still in progress (`PENDING`, `STARTED`, or `RETRY`).
+   */
+  202: AsyncTaskPending;
+};
+
+export type GetAsyncTaskStatusResponse =
+  GetAsyncTaskStatusResponses[keyof GetAsyncTaskStatusResponses];
