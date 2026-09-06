@@ -127,12 +127,14 @@ describe("VS Code MCP demo profile", () => {
   });
 
   it("launches with the isolated user data, extensions, and workspace", () => {
+    const root = path.resolve("demo-profile");
+    const workspace = path.resolve("workspace");
     const profile = resolveVscodeDemoProfile({
-      VSCODE_MCP_PROFILE_ROOT: "C:\\demo-profile",
+      VSCODE_MCP_PROFILE_ROOT: root,
     });
 
     expect(
-      createVscodeLaunchArguments(profile, "C:\\workspace", {
+      createVscodeLaunchArguments(profile, workspace, {
         debuggingPort: 9333,
         wait: true,
       }),
@@ -143,20 +145,21 @@ describe("VS Code MCP demo profile", () => {
       "--sync=off",
       "--enable-smoke-test-driver",
       "--remote-debugging-port=9333",
-      "--user-data-dir=C:\\demo-profile\\user-data",
-      "--extensions-dir=C:\\demo-profile\\extensions",
-      "--shared-data-dir=C:\\demo-profile\\shared-data",
-      "C:\\workspace",
+      `--user-data-dir=${profile.userDataDirectory}`,
+      `--extensions-dir=${profile.extensionsDirectory}`,
+      `--shared-data-dir=${profile.sharedDataDirectory}`,
+      workspace,
     ]);
 
     expect(
-      createVscodeLaunchArguments(profile, "C:\\workspace", { wait: true }),
+      createVscodeLaunchArguments(profile, workspace, { wait: true }),
     ).not.toContain("--enable-smoke-test-driver");
   });
 
   it("isolates Agent Host configuration through COPILOT_HOME", () => {
+    const root = path.resolve("demo-profile");
     const profile = resolveVscodeDemoProfile({
-      VSCODE_MCP_PROFILE_ROOT: "C:\\demo-profile",
+      VSCODE_MCP_PROFILE_ROOT: root,
     });
 
     expect(
@@ -169,9 +172,9 @@ describe("VS Code MCP demo profile", () => {
       }),
     ).toEqual({
       PATH: "C:\\tools",
-      COPILOT_HOME: "C:\\demo-profile\\copilot-home",
-      HOME: "C:\\demo-profile\\home",
-      USERPROFILE: "C:\\demo-profile\\home",
+      COPILOT_HOME: profile.copilotHomeDirectory,
+      HOME: profile.homeDirectory,
+      USERPROFILE: profile.homeDirectory,
     });
   });
 
