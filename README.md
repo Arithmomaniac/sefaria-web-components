@@ -4,6 +4,8 @@
 
 Render Sefaria passages in your own application without bringing along the Sefaria reader. Use a typed client to obtain text, a factory to prepare it, and a Web Component to display it.
 
+Explore the repository through the interactive [Sefaria Web Components showcase](https://arithmomaniac.github.io/sefaria-web-components/), including live client/factory/component examples, responsive source cards, the Linker, and captured MCP App results.
+
 > **Experimental.** This Microsoft Global Hackathon 2026 project has no support or stability guarantee. It is not an official Sefaria product. Packages are currently private workspace packages, not a published installation offering.
 
 ## Start here

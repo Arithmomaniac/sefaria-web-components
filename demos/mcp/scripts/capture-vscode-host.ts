@@ -34,6 +34,7 @@ const failureOutput = path.join(
   "sefaria-mcp-app-vscode-failure.png",
 );
 const keepOpen = process.argv.includes("--keep-open");
+const showcaseOnly = process.env.VSCODE_MCP_SHOWCASE === "1";
 const execFileAsync = promisify(execFile);
 const CONNECTIONS_REFERENCE = "Micah 6:8";
 const artifacts: Record<string, string> = {};
@@ -44,6 +45,12 @@ const deliveryModes: Record<
 > = {};
 let currentStage = "launch";
 let selectedReference: string | undefined;
+
+if (showcaseOnly && process.env.VSCODE_MCP_SCREENSHOT === undefined) {
+  throw new Error(
+    "VSCODE_MCP_SHOWCASE requires VSCODE_MCP_SCREENSHOT so it cannot replace the full acceptance artifacts.",
+  );
+}
 
 await prepareVscodeDemoProfile(profile, workspace);
 await clearVscodeDemoRuntimeState(profile);
@@ -69,187 +76,217 @@ try {
     throw new Error("VS Code exposed no Playwright browser context.");
   }
   page = await findWorkbenchPage(context);
+  await page.setViewportSize({ width: 1_600, height: 900 });
   await page.waitForTimeout(4_000);
   await runCommand(page, "Chat: Open Chat");
+  await clickIfVisible(page, /Maximize Secondary Side Bar/i);
+  await page.keyboard.press("Escape");
+  if (showcaseOnly) {
+    await runCommand(page, "View: Reset Zoom");
+    await runCommand(page, "View: Zoom Out");
+    await runCommand(page, "View: Zoom Out");
+  }
   const seenAppFrames = new Set<Frame>();
 
-  currentStage = "source-card";
-  await submitPrompt(
-    page,
-    "Use the sefaria-components-demo get_text tool to show Leviticus 19:18 in both languages.",
-  );
-  await waitForNewSourceCard(page, seenAppFrames, "Leviticus 19:18", true);
-  await waitForTurnIdle(page);
-  await captureStage(page, "source-card", output);
-  completedStages.push(currentStage);
+  showcaseWalkthrough: {
+    currentStage = "source-card";
+    await submitPrompt(
+      page,
+      showcaseOnly
+        ? "Using Sefaria, show me Micah 6:8 in Hebrew and English as an interactive source card. Show the card only; do not repeat or analyze the payload afterward."
+        : "Use the sefaria-components-demo get_text tool to show Leviticus 19:18 in both languages.",
+    );
+    const sourceFrame = await waitForNewSourceCard(
+      page,
+      seenAppFrames,
+      showcaseOnly ? "Micah 6:8" : "Leviticus 19:18",
+      true,
+    );
+    await waitForTurnIdle(page);
+    await scrollFrameIntoView(sourceFrame);
+    await captureStage(page, "source-card", output);
+    completedStages.push(currentStage);
 
-  currentStage = "connections-default";
-  await submitPrompt(
-    page,
-    `Use the sefaria-components-demo get_links_between_texts tool with only the reference argument ${CONNECTIONS_REFERENCE}. Do not specify with_text.`,
-  );
-  const connectionsFrame = await waitForNewConnectionsPanel(
-    page,
-    seenAppFrames,
-  );
-  await waitForTurnIdle(page);
-  let panel = await readPanel(connectionsFrame);
-  assertPanel(
-    panel.category === "Commentary",
-    `Expected Commentary to open first, received ${String(panel.category)}.`,
-  );
-  assertPanel(panel.previewsIncluded, "Expected Apps-default previews.");
-  assertPanel(
-    panel.previewCount > 0,
-    "Expected at least one rendered connection preview.",
-  );
-  await captureStage(page, "connections", stageOutput("connections"));
-  completedStages.push(currentStage);
+    currentStage = "connections-default";
+    await submitPrompt(
+      page,
+      showcaseOnly
+        ? `Using Sefaria, show me an interactive connections panel for ${CONNECTIONS_REFERENCE}. Show the panel only; do not repeat or analyze the payload afterward.`
+        : `Use the sefaria-components-demo get_links_between_texts tool with only the reference argument ${CONNECTIONS_REFERENCE}. Do not specify with_text.`,
+    );
+    const connectionsFrame = await waitForNewConnectionsPanel(
+      page,
+      seenAppFrames,
+    );
+    await waitForTurnIdle(page);
+    let panel = await readPanel(connectionsFrame);
+    assertPanel(
+      panel.category === "Commentary",
+      `Expected Commentary to open first, received ${String(panel.category)}.`,
+    );
+    assertPanel(panel.previewsIncluded, "Expected Apps-default previews.");
+    assertPanel(
+      panel.previewCount > 0,
+      "Expected at least one rendered connection preview.",
+    );
+    await scrollFrameIntoView(connectionsFrame);
+    await captureStage(page, "connections", stageOutput("connections"));
+    completedStages.push(currentStage);
 
-  currentStage = "connections-category";
-  const alternate = panel.categories.find(
-    (category) => category.id !== "Commentary",
-  );
-  assertPanel(
-    alternate !== undefined,
-    `${CONNECTIONS_REFERENCE} returned no second connection category.`,
-  );
-  await activateButton(
-    connectionsFrame.getByRole("button", {
-      name: new RegExp(`^${escapeRegex(alternate!.id)} \\(`),
-    }),
-  );
-  panel = await waitForPanel(
-    connectionsFrame,
-    (snapshot) => snapshot.category === alternate!.id && snapshot.page === 0,
-  );
-  await captureStage(page, "connections-category", stageOutput("category"));
-  await activateButton(
-    connectionsFrame.getByRole("button", { name: /^Commentary \(/ }),
-  );
-  panel = await waitForPanel(
-    connectionsFrame,
-    (snapshot) => snapshot.category === "Commentary" && snapshot.page === 0,
-  );
-  completedStages.push(currentStage);
-
-  currentStage = "connections-paging";
-  const pagingCategory = panel.categories.find(
-    (category) => category.count > panel.pageSize,
-  );
-  assertPanel(
-    pagingCategory !== undefined,
-    `${CONNECTIONS_REFERENCE} returned no category with more than ${panel.pageSize} connections.`,
-  );
-  if (pagingCategory!.id !== panel.category) {
+    currentStage = "connections-category";
+    const alternate = panel.categories
+      .filter((category) => category.id !== "Commentary")
+      .sort((left, right) => left.count - right.count)[0];
+    assertPanel(
+      alternate !== undefined,
+      `${CONNECTIONS_REFERENCE} returned no second connection category.`,
+    );
     await activateButton(
       connectionsFrame.getByRole("button", {
-        name: new RegExp(`^${escapeRegex(pagingCategory!.id)} \\(`),
+        name: new RegExp(`^${escapeRegex(alternate!.id)} \\(`),
       }),
     );
     panel = await waitForPanel(
       connectionsFrame,
-      (snapshot) =>
-        snapshot.category === pagingCategory!.id && snapshot.page === 0,
+      (snapshot) => snapshot.category === alternate!.id && snapshot.page === 0,
     );
+    await scrollFrameIntoView(connectionsFrame);
+    await captureStage(page, "connections-category", stageOutput("category"));
+    completedStages.push(currentStage);
+    if (showcaseOnly) break showcaseWalkthrough;
+    await activateButton(
+      connectionsFrame.getByRole("button", { name: /^Commentary \(/ }),
+    );
+    panel = await waitForPanel(
+      connectionsFrame,
+      (snapshot) => snapshot.category === "Commentary" && snapshot.page === 0,
+    );
+
+    currentStage = "connections-paging";
+    const pagingCategory = panel.categories.find(
+      (category) => category.count > panel.pageSize,
+    );
+    assertPanel(
+      pagingCategory !== undefined,
+      `${CONNECTIONS_REFERENCE} returned no category with more than ${panel.pageSize} connections.`,
+    );
+    if (pagingCategory!.id !== panel.category) {
+      await activateButton(
+        connectionsFrame.getByRole("button", {
+          name: new RegExp(`^${escapeRegex(pagingCategory!.id)} \\(`),
+        }),
+      );
+      panel = await waitForPanel(
+        connectionsFrame,
+        (snapshot) =>
+          snapshot.category === pagingCategory!.id && snapshot.page === 0,
+      );
+    }
+    const firstPageTargets = panel.targetRefs;
+    await activateButton(
+      connectionsFrame.getByRole("button", { name: "More" }),
+    );
+    panel = await waitForPanel(
+      connectionsFrame,
+      (snapshot) => snapshot.page === 1,
+    );
+    assertPanel(
+      JSON.stringify(panel.targetRefs) !== JSON.stringify(firstPageTargets),
+      "The second connections page repeated the first page entries.",
+    );
+    await captureStage(page, "connections-page-2", stageOutput("page-2"));
+    await activateButton(
+      connectionsFrame.getByRole("button", { name: "Previous" }),
+    );
+    panel = await waitForPanel(
+      connectionsFrame,
+      (snapshot) =>
+        snapshot.page === 0 &&
+        JSON.stringify(snapshot.targetRefs) ===
+          JSON.stringify(firstPageTargets),
+    );
+    completedStages.push(currentStage);
+
+    currentStage = "connected-source";
+    selectedReference = panel.targetRefs[0];
+    assertPanel(
+      selectedReference !== undefined,
+      "The active connections page contained no selectable connection.",
+    );
+    const openButton = connectionsFrame
+      .getByRole("button", {
+        name: `Open ${selectedReference} in context`,
+      })
+      .first();
+    await openButton.focus();
+    await openButton.press("Enter");
+    const sourceFollowUp = `Use get_text with reference "${selectedReference}" and version_language "both" to show the selected source.`;
+    deliveryModes["connected-source"] = await completeFollowUp(
+      page,
+      connectionsFrame,
+      sourceFollowUp,
+      "connected-source",
+    );
+    await waitForNewSourceCard(page, seenAppFrames, selectedReference!);
+    await waitForTurnIdle(page);
+    await captureStage(
+      page,
+      "connected-source",
+      stageOutput("connected-source"),
+    );
+    completedStages.push(currentStage);
+
+    currentStage = "connections-metadata-only";
+    await submitPrompt(
+      page,
+      `Use the sefaria-components-demo get_links_between_texts tool for ${CONNECTIONS_REFERENCE} with with_text set to "0".`,
+    );
+    const metadataFrame = await waitForNewConnectionsPanel(page, seenAppFrames);
+    await waitForTurnIdle(page);
+    panel = await readPanel(metadataFrame);
+    assertPanel(
+      !panel.previewsIncluded,
+      "Explicit with_text=0 unexpectedly included previews.",
+    );
+    await metadataFrame
+      .getByRole("button", { name: "Load previews" })
+      .waitFor({ state: "visible" });
+    await captureStage(
+      page,
+      "connections-metadata-only",
+      stageOutput("metadata-only"),
+    );
+    completedStages.push(currentStage);
+
+    currentStage = "connections-load-previews";
+    await activateButton(
+      metadataFrame.getByRole("button", { name: "Load previews" }),
+    );
+    const previewFollowUp = `Use get_links_between_texts with reference "${CONNECTIONS_REFERENCE}" and with_text "1" to show connection previews.`;
+    deliveryModes["load-previews"] = await completeFollowUp(
+      page,
+      metadataFrame,
+      previewFollowUp,
+      "load-previews",
+    );
+    const previewFrame = await waitForNewConnectionsPanel(
+      page,
+      seenAppFrames,
+      (snapshot) => snapshot.previewsIncluded && snapshot.previewCount > 0,
+      "a preview-bearing connections panel",
+    );
+    await waitForTurnIdle(page);
+    panel = await readPanel(previewFrame);
+    await captureStage(
+      page,
+      "connections-loaded-previews",
+      stageOutput("loaded-previews"),
+    );
+    completedStages.push(currentStage);
   }
-  const firstPageTargets = panel.targetRefs;
-  await activateButton(connectionsFrame.getByRole("button", { name: "More" }));
-  panel = await waitForPanel(
-    connectionsFrame,
-    (snapshot) => snapshot.page === 1,
-  );
-  assertPanel(
-    JSON.stringify(panel.targetRefs) !== JSON.stringify(firstPageTargets),
-    "The second connections page repeated the first page entries.",
-  );
-  await captureStage(page, "connections-page-2", stageOutput("page-2"));
-  await activateButton(
-    connectionsFrame.getByRole("button", { name: "Previous" }),
-  );
-  panel = await waitForPanel(
-    connectionsFrame,
-    (snapshot) =>
-      snapshot.page === 0 &&
-      JSON.stringify(snapshot.targetRefs) === JSON.stringify(firstPageTargets),
-  );
-  completedStages.push(currentStage);
-
-  currentStage = "connected-source";
-  selectedReference = panel.targetRefs[0];
-  assertPanel(
-    selectedReference !== undefined,
-    "The active connections page contained no selectable connection.",
-  );
-  const openButton = connectionsFrame
-    .getByRole("button", {
-      name: `Open ${selectedReference} in context`,
-    })
-    .first();
-  await openButton.focus();
-  await openButton.press("Enter");
-  const sourceFollowUp = `Use get_text with reference "${selectedReference}" and version_language "both" to show the selected source.`;
-  deliveryModes["connected-source"] = await completeFollowUp(
-    page,
-    connectionsFrame,
-    sourceFollowUp,
-    "connected-source",
-  );
-  await waitForNewSourceCard(page, seenAppFrames, selectedReference!);
-  await waitForTurnIdle(page);
-  await captureStage(page, "connected-source", stageOutput("connected-source"));
-  completedStages.push(currentStage);
-
-  currentStage = "connections-metadata-only";
-  await submitPrompt(
-    page,
-    `Use the sefaria-components-demo get_links_between_texts tool for ${CONNECTIONS_REFERENCE} with with_text set to "0".`,
-  );
-  const metadataFrame = await waitForNewConnectionsPanel(page, seenAppFrames);
-  await waitForTurnIdle(page);
-  panel = await readPanel(metadataFrame);
-  assertPanel(
-    !panel.previewsIncluded,
-    "Explicit with_text=0 unexpectedly included previews.",
-  );
-  await metadataFrame
-    .getByRole("button", { name: "Load previews" })
-    .waitFor({ state: "visible" });
-  await captureStage(
-    page,
-    "connections-metadata-only",
-    stageOutput("metadata-only"),
-  );
-  completedStages.push(currentStage);
-
-  currentStage = "connections-load-previews";
-  await activateButton(
-    metadataFrame.getByRole("button", { name: "Load previews" }),
-  );
-  const previewFollowUp = `Use get_links_between_texts with reference "${CONNECTIONS_REFERENCE}" and with_text "1" to show connection previews.`;
-  deliveryModes["load-previews"] = await completeFollowUp(
-    page,
-    metadataFrame,
-    previewFollowUp,
-    "load-previews",
-  );
-  const previewFrame = await waitForNewConnectionsPanel(
-    page,
-    seenAppFrames,
-    (snapshot) => snapshot.previewsIncluded && snapshot.previewCount > 0,
-    "a preview-bearing connections panel",
-  );
-  await waitForTurnIdle(page);
-  panel = await readPanel(previewFrame);
-  await captureStage(
-    page,
-    "connections-loaded-previews",
-    stageOutput("loaded-previews"),
-  );
-  completedStages.push(currentStage);
 
   await writeWalkthroughResult(page, {
-    status: "passed",
+    status: showcaseOnly ? "showcase-capture" : "passed",
     completedStages,
     selectedReference,
     artifacts,
@@ -313,7 +350,8 @@ async function submitPrompt(page: Page, prompt: string): Promise<void> {
     )
     .last();
   await input.waitFor({ state: "visible", timeout: 30_000 });
-  await input.click();
+  await page.keyboard.press("Escape");
+  await input.click({ force: true });
   await page.keyboard.insertText(prompt);
   await clickChatSubmit(page);
 }
@@ -577,6 +615,16 @@ async function captureStage(
 ): Promise<void> {
   await page.screenshot({ path: filePath, fullPage: true });
   artifacts[name] = portableArtifactPath(filePath);
+}
+
+async function scrollFrameIntoView(frame: Frame): Promise<void> {
+  const element = await frame.frameElement();
+  await element.evaluate((iframe) =>
+    (iframe as Element).scrollIntoView({
+      block: "center",
+      inline: "nearest",
+    }),
+  );
 }
 
 function portableArtifactPath(filePath: string): string {

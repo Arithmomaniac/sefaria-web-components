@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Sefaria Linker showcase</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --page: light-dark(#ffffff, #1b1a19);
+        --surface: light-dark(#ffffff, #252423);
+        --ink: light-dark(#32343a, #f5f5f5);
+        --muted: light-dark(#484c58, #c8c6c4);
+        --border: light-dark(#dedede, #484644);
+        --accent: light-dark(#612854, #d7a9d1);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--page);
+        color: var(--ink);
+        font:
+          1rem/1.65 "Segoe UI",
+          system-ui,
+          sans-serif;
+      }
+      header,
+      article,
+      aside {
+        max-width: 50rem;
+        margin-inline: auto;
+      }
+      header {
+        padding: 2rem 1.5rem 0;
+      }
+      article,
+      aside {
+        margin-block: 1rem;
+        padding: 1.5rem;
+        border: 1px solid var(--border);
+        border-radius: 0.4rem;
+        background: var(--surface);
+      }
+      h1 {
+        line-height: 1.1;
+      }
+      .dek,
+      #status {
+        color: var(--muted);
+      }
+      button {
+        border: 1px solid var(--accent);
+        border-radius: 0.3rem;
+        padding: 0.55rem 0.75rem;
+        color: white;
+        background: var(--accent);
+        font:
+          600 0.9rem "Segoe UI",
+          sans-serif;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <p>Ideas · September 7, 2026</p>
+      <h1>Justice, mercy, and the work before us</h1>
+      <p class="dek">An ordinary article enhanced after it loads.</p>
+    </header>
+    <article>
+      <p>
+        Micah 6:8 asks what goodness requires: justice, kindness, and humility.
+        The citation begins as plain prose owned by this page.
+      </p>
+      <p>
+        A second source, Leviticus 19:18, can appear without custom markup or a
+        framework-specific component tree.
+      </p>
+    </article>
+    <aside data-sefaria-linker-owned>
+      <p id="status" role="status">Loading the public Linker artifact.</p>
+      <button id="rescan" type="button">Rescan article</button>
+    </aside>
+    <script>
+      const status = document.querySelector("#status");
+      const run = () =>
+        window.SefariaLinker.link().then(
+          (result) => {
+            status.textContent = `Linked ${result.linked} citations; skipped ${result.skipped}.`;
+          },
+          (error) => {
+            if (error && error.name === "AbortError") return;
+            status.textContent =
+              error && error.message ? error.message : String(error);
+            status.setAttribute("role", "alert");
+          },
+        );
+      addEventListener("sefaria-linker-ready", run, { once: true });
+      document.querySelector("#rescan").addEventListener("click", run);
+      const script = document.createElement("script");
+      script.src = "./demos/linker/sefaria-linker.js";
+      script.onerror = () => {
+        status.textContent =
+          "The Linker artifact is available in the packaged Pages build.";
+      };
+      document.head.append(script);
+    </script>
+  </body>
+</html>

@@ -74,6 +74,27 @@ The client, text-transform foundations, current components, controlled reader, c
 
 TypeScript emits reusable ES modules. Vite builds the browser demonstrations and the single-file MCP App.
 
+## Showcase and GitHub Pages
+
+Run the interactive deck locally:
+
+```powershell
+pnpm dev:showcase
+```
+
+The deck calls the deployed Sefaria API. Network, CORS, contract, and documented HTTP failures remain visible; there is no automatic fixture fallback.
+
+Build the exact allowlisted Pages artifact:
+
+```powershell
+pnpm build:pages
+pnpm preview:pages
+```
+
+The generated `dist/pages` directory puts the deck at the site root, browser demonstrations under `demos/`, and the Linker artifact under `demos/linker/`. In GitHub Actions, the build derives the public Linker URL from `GITHUB_REPOSITORY`. For another public location, set `SEFARIA_PAGES_URL` to the HTTPS site root before `pnpm build:pages`.
+
+Public screenshots live under `demos/showcase/public/media` with `manifest.json` provenance. The MCP slide displays recorded named-host evidence; GitHub Pages does not run the Python MCP server. Confirm quotation permission and every public asset before enabling the Pages deployment.
+
 ## Workspace
 
 | Path | Responsibility (status described above) |
@@ -91,6 +112,7 @@ TypeScript emits reusable ES modules. Vite builds the browser demonstrations and
 | `demos/linker` | Third-party citation detection, DOM linking, and popup integration |
 | `demos/connections-panel-live-demo` | Interactive contextual source-card and connections-panel host |
 | `demos/reader-workspace` | Interactive multi-pane website host and controlled `<sefaria-reader>` host over the DOM-free reader session |
+| `demos/showcase` | Reveal.js GitHub Pages showcase, React factory bindings, resizable preview viewports, and static Pages assembly |
 
 Workspace dependencies use `workspace:*`. All workspace packages remain private during the hackathon.
 
