@@ -79,7 +79,10 @@ const paired: ReaderViewModel = {
   selectedTarget: { ref: "Micah 6:8" },
 };
 
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => {
+  document.body.removeAttribute("style");
+  vi.unstubAllGlobals();
+});
 
 async function mount(
   viewModel: ReaderViewModel = paired,
@@ -309,6 +312,41 @@ test("uses compact pane visibility without changing semantic history", async () 
   expect(getComputedStyle(sourcePane).display).toBe("none");
   expect(getComputedStyle(connectionsPane).display).not.toBe("none");
   expect(element.viewModel).toBe(paired);
+});
+
+test("keeps both panes visible at the showcase reader width", async () => {
+  document.body.style.width = "800px";
+  const element = await mount();
+  element.style.width = "680px";
+  element.style.height = "520px";
+  await element.updateComplete;
+  const panes = element.shadowRoot!.querySelector<HTMLElement>(".panes")!;
+  const paneSwitch =
+    element.shadowRoot!.querySelector<HTMLElement>(".pane-switch")!;
+  const sourcePane = element.shadowRoot!.querySelector<HTMLElement>(
+    '[data-pane="source"]',
+  )!;
+  const connectionsPane = element.shadowRoot!.querySelector<HTMLElement>(
+    '[data-pane="connections"]',
+  )!;
+  const sourceCard = sourcePane.querySelector<HTMLElement>(
+    "sefaria-source-card",
+  )!;
+
+  expect(getComputedStyle(paneSwitch).display).toBe("none");
+  expect(getComputedStyle(element).display).toBe("grid");
+  expect(getComputedStyle(panes).alignItems).toBe("stretch");
+  expect(getComputedStyle(sourcePane).overflowY).toBe("auto");
+  expect(getComputedStyle(connectionsPane).overflowY).toBe("auto");
+  expect(getComputedStyle(sourcePane).display).not.toBe("none");
+  expect(getComputedStyle(connectionsPane).display).not.toBe("none");
+  expect(getComputedStyle(panes).gridTemplateColumns.split(" ")).toHaveLength(
+    2,
+  );
+  expect(getComputedStyle(sourceCard).borderTopWidth).toBe("0px");
+  expect(
+    getComputedStyle(sourceCard.shadowRoot!.querySelector("header")!).display,
+  ).toBe("none");
 });
 
 test("moves focus only when semantic current entry changes", async () => {

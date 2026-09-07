@@ -145,6 +145,14 @@ test("real factories keep ancestor text beside child text and child connections"
       "/api/links/Rashi on Micah 6:8:1",
       linksPayload("Rashi on Micah 6:8:1", "Another source 1:1"),
     ],
+    [
+      "/api/v3/texts/Another source 1:1",
+      sourcePayload("Another source 1:1", "Another source 1:1"),
+    ],
+    [
+      "/api/links/Another source 1:1",
+      linksPayload("Another source 1:1", "Further source 1:1"),
+    ],
   ]);
   const client = createSefariaClient({
     cache: false,
@@ -183,11 +191,41 @@ test("real factories keep ancestor text beside child text and child connections"
   expect(
     document.querySelectorAll<SefariaSourceCard>("sefaria-source-card"),
   ).toHaveLength(2);
+  const paneToolbar = document.querySelector<HTMLElement>(".pane-toolbar")!;
+  expect(getComputedStyle(paneToolbar).position).toBe("absolute");
+  expect(paneToolbar.querySelector("button")?.textContent).toBe("×");
   expect(requests).toEqual([
     "/api/v3/texts/Micah 6:8",
     "/api/links/Micah 6:8",
     "/api/v3/texts/Rashi on Micah 6:8:1",
     "/api/links/Rashi on Micah 6:8:1",
+  ]);
+
+  document
+    .querySelectorAll<SefariaConnectionsPanel>("sefaria-connections-panel")[0]!
+    .dispatchEvent(
+      new CustomEvent("sefaria-connection-select", {
+        detail: {
+          id: "link-Rashi on Micah 6:8:1",
+          targetRef: "Another source 1:1",
+        },
+      }),
+    );
+  await vi.waitFor(() => expect(demo.view.panes).toHaveLength(4));
+
+  expect(demo.view.panes.map((pane) => pane.kind)).toEqual([
+    "source",
+    "source",
+    "source",
+    "connections",
+  ]);
+  expect(requests).toEqual([
+    "/api/v3/texts/Micah 6:8",
+    "/api/links/Micah 6:8",
+    "/api/v3/texts/Rashi on Micah 6:8:1",
+    "/api/links/Rashi on Micah 6:8:1",
+    "/api/v3/texts/Another source 1:1",
+    "/api/links/Another source 1:1",
   ]);
   demo.dispose();
 });
@@ -601,6 +639,9 @@ test("uses a viewport-bound horizontal workspace with independently scrolling pa
   const panes = [...document.querySelectorAll<HTMLElement>(".reader-pane")];
 
   expect(getComputedStyle(site).height).toBe(`${window.innerHeight}px`);
+  expect(workspace.dataset.paneCount).toBe("2");
+  expect(getComputedStyle(panes[0]!).flexBasis).toBe("68%");
+  expect(getComputedStyle(panes[1]!).flexBasis).toBe("32%");
   expect(getComputedStyle(workspace).overflowX).toBe("auto");
   expect(
     panes.every((pane) => getComputedStyle(pane).overflowY === "auto"),

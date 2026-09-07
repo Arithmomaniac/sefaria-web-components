@@ -146,6 +146,28 @@ test("selection is opt-in, controlled and composed without requesting", async ()
   expect(fetch).not.toHaveBeenCalled();
 });
 
+test("inherits panel and control shape tokens from the host", async () => {
+  const host = await renderCard({
+    ...DATA,
+    items: DATA.items.map((item, index) => ({
+      ...item,
+      ref: `Genesis 1:${index + 1}`,
+      addressLabel: String(index + 1),
+    })),
+  });
+  host.selectable = true;
+  host.style.setProperty("--sefaria-panel-radius", "0px");
+  host.style.setProperty("--sefaria-control-radius", "0px");
+  await host.updateComplete;
+
+  expect(getComputedStyle(host).borderRadius).toBe("0px");
+  expect(
+    getComputedStyle(
+      host.shadowRoot!.querySelector<HTMLButtonElement>(".segment-label")!,
+    ).borderRadius,
+  ).toBe("0px");
+});
+
 test("renders Hebrew and English labels beside their corresponding sides", async () => {
   const selectableData: SourceCardDataViewModel = {
     ...DATA,

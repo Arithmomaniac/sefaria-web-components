@@ -27,12 +27,25 @@ body {
   font-family: "Segoe UI", system-ui, sans-serif;
 }
 
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
+
 #reader-site {
   container-type: inline-size;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
   width: 100%;
   height: 100dvh;
+}
+
+#reader-site[data-component-shape="square"] {
+  --sefaria-panel-radius: 0;
+  --sefaria-control-radius: 0;
 }
 
 #site-header {
@@ -107,41 +120,85 @@ input:focus-visible {
 
 #workspace {
   display: flex;
-  gap: 1rem;
+  gap: 0;
   min-width: 0;
   min-height: 0;
   overflow-x: auto;
   overflow-y: hidden;
-  padding: 1rem;
+  padding: 0;
+  border-top: 1px solid var(--border);
   scroll-snap-type: x proximity;
+  scrollbar-color: var(--border) transparent;
+  scrollbar-width: thin;
 }
 
 .reader-pane {
-  flex: 0 0 min(42rem, 82vw);
-  min-width: 19rem;
+  position: relative;
+  flex: 0 0 22.5rem;
+  min-width: 18rem;
   height: 100%;
   overflow-y: auto;
   padding: 1rem;
-  border: 1px solid var(--border);
-  border-radius: 1rem;
-  background: var(--surface);
+  border-inline-end: 1px solid var(--border);
   scroll-snap-align: start;
+  scrollbar-color: var(--border) transparent;
+  scrollbar-width: thin;
+}
+
+.reader-pane[data-pane-kind="connections"] {
+  background: var(--surface-muted);
+}
+
+#workspace[data-pane-count="1"] .reader-pane {
+  flex-basis: 100%;
+  min-width: 0;
+}
+
+#workspace[data-pane-count="2"] .reader-pane,
+#workspace[data-pane-count="3"] .reader-pane {
+  min-width: 0;
+}
+
+#workspace[data-pane-count="2"] .reader-pane[data-pane-kind="source"] {
+  flex-basis: 68%;
+}
+
+#workspace[data-pane-count="2"] .reader-pane[data-pane-kind="connections"] {
+  flex-basis: 32%;
+}
+
+#workspace[data-pane-count="3"] .reader-pane[data-pane-kind="source"] {
+  flex-basis: 37%;
+}
+
+#workspace[data-pane-count="3"] .reader-pane[data-pane-kind="connections"] {
+  flex-basis: 26%;
+}
+
+.reader-pane > sefaria-source-card {
+  display: block;
+  padding: 0;
+  border: 0;
 }
 
 .pane-toolbar {
+  position: absolute;
+  z-index: 1;
+  top: 0.6rem;
+  inset-inline-end: 0.6rem;
   display: flex;
-  gap: 1rem;
   align-items: center;
-  justify-content: space-between;
-  margin-block-end: 1rem;
-  font-family: Georgia, "Times New Roman", serif;
+  margin: 0;
 }
 
 .pane-toolbar button {
+  width: 2rem;
   min-height: 2rem;
-  padding-block: 0.25rem;
+  border-radius: 50%;
+  padding: 0;
   font-family: "Segoe UI", system-ui, sans-serif;
-  font-size: 0.875rem;
+  font-size: 1.25rem;
+  line-height: 1;
 }
 
 .pane-message {
@@ -172,7 +229,7 @@ sefaria-reader {
   margin-inline: auto;
 }
 
-@container (max-width: 48rem) {
+@container (max-width: 40rem) {
   #pane-path {
     flex-wrap: nowrap;
     overflow-x: auto;
