@@ -32,7 +32,10 @@ const settings = {
   "extensions.ignoreRecommendations": true,
   "telemetry.telemetryLevel": "off",
   "update.mode": "none",
+  "window.commandCenter": false,
+  "window.zoomLevel": 1,
   "window.restoreWindows": "none",
+  "workbench.colorTheme": "Default Light Modern",
   "workbench.startupEditor": "none",
 } as const;
 

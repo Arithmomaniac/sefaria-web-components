@@ -9,6 +9,7 @@
   },
   "scripts": {
     "build": "pnpm -r --if-present build",
+    "build:pages": "node demos/showcase/scripts/build-pages.mjs",
     "build:mcp": "pnpm --filter @sefaria-demo/mcp-app build && pnpm stage:mcp",
     "check": "pnpm openapi:check && pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm compatibility:qualify && pnpm build && pnpm check:python:staged",
     "check:python": "pnpm install:python && pnpm --filter @sefaria-demo/mcp-app build && pnpm check:python:staged",
@@ -17,6 +18,7 @@
     "capture:mcp:vscode": "pnpm build:mcp && tsx demos/mcp/scripts/capture-vscode-host.ts",
     "compatibility:qualify": "pnpm --filter @sefaria-tests/compatibility qualify",
     "dev": "pnpm --filter @sefaria-demo/component-lab dev",
+    "dev:showcase": "pnpm --filter @sefaria-demo/showcase dev",
     "dev:bilingual-segment": "pnpm --filter @sefaria-demo/bilingual-segment-live-demo dev",
     "dev:connections": "pnpm --filter @sefaria-demo/connections-panel-live-demo dev",
     "dev:source-card": "pnpm --filter @sefaria-demo/source-card-live-demo dev",
@@ -32,6 +34,7 @@
     "openapi:check": "pnpm --filter @sefaria/client openapi:check",
     "openapi:generate": "pnpm --filter @sefaria/client openapi:generate",
     "openapi:refresh": "pnpm --filter @sefaria/client openapi:refresh",
+    "preview:pages": "vite preview --outDir dist/pages --base /sefaria-web-components/ --host 127.0.0.1",
     "stage:mcp": "node demos/mcp/stage-fixture.mjs",
     "setup:mcp:vscode": "pnpm build:mcp && tsx demos/mcp/scripts/setup-vscode-host.ts",
     "demo:mcp:vscode": "pnpm build:mcp && tsx demos/mcp/scripts/capture-vscode-host.ts --keep-open",

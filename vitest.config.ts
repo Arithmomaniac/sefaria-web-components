@@ -11,15 +11,21 @@ export default defineConfig({
           include: [
             "packages/**/*.test.ts",
             "demos/**/*.test.ts",
+            "demos/**/*.test.tsx",
             "tests/**/*.test.ts",
           ],
-          exclude: ["**/*.browser.test.ts", "**/dist/**", "**/node_modules/**"],
+          exclude: [
+            "**/*.browser.test.ts",
+            "**/*.browser.test.tsx",
+            "**/dist/**",
+            "**/node_modules/**",
+          ],
         },
       },
       {
         test: {
           name: "browser",
-          include: ["**/*.browser.test.ts"],
+          include: ["**/*.browser.test.ts", "**/*.browser.test.tsx"],
           exclude: ["**/dist/**", "**/node_modules/**"],
           browser: {
             enabled: true,

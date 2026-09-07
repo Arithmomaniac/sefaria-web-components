@@ -4,6 +4,8 @@
 
 Sefaria supplies texts and their metadata. This project supplies a small client, pure text processing, and reusable components for displaying that data. Start with the task you want to accomplish; you do not need to read the specifications first.
 
+The public [interactive showcase](https://arithmomaniac.github.io/sefaria-web-components/) walks through the repository as a Reveal.js presentation and keeps the standalone browser demonstrations available at linked subpaths.
+
 ## Use the components
 
 1. [Render text](guides/render-text.md): run a demo, choose a component, and put a source card in a browser app.
