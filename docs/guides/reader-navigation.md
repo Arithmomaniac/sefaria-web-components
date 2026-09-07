@@ -63,15 +63,29 @@ _Proposed runtime paths, showing the browser capture-and-project variant. An exi
 | Owner | Responsibility | Explicit exclusion |
 | --- | --- | --- |
 | Headless session | Current entry, immutable history transitions, stable entry IDs, breadcrumb data, which completed result belongs to which navigation | DOM, MCP SDK, HTTP, hidden retries |
-| Host coordinator | Executes the session's requested work, manages cancellation and operation identity, validates external results, calls factories, reports completion | A second independent history stack |
+| Reader controller | Executes source and connections work, manages cancellation and operation identity, validates effective requests, owns one private session, publishes immutable snapshots | Spatial pane placement, persistence, retries, chat delivery |
 | Controlled reader surface | Navigation bar, pane layout, accessible controls, presentation state supplied by the host, composed action events | Fetching or interpreting API payloads |
 | Existing child elements | Render their existing component view models and emit their existing events | Knowledge of the reader session |
 
-"Headless" means usable without a DOM element. The session lives at `@sefaria/components/reader-session`, not in another npm package. The current `@sefaria/components/reader` projection and `<sefaria-reader>` element form a visual composition, not a new client facade or a composite async factory that secretly calls child async factories.
+"Headless" means usable without a DOM element. The immutable session lives at `@sefaria/components/reader-session`; the supported stateful coordinator lives at `@sefaria/components/reader-controller`. The current `@sefaria/components/reader` projection and `<sefaria-reader>` element remain a request-free visual composition.
 
 ### Browser execution
 
-A segment event goes to the browser coordinator. It calls the typed client or existing async factory, or projects an explicitly held capture when that capture covers the action. Results update session-owned state, which supplies rendering data to the surface. A host can keep its own markup instead of using the shared surface.
+An ordinary website can initialize and bind the supported controller directly:
+
+```ts
+const controller = await loadReaderController(
+  { tref: "Micah 6:8" },
+  createSefariaClient(),
+);
+const unbind = bindReaderController(element, controller);
+
+// During host teardown:
+unbind();
+controller.dispose();
+```
+
+The controller uses the client for source and connections requests, retains admitted captures in its private session, and supplies rendering snapshots to the request-free element. A host can keep its own markup or use the lower-level session and `createSefariaReaderDataSource` when it needs spatial pane policy.
 
 The standalone page can eventually integrate reader navigation with its URL and browser Back, but that should be an explicit host feature. The session should not write global browser history itself.
 

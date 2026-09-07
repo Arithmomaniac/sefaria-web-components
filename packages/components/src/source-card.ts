@@ -18,6 +18,7 @@ import {
   type BilingualSegmentEditionSelection,
   type BilingualSegmentRequest,
 } from "./bilingual-segment.js";
+import { serializeSourceCardSelectors } from "./source-card-request.js";
 import {
   projectTextSegmentValue,
   type TextSegmentDataViewModel,
@@ -463,22 +464,4 @@ function parseVersionSourceUrl(source: string | null): string | null {
 
 function formatPosition(position: readonly number[]): string {
   return position.length === 0 ? "the root" : `[${position.join(", ")}]`;
-}
-
-function serializeSourceCardSelectors(request: SourceCardRequest): string[] {
-  if (request.tref.trim().length === 0) {
-    throw new TypeError("Source card reference must not be blank.");
-  }
-  return SIDES.map((side) => {
-    const versionTitle = request[side]?.versionTitle;
-    if (versionTitle === undefined) {
-      return side;
-    }
-    if (versionTitle.trim().length === 0) {
-      throw new TypeError(
-        `Source card ${side} version title must not be blank.`,
-      );
-    }
-    return `${side}|${versionTitle}`;
-  });
 }

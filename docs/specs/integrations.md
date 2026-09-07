@@ -52,6 +52,14 @@ The current connections extension renders the existing request-free connections 
 
 The App is a self-contained HTML resource. The MCP server can package it without the TypeScript checkout at runtime.
 
+### Reader-controller use [Planned]
+
+The planned integrated reader keeps one `@sefaria/components/reader-controller` instance in the TypeScript App instance. Its first render constructs the controller from already validated source or connections content and performs zero requests. Later controller operations use an MCP-specific reader data source whose only transport is a supported host-proxied tool call. The browser-client `loadReaderController` path is not reachable from the MCP App.
+
+The Python tools remain stateless. Each tool result must carry the corrected payload plus effective request metadata sufficient to construct admitted reader content: source reference and edition selectors for text, or reference and resolved `with_text` coverage for links. The App validates both payload and metadata before controller admission. Python does not store reader history, controller snapshots, operation IDs, or expiration state.
+
+If the host destroys the App instance, in-memory reader history is lost. A later App can start from its delivered tool result, but this is not restoration of the prior controller. Durable snapshots, server-side sessions, reference replay, and implicit reconstruction are outside the current contract.
+
 ## MCP tool contract
 
 The current MCP server exposes `get_text`, which progressively enhances the official `Sefaria/sefaria-mcp` tool of the same name with an App resource.

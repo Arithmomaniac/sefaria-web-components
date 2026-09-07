@@ -8,6 +8,8 @@ import {
 } from "@sefaria/client";
 import { createTextPreview, type TextPreview } from "@sefaria/text-transform";
 
+import { createConnectionsQuery } from "./connections-request.js";
+
 /** Transport inputs for one connections operation. */
 export interface ConnectionsRequest {
   /** Reference whose links are requested. */
@@ -165,10 +167,7 @@ export async function loadConnectionsViewModel(
   const result = await getLinks({
     client,
     path: { tref: request.tref },
-    query: {
-      with_text: request.withText === false ? "0" : "1",
-      with_sheet_links: "0",
-    },
+    query: createConnectionsQuery(request),
     ...(signal === undefined ? {} : { signal }),
   });
   if (result.data !== undefined)

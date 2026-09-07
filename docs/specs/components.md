@@ -90,6 +90,20 @@ The history trail uses real buttons for retained ancestors and `aria-current="pa
 
 An explicit chat-export control appears only when the host enables it and the model contains an exact selected target. Activating it emits an action; the element has no chat SDK dependency and does not claim delivery.
 
+## Reader controller [Current]
+
+`@sefaria/components/reader-controller` is the stateful DOM-free convenience layer for consumers that want to provide an initial reader position and let the supported reader abstraction coordinate subsequent navigation. It privately owns one immutable `ReaderSession`, request cancellation, stale-result suppression, source and connections operation execution, retained captures, local connections reprojection, and subscriber notification. It exposes immutable controller snapshots rather than the mutable session API. It does not own spatial multi-pane placement, durable persistence, retries, request coalescing, fallback transport, or chat delivery.
+
+`loadReaderController(request, client)` is the ordinary website async factory. It uses the same source-card selectors and connections request semantics as the endpoint-backed component factories, resolves server-provided source context without parsing references, selects the exact returned row when available, admits the corrected source and links payload captures into the session, and returns one ready controller. Each navigation performs at most two text requests and one links request. A required contextual request must succeed before source commitment; there is no target-only fallback. A source transport, documented source error, empty/non-addressable source, qualification failure, or initialization abort rejects initialization. A links transport failure preserves the committed source and returns a controller whose current connections state is explicitly failed. A documented links 400 remains component content.
+
+`createReaderController(seed, dataSource)` performs no request. It accepts already admitted reader content and a data source for later source and connections operations. A source seed must be renderable and addressable under the same rules as later source navigation.
+
+Controller actions require the originating entry identity. Back, breadcrumb activation, source selection, connection selection, connections category/page changes, preview replacement, and presentation changes update the internal session and notify subscribers. Superseding actions abort physical work, cancel the active session operation before replacement begins, and make obsolete completions ineligible even when the data source ignores the signal. Category and page changes covered by a retained links capture perform zero I/O. A preview request performs zero I/O when the capture already includes text; otherwise it performs one text-inclusive links request and replaces the capture while retaining the current projection.
+
+The controller normalizes each effective request once and supplies equal request and projection values to both the reader-session operation and data source. A mismatched returned content request is an explicit terminal controller error, not a perpetual loading state. Snapshots contain the projected `ReaderViewModel` plus one task-state discriminator. Connections terminal outcomes remain in the reader view rather than being duplicated as controller task errors.
+
+`bindReaderController(element, controller)` is the DOM adapter. It immediately supplies `controller.snapshot.reader` to one persistent `<sefaria-reader>`, forwards all reader events except chat export to controller actions, and keeps compact pane selection as presentation state. Chat export remains an independent host action. The binding does not move requests, captures, or session mutation into the element. Unbinding removes listeners and subscription; disposing the controller aborts active work.
+
 ## View-model states
 
 Each component defines its own discriminated union. The union uses these state classes where they apply:
