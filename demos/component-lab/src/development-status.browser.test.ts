@@ -2,6 +2,7 @@ import type {
   SefariaBilingualSegment,
   SefariaConnectionsPanel,
   SefariaRefLabel,
+  SefariaReader,
   SefariaSourceCard,
   SefariaTextSegment,
 } from "@sefaria/components";
@@ -34,6 +35,15 @@ import {
   refLabelLoadingScenario,
   refLabelScenarios,
 } from "./ref-label.scenarios.js";
+import {
+  readerConnectionsLoadingScenario,
+  readerConnectionsOnlyScenario,
+  readerConnectionsUnavailableScenario,
+  readerPairedScenario,
+  readerScenarios,
+  readerSourceOnlyScenario,
+  readerTruncatedHistoryScenario,
+} from "./reader.scenarios.js";
 import {
   sourceCardEmptyScenario,
   sourceCardErrorScenario,
@@ -199,5 +209,31 @@ test("shows the six current connections-panel scenarios", async () => {
     "loading",
     "empty",
     "error",
+  ]);
+});
+
+test("shows the six controlled reader scenarios", async () => {
+  expect(readerScenarios).toEqual([
+    readerPairedScenario,
+    readerSourceOnlyScenario,
+    readerConnectionsOnlyScenario,
+    readerConnectionsLoadingScenario,
+    readerConnectionsUnavailableScenario,
+    readerTruncatedHistoryScenario,
+  ]);
+  const lab = await renderLab();
+  const readers = Array.from(
+    lab.shadowRoot?.querySelectorAll<SefariaReader>("sefaria-reader") ?? [],
+  );
+  expect(readers.map((reader) => reader.viewModel?.currentEntryId)).toEqual(
+    readerScenarios.map((scenario) => scenario.viewModel.currentEntryId),
+  );
+  expect(readerScenarios.map((scenario) => scenario.id)).toEqual([
+    "paired",
+    "source-only",
+    "connections-only",
+    "connections-loading",
+    "connections-unavailable",
+    "truncated-history",
   ]);
 });

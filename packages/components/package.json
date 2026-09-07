@@ -8,6 +8,7 @@
     "./bilingual-segment": "./src/bilingual-segment.ts",
     "./connections-panel": "./src/connections-panel.ts",
     "./popup": "./src/popup.ts",
+    "./reader": "./src/reader.ts",
     "./reader-session": "./src/reader-session.ts",
     "./ref-label": "./src/ref-label.ts",
     "./source-card": "./src/source-card.ts",

@@ -151,11 +151,11 @@ export class SefariaSourceCard extends SefariaElement {
       }
 
       .segment-label.english {
-        font-family: var(--_sefaria-font-label-english);
+        font-family: var(--_sefaria-font-english);
       }
 
       .segment-label.hebrew {
-        font-family: var(--_sefaria-font-label-hebrew);
+        font-family: var(--_sefaria-font-hebrew);
       }
 
       .segment-select-control {

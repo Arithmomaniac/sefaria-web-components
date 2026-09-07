@@ -1,10 +1,32 @@
 html {
   min-height: 100%;
-  background: light-dark(#eeeae2, #181817);
+  color-scheme: light dark;
+  --lab-background: light-dark(#f3efe8, #171817);
+  --lab-surface: light-dark(#fffdf8, #292b28);
+  --lab-surface-muted: light-dark(#f5f0e7, #222421);
+  --lab-foreground: light-dark(#25231f, #f1eee7);
+  --lab-foreground-muted: light-dark(#6d675d, #bdb7ac);
+  --lab-border: light-dark(#d8cfc0, #555b53);
+  --lab-accent: light-dark(#8e2449, #ff93b4);
+  --lab-accent-soft: light-dark(rgb(142 36 73 / 10%), rgb(255 147 180 / 14%));
+  --lab-link: light-dark(#7c1f40, #ff9fbd);
+  background: var(--lab-background);
+  color: var(--lab-foreground);
   font-family: system-ui, sans-serif;
 }
 
 body {
   margin: 0;
   padding: 1rem;
+}
+
+sefaria-development-status {
+  --sefaria-surface: var(--lab-surface);
+  --sefaria-surface-muted: var(--lab-surface-muted);
+  --sefaria-fg: var(--lab-foreground);
+  --sefaria-fg-muted: var(--lab-foreground-muted);
+  --sefaria-border: var(--lab-border);
+  --sefaria-accent: var(--lab-accent);
+  --sefaria-accent-soft: var(--lab-accent-soft);
+  --sefaria-link: var(--lab-link);
 }

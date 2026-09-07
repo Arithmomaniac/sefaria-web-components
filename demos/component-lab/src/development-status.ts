@@ -4,6 +4,7 @@ import { css, html } from "lit";
 import { bilingualSegmentScenarios } from "./bilingual-segment.scenarios.js";
 import { connectionsPanelScenarios } from "./connections-panel.scenarios.js";
 import { refLabelScenarios } from "./ref-label.scenarios.js";
+import { readerScenarios } from "./reader.scenarios.js";
 import { sourceCardScenarios } from "./source-card.scenarios.js";
 import { textSegmentScenarios } from "./text-segment.scenarios.js";
 
@@ -32,6 +33,15 @@ class SefariaDevelopmentStatus extends SefariaElement {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(min(20rem, 100%), 1fr));
         gap: 1rem;
+      }
+
+      .reader-states {
+        display: grid;
+        gap: 1rem;
+      }
+
+      .reader-state {
+        container-type: inline-size;
       }
 
       section {
@@ -134,6 +144,30 @@ class SefariaDevelopmentStatus extends SefariaElement {
               <sefaria-connections-panel
                 .viewModel=${viewModel}
               ></sefaria-connections-panel>
+            </section>
+          `,
+        )}
+      </div>
+      <h2>Controlled reader</h2>
+      <p>
+        Each reader composes authored source and connections models. The host
+        remains responsible for state transitions, requests, and chat delivery.
+      </p>
+      <div class="reader-states">
+        ${readerScenarios.map(
+          ({
+            title,
+            viewModel,
+            activePane = "source",
+            chatExport = false,
+          }) => html`
+            <section class="reader-state">
+              <h2>${title}</h2>
+              <sefaria-reader
+                .viewModel=${viewModel}
+                .activePane=${activePane}
+                .chatExport=${chatExport}
+              ></sefaria-reader>
             </section>
           `,
         )}
