@@ -4,7 +4,7 @@
 
 ## Status
 
-The text-segment, bilingual-segment, reference-label, source-card, popup, connections-panel, and DOM-free reader-session vertical slices are current. The controlled reader surface remains planned.
+The text-segment, bilingual-segment, reference-label, source-card, popup, connections-panel, DOM-free reader-session, and controlled reader vertical slices are current.
 
 ## Boundary
 
@@ -75,6 +75,20 @@ Admission sizes a capture once. It evicts the oldest inactive unpinned history e
 A retained successful links capture remains authoritative for covered local category and page projection. Reprojection calls the existing connections pure factory and performs zero I/O. Missing capture coverage, invalid projection input, and an unavailable or interrupted slot reject explicitly rather than requesting data.
 
 The reader session does not expose a public serialized snapshot schema. Durable persistence, Forward, browser URL history, native mobile integration, retries, request coalescing, stale fallback, and arbitrary public panel management are outside this contract.
+
+## Controlled reader [Current]
+
+`@sefaria/components/reader` is a DOM-free projection from `ReaderSessionView` to the rendering-only `ReaderViewModel`. The projection includes stable entry identity, breadcrumb labels, history bounds, source-card state, connections-panel state, presentation settings, and an exact selected target when one exists. It excludes requests, captures, operation identities, pin counts, retained-byte diagnostics, clients, and session mutation.
+
+`<sefaria-reader>` is a controlled request-free element. It renders one current source-and-connections workspace by composing `<sefaria-source-card>` and `<sefaria-connections-panel>`. It never performs a request, calls an async factory, mutates the reader session, or treats a reference string as a history identity.
+
+The element emits Back, breadcrumb activation, source selection, connections category/page/preview actions, connection selection, compact-pane selection, and explicit chat-export actions. Every action includes the current entry ID so the host can reject stale work. Child actions are stopped and re-emitted once under reader-specific event names.
+
+On a wide container, source and connections render side by side. At a container width of 44rem or less, one pane is visible and the controlled `activePane` property selects it. A source-only or connections-only model selects the available pane for presentation. Pane changes and resize do not change semantic history or request data.
+
+The history trail uses real buttons for retained ancestors and `aria-current="page"` for the current entry. Back is disabled when no retained predecessor exists. A truncated history boundary is visible. Initial render and pane-only changes do not move focus; after `currentEntryId` changes, the current heading receives focus and is revealed.
+
+An explicit chat-export control appears only when the host enables it and the model contains an exact selected target. Activating it emits an action; the element has no chat SDK dependency and does not claim delivery.
 
 ## View-model states
 

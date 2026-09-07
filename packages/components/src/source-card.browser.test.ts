@@ -181,8 +181,19 @@ test("renders Hebrew and English labels beside their corresponding sides", async
     "he",
     "en",
   ]);
-  expect(getComputedStyle(labels[0]!).fontFamily).toContain("Noto Sans Hebrew");
-  expect(getComputedStyle(labels[1]!).fontFamily).toBe("system-ui, sans-serif");
+  const segments = [
+    ...(host.shadowRoot?.querySelectorAll<HTMLElement>(
+      "sefaria-text-segment",
+    ) ?? []),
+  ];
+  const primaryText = segments[0]?.shadowRoot?.querySelector("article");
+  const translationText = segments[1]?.shadowRoot?.querySelector("article");
+  expect(getComputedStyle(labels[0]!).fontFamily).toBe(
+    getComputedStyle(primaryText!).fontFamily,
+  );
+  expect(getComputedStyle(labels[1]!).fontFamily).toBe(
+    getComputedStyle(translationText!).fontFamily,
+  );
   expect(labels[0]?.lang).toBe("");
   const segment = host.shadowRoot?.querySelector("sefaria-text-segment");
 
@@ -242,8 +253,14 @@ test("keeps each address label beside its text in stacked and side-by-side layou
   const translation = host.shadowRoot?.querySelector<HTMLElement>(
     '[data-pair-side="translation"]',
   );
-  expect(primary?.querySelector(".segment-label.hebrew")).not.toBeNull();
-  expect(translation?.querySelector(".segment-label.english")).not.toBeNull();
+  const primaryLabel = primary?.querySelector<HTMLElement>(
+    ".segment-label.hebrew",
+  );
+  const translationLabel = translation?.querySelector<HTMLElement>(
+    ".segment-label.english",
+  );
+  expect(primaryLabel).not.toBeNull();
+  expect(translationLabel).not.toBeNull();
   expect(getComputedStyle(pair!).gridTemplateColumns.split(" ")).toHaveLength(
     1,
   );
@@ -259,8 +276,6 @@ test("keeps each address label beside its text in stacked and side-by-side layou
   expect(translation!.getBoundingClientRect().left).toBeLessThan(
     primary!.getBoundingClientRect().left,
   );
-  const translationLabel =
-    translation!.querySelector<HTMLElement>(".segment-label");
   const translationText = translation!.querySelector<HTMLElement>(
     "sefaria-text-segment",
   );

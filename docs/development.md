@@ -2,7 +2,7 @@
 
 # Development
 
-This contributor guide describes the current implementation on this branch as of September 6, 2026, based on `origin/main` commit `5dedf0a89f9b8486143cc071e01b620cc53247cd` plus the reader-session foundation.
+This contributor guide describes the current implementation on this branch as of September 7, 2026, based on `origin/main` commit `e93990dad1c0d38585a55b5449424f6b8d48e927` plus the controlled reader surface.
 
 The sections below separate delivered baseline behavior, changes from older plans, and work that remains intended. A runnable command is not proof that the corresponding integration is finished.
 
@@ -22,8 +22,8 @@ For reader-oriented explanations, use the friendly guides rather than the archiv
 | --- | --- |
 | `packages/client` | Delivers eight named Core GET and POST SDK functions, committed corrected TypeScript contracts, reusable Core schemas, Zod validators, and a status-aware fetch client with a bounded default-on per-client response cache. The corrected Core OpenAPI document is temporary generation output. |
 | `packages/text-transform` | Delivers DOM-free sanitization, Hebrew vocalization modes, structured footnote extraction, and bounded connected-text previews. |
-| `packages/components` | Delivers the current component-specific view models, pure and async factory subpaths, request-free elements for the current text, bilingual, reference-label, selectable source-card, connections-panel, and popup surfaces, plus the DOM-free bounded reader session. |
-| `demos/component-lab` | Shows authored view models for current elements. It is a development surface, not a complete interaction catalog or compatibility oracle. |
+| `packages/components` | Delivers the current component-specific view models, pure and async factory subpaths, request-free elements for the current text, bilingual, reference-label, selectable source-card, connections-panel, popup, and controlled reader surfaces, plus the DOM-free bounded reader session. |
+| `demos/component-lab` | Shows authored view models for current elements, including paired, single-pane, pending, unavailable, and truncated-history reader states. It is a development surface, not a compatibility oracle. |
 | `demos/ref-label-live-demo` | Provides an interactive HTML form and presets that call the deployed reference endpoint and render `<sefaria-ref-label>`. |
 | `demos/text-segment-live-demo` | Provides an interactive HTML form and presets that call the deployed Sefaria API and render `<sefaria-text-segment>`. |
 | `demos/bilingual-segment-live-demo` | Provides an interactive HTML form, presets, and display controls that make one deployed Sefaria API request and render `<sefaria-bilingual-segment>`. |
@@ -52,12 +52,11 @@ These are remaining intended capabilities, not removed plans. A scaffold, comman
 | Planned capability | Intended result | Contract |
 | --- | --- | --- |
 | Public Linker hosting and broader live-site qualification | Host the built artifact and prove the bounded integration against representative third-party sites and browser policies | [Linker demonstration](linker-demo.md), [Linker integration](specs/integrations.md#linker-script-purpose) |
-| Controlled reader, beyond Core | Compose the current reader session and child component view models into a request-free responsive reader surface | [Reader session](specs/components.md#reader-session-current), [Design scope](design.md#core-scope) |
 | Website reader workspace | Demonstrate viewport-height independently scrolling source and connections panes while keeping spatial pane policy outside the public session | [Reader navigation guide](guides/reader-navigation.md) |
 | Integrated MCP reader | Qualify same-App host-proxied tool calls, then use the supported reader while retaining explicit chat export | [MCP App](specs/integrations.md#mcp-app-purpose) |
 | Broader compatibility coverage | Extend the small current suite with additional source-backed cases, without promising exhaustive corpus equivalence | [Compatibility evidence](evidence.md#current-focused-compatibility-qualification) |
 
-The client, text-transform foundations, current components, connections panel, contextual reader, adaptive MCP App, current named-host composer-delivery acceptance, and Linker demonstration are already delivered. Same-App MCP tool-call navigation is not established by the composer flow. New component slices still need concrete consumers; they do not justify restoring the superseded generalized model or hidden client policies.
+The client, text-transform foundations, current components, controlled reader, contextual reader demo, adaptive MCP App, current named-host composer-delivery acceptance, and Linker demonstration are already delivered. Same-App MCP tool-call navigation is not established by the composer flow. New component slices still need concrete consumers; they do not justify restoring the superseded generalized model or hidden client policies.
 
 ## Technology
 

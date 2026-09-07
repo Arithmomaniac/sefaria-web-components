@@ -6,7 +6,7 @@ For a first explanation with examples, read [How the pieces fit together](guides
 
 ## Summary
 
-This design defines a generated API foundation with corrections and component-owned view models. Elements render view models and never request data. The client, text-processing packages, text-segment, bilingual-segment, reference-label, source-card, popup, connections-panel, DOM-free reader session, MCP App, and Linker vertical slices are current. The controlled reader surface remains planned.
+This design defines a generated API foundation with corrections and component-owned view models. Elements render view models and never request data. The client, text-processing packages, text-segment, bilingual-segment, reference-label, source-card, popup, connections-panel, DOM-free reader session, controlled reader surface, MCP App, and Linker vertical slices are current.
 
 ## Scope
 
@@ -66,6 +66,7 @@ Each OpenAPI correction starts with the original Sefaria route, handler, respons
 | `@sefaria/text-transform` | Pure sanitization, vocalization, and footnote operations | Requests, DOM rendering, or API contract correction |
 | Non-DOM `@sefaria/components` subpaths | Component request types, view-model unions, pure factories, and async factories | Hidden global clients or DOM state |
 | `@sefaria/components/reader-session` | Immutable source history, capture retention, stable identities, completion eligibility, and render projection over existing component contracts | Requests, cancellation, persistence, DOM state, or spatial pane placement |
+| `@sefaria/components/reader` | Request-free projection from session state to one controlled reader rendering model | Captures, operations, requests, session mutation, or arbitrary spatial pane management |
 | `@sefaria/components` elements | Layout, interaction, accessibility, theming, and DOM rendering | References, raw JSON, clients, hosts, fetch functions, or requests |
 | Integrations | Tool input, host behavior, boundary validation, and factory calls | A second domain model or duplicate rendering implementation |
 | Specifications | Intended behavior and acceptance rules | Mutable issue state |
@@ -125,7 +126,7 @@ Unknown inputs from MCP or another external boundary receive validation before c
 
 Each component has a non-DOM public subpath. This subpath owns its request type, view-model union, pure projection factory, and async request factory. The pure factory converts a corrected API payload into one component view model. The async factory obtains the payload through a supplied client and passes it to the pure factory. The current subpaths are `@sefaria/components/text-segment`, `@sefaria/components/bilingual-segment`, `@sefaria/components/ref-label`, `@sefaria/components/source-card`, `@sefaria/components/popup`, and `@sefaria/components/connections-panel`.
 
-The `@sefaria/components/reader-session` subpath is not endpoint-backed. It composes existing component contracts and host-admitted corrected payload captures, so it has no client and no async factory. It owns semantic history and retention while integrations continue to own execution and cancellation.
+The `@sefaria/components/reader-session` and `@sefaria/components/reader` subpaths are not endpoint-backed. The session composes existing component contracts and host-admitted corrected payload captures, so it has no client and no async factory. The reader subpath projects that session view into rendering-only state for `<sefaria-reader>`. Integrations continue to own execution and cancellation, while a website workspace can separately own spatial pane placement.
 
 A composite can resolve a child input by payload role before projection. The child subpath owns the pure resolved-input projection, so the composite does not repeat child transformation logic.
 

@@ -4,7 +4,7 @@
 
 **Accepted direction:** reuse the source card and connections panel, add a headless reader session, and compose them in a controlled reader surface with Back and breadcrumbs. Share the interaction semantics and visual surface between the browser and MCP App. Keep their request execution separate.
 
-This is an illustrated explanation, not the normative API reference. **Current baseline** refers to repository commit `5dedf0a89f9b8486143cc071e01b620cc53247cd`, inspected on September 6, 2026, after the connections panel, bounded client cache, and adaptive MCP connections flow merged. **Observed** describes pinned upstream source. **Planned** identifies accepted work that has not landed on the baseline. The [component](../specs/components.md) and [integration](../specs/integrations.md) specifications remain authoritative.
+This is an illustrated explanation, not the normative API reference. **Current baseline** refers to repository commit `e93990dad1c0d38585a55b5449424f6b8d48e927`, plus the controlled reader surface on this branch as of September 7, 2026. **Observed** describes pinned upstream source. **Planned** identifies accepted work that has not landed on the baseline. The [component](../specs/components.md) and [integration](../specs/integrations.md) specifications remain authoritative.
 
 ## The questions this answers
 
@@ -54,7 +54,7 @@ For our bounded product, the accepted supported surface has one active text-and-
 
 ## 3. The same component can work in both hosts
 
-The shared surface would be a **controlled renderer**: it receives a reader-specific view model plus presentation/interaction properties and emits actions. It would not receive raw API payloads, request objects, a client, or the session's complete capture store.
+The shared surface is a **controlled renderer**: it receives a reader-specific view model plus presentation/interaction properties and emits actions. It does not receive raw API payloads, request objects, a client, or the session's complete capture store.
 
 ![Proposed shared reader surface and session above separate browser and MCP execution paths, converging at pure projection and rendering.](../images/reader-navigation-boundaries.png)
 
@@ -67,7 +67,7 @@ _Proposed runtime paths, showing the browser capture-and-project variant. An exi
 | Controlled reader surface | Navigation bar, pane layout, accessible controls, presentation state supplied by the host, composed action events | Fetching or interpreting API payloads |
 | Existing child elements | Render their existing component view models and emit their existing events | Knowledge of the reader session |
 
-"Headless" means usable without a DOM element. The accepted session lives at `@sefaria/components/reader-session`, not in another npm package. Likewise, the planned reader surface is a visual composition, not a new client facade or a composite async factory that secretly calls child async factories.
+"Headless" means usable without a DOM element. The session lives at `@sefaria/components/reader-session`, not in another npm package. The current `@sefaria/components/reader` projection and `<sefaria-reader>` element form a visual composition, not a new client facade or a composite async factory that secretly calls child async factories.
 
 ### Browser execution
 
@@ -122,7 +122,7 @@ There is no public snapshot format in this delivery. Retention defaults to 20 en
 
 ![Proposed wide reader with two panes and compact reader with a pane switch, sharing the same source-history trail.](../images/reader-navigation-layouts.png)
 
-_Proposed wireframes, not implemented components. The compact illustration is mobile web or a narrow MCP App, not a native-mobile screenshot._
+_The illustration predates the implementation but shows the current responsive contract. The compact view is mobile web or a narrow MCP App, not a native-mobile screenshot._
 
 On a wide surface, show the trail above text and connections side by side. On a narrow surface, show one pane with an explicit Text/Connections switch and a compact Back/current-location control. An accessible trail menu can expose earlier entries without requiring hover.
 
@@ -149,4 +149,4 @@ The component specification now settles push/update rules, stable identities, re
 
 For the MCP connections work, preserve these seams: explicit component actions; host-mediated data access; corrected payloads with request/status identity; shared pure projection; and operation-scoped completion that cannot overwrite a newer navigation. Do not make the server own visual history or return a reader view model as `structuredContent`.
 
-The session foundation proves page-2/Back/page-3 reprojection, late completion rejection, bounded admission, shared capture accounting, interrupted pending connections, and pinned-entry behavior without I/O. The controlled surface, website workspace, and integrated MCP reader remain later slices. Their acceptance still includes a denied MCP tool call, target-text success with links failure, and wide-to-narrow resizing without requests through the actual browser and named-host paths.
+The session foundation proves page-2/Back/page-3 reprojection, late completion rejection, bounded admission, shared capture accounting, interrupted pending connections, and pinned-entry behavior without I/O. The controlled surface now renders paired and single-pane workspaces, history bounds, explicit unavailable states, responsive pane selection, and host-scoped actions without requests. The website workspace and integrated MCP reader remain later slices. Their acceptance still includes a denied MCP tool call, target-text success with links failure, and wide-to-narrow resizing without requests through the actual browser and named-host paths.

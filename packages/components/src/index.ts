@@ -6,6 +6,8 @@ export { SefariaRefLabel, type RefLabelLanguage } from "./ref-label-element.js";
 export type * from "./ref-label.js";
 export { SefariaPopup } from "./popup-element.js";
 export type * from "./popup.js";
+export { SefariaReader } from "./reader-element.js";
+export type * from "./reader.js";
 export { SefariaSourceCard } from "./source-card-element.js";
 export { SefariaConnectionsPanel } from "./connections-panel-element.js";
 export type * from "./connections-panel.js";
