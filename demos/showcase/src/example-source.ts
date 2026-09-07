@@ -46,60 +46,50 @@ return <>
   </section>
 </>;`;
 
-export const sourceCardExampleSource = `const result = useFactoryViewModel(
-  request,
-  { state: "loading", message: \`Loading \${request.tref}.\` },
-  loadSourceCardViewModel,
+export const readerExampleSource = `const controller = await loadReaderController(
+  { tref: "Micah 6:8" },
   client,
+  { signal },
 );
 
-useElementProperty(cardRef, "viewModel", result.viewModel);
-useElementProperty(cardRef, "layout", layout);
+const unbind = bindReaderController(readerElement, controller);
+const unsubscribe = controller.subscribe(({ task, reader }) => {
+  setStatus(task.state === "idle"
+    ? \`Showing \${reader.label}.\`
+    : "Reader request in progress.");
+});
 
-return <section style={{
-  "--sample-font-english": englishFont,
-  "--sample-font-hebrew": hebrewFont,
-}}>
-  <sefaria-source-card ref={cardRef} />
-</section>;`;
+// On teardown:
+unsubscribe();
+unbind();
+controller.dispose();`;
 
-export const readerExampleSource = `const [session, setSession] = useState<ReaderSession>();
-const [activePane, setActivePane] = useState<ReaderPane>("source");
+export const manualReaderExampleSource = `const dataSource =
+  createSefariaReaderDataSource(client);
+let session = createReaderSession({
+  source: await dataSource.loadSource({ tref: "Micah 6:8" }, signal),
+});
 
-async function openSource(request, signal) {
-  const result = await getV3Texts({
-    client,
-    path: { tref: request.tref },
-    query: { version: ["primary", "translation"], return_format: "default" },
-    signal,
-  });
-  if (!result.data) throw new Error(result.error?.error ?? "No text data.");
-  const source = createReaderSourceContent(result.data, request);
-  setSession(createReaderSession({ source }));
-}
+sourceCard.viewModel = session.view.current.source?.viewModel;
+connectionsPanel.viewModel =
+  session.view.current.connections?.state === "view"
+    ? session.view.current.connections.viewModel
+    : undefined;
 
-function selectSource(position, ref) {
-  if (!session) return;
+sourceCard.addEventListener("sefaria-source-select", async (event) => {
   const selected = session.selectSourcePosition(
     session.view.currentEntryId,
-    position,
+    event.detail.position,
   );
-  if (selected.state !== "applied") {
-    setError(selected.reason);
-    return;
-  }
-  setSession(selected.session);
-  void loadConnections(selected.session.view.currentEntryId, ref);
-}
-
-useElementProperty(
-  readerRef,
-  "viewModel",
-  session && createReaderViewModel(session.view),
-);
-useElementProperty(readerRef, "activePane", activePane);
-
-function onPaneChange(event: CustomEvent<{ pane: ReaderPane }>) {
-  setActivePane(event.detail.pane);
-}
-`;
+  if (selected.state !== "applied") return;
+  session = selected.session;
+  const request = { tref: event.detail.ref, withText: true };
+  const begun = session.beginConnections(session.view.currentEntryId, request);
+  if (begun.state !== "applied") return;
+  const content = await dataSource.loadConnections(request, {}, signal);
+  session = begun.session.completeConnections(
+    begun.value.operationId,
+    content,
+  ).session;
+  renderSeparateColumns(session.view.current);
+});`;

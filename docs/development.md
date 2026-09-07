@@ -1,8 +1,8 @@
-> Created/edited by GitHub Copilot with human review/feedback by avilevin.
+> Created/edited by GitHub Copilot with human review/feedback by Avi Levin.
 
 # Development
 
-This contributor guide describes the current implementation on this branch as of September 7, 2026, based on `origin/main` commit `a513c6dd2aabafc6277a103339a6edd66928dadb` plus the website reader workspace.
+This contributor guide describes the current implementation on this branch as of September 7, 2026, based on `origin/main` commit `9a177e3b51cfe14de1540daef1fa74207b52fa48` plus the integrated MCP reader and its updated showcase presentation.
 
 The sections below separate delivered baseline behavior, changes from older plans, and work that remains intended. A runnable command is not proof that the corresponding integration is finished.
 
@@ -30,7 +30,8 @@ For reader-oriented explanations, use the friendly guides rather than the archiv
 | `demos/source-card-live-demo` | Makes one deployed v3 text request for segment, range, spanning, nested non-spanning, and one-sided presets, renders `<sefaria-source-card>`, and attributes each selected edition once at card level. |
 | `demos/connections-panel-live-demo` | Synchronizes a selectable source card and connections panel, opens a target in its server-provided parent section, selects its first segment, and pages a captured links response without child requests. |
 | `demos/reader-workspace` | Demonstrates a regular website host with viewport-height spatial panes over the lower-level reader session and shared browser data source, plus an interactive host that uses `loadReaderController` and `bindReaderController` with the supported `<sefaria-reader>` component. |
-| `demos/mcp` | Exposes live `get_text` and adaptive `get_links_between_texts` tools, packages a single-file App, validates corrected payloads, calls the source-card and connections pure factories, renders request-free elements without App-side requests, and provides an authenticated isolated VS Code walkthrough with negotiated chat fallback. |
+| `demos/mcp` | Exposes live `get_text` and adaptive `get_links_between_texts` tools, packages a single-file App, validates corrected payloads and metadata, seeds one stateful reader with zero initial requests, continues through host-proxied same-App tool calls, retains local breadcrumbs, and provides an authenticated isolated VS Code hierarchy walkthrough with separate explicit chat export. |
+| `demos/showcase` | Presents the supported controller-backed Reader, a separate manually composed side-by-side source/connections workflow, the Linker, and captured integrated MCP Reader evidence in the Reveal.js GitHub Pages deck. |
 | `demos/linker` | Builds an embeddable classic script, bookmarklet loader, automatic and no-autostart article pages, asynchronous citation detection, safe DOM linking, and request-free popups. Public hosting and broad live-site qualification remain external. |
 | `tests/compatibility` | Delivers focused pinned client and transform comparisons, a composed v3 validate-to-transform smoke case, and grouped qualification output without network access. The evidence is representative and non-exhaustive. |
 
@@ -53,10 +54,9 @@ These are remaining intended capabilities, not removed plans. A scaffold, comman
 | Planned capability | Intended result | Contract |
 | --- | --- | --- |
 | Public Linker hosting and broader live-site qualification | Host the built artifact and prove the bounded integration against representative third-party sites and browser policies | [Linker demonstration](linker-demo.md), [Linker integration](specs/integrations.md#linker-script-purpose) |
-| Integrated MCP reader | Qualify same-App host-proxied tool calls, then use the supported reader while retaining explicit chat export | [MCP App](specs/integrations.md#mcp-app-purpose) |
 | Broader compatibility coverage | Extend the small current suite with additional source-backed cases, without promising exhaustive corpus equivalence | [Compatibility evidence](evidence.md#current-focused-compatibility-qualification) |
 
-The client, text-transform foundations, current components, controlled reader, contextual and multi-pane website reader demos, adaptive MCP App, current named-host composer-delivery acceptance, and Linker demonstration are already delivered. Same-App MCP tool-call navigation is not established by the composer flow. New component slices still need concrete consumers; they do not justify restoring the superseded generalized model or hidden client policies.
+The client, text-transform foundations, current components, controlled reader, contextual and multi-pane website reader demos, same-App MCP reader, named-host hierarchy acceptance, explicit chat export, and Linker demonstration are already delivered. New component slices still need concrete consumers; they do not justify restoring the superseded generalized model or hidden client policies.
 
 ## Technology
 
@@ -93,7 +93,7 @@ pnpm preview:pages
 
 The generated `dist/pages` directory puts the deck at the site root, browser demonstrations under `demos/`, and the Linker artifact under `demos/linker/`. In GitHub Actions, the build derives the public Linker URL from `GITHUB_REPOSITORY`. For another public location, set `SEFARIA_PAGES_URL` to the HTTPS site root before `pnpm build:pages`.
 
-Public screenshots live under `demos/showcase/public/media` with `manifest.json` provenance. The MCP slide displays recorded named-host evidence; GitHub Pages does not run the Python MCP server. Confirm quotation permission and every public asset before enabling the Pages deployment.
+Public screenshots live under `demos/showcase/public/media` with `manifest.json` provenance. The MCP slide displays the recorded stateful Reader, retained hierarchy, and explicit chat export from named-host acceptance; GitHub Pages does not run the Python MCP server. Confirm quotation permission and every public asset before enabling the Pages deployment.
 
 ## Workspace
 
@@ -377,19 +377,21 @@ The isolated Copilot permission file records approval only for the `sefaria-comp
 
 Sign in to GitHub Copilot once in that window, confirm the `sefaria-components-demo` workspace server when prompted, and close the window. Authentication remains in the dedicated user-data directory and is not committed.
 
-The Playwright acceptance harness then launches a fresh VS Code process with that same user-data and extensions pair, connects over a reserved CDP port, accepts the narrow session approval, and runs the source-card and connections walkthrough. It writes per-stage screenshots plus `docs/images/mcp-app-vscode-walkthrough.json` only after every stage passes:
+The Playwright acceptance harness then launches a fresh VS Code process with that same user-data and extensions pair, connects over a reserved CDP port, accepts the narrow session approval, and runs the integrated Reader walkthrough. Screenshots remain in a temporary staging directory until every stage passes; then it publishes the screenshots and `docs/images/mcp-app-vscode-walkthrough.json`. A failed walkthrough preserves the previous outputs and reports its temporary diagnostic directory.
 
 ```powershell
 pnpm capture:mcp:vscode
 ```
 
-To capture the card and keep the controlled VS Code window open for continued manual use:
+To capture the Reader and keep the controlled VS Code window open for continued manual use:
 
 ```powershell
 pnpm demo:mcp:vscode
 ```
 
-On Windows, a small Python launcher uses the native minimized startup flag so automation does not take foreground focus while the user is typing elsewhere. The harness follows VS Code's own Playwright/CDP Chat smoke-test pattern and enables the built-in smoke-test driver only for the capture process. VS Code accepts App `ui/message` requests by filling and focusing its composer, so the harness verifies the exact text, submits that composer, and records `composer-submitted` in the result. After a successful `demo:mcp:vscode` capture, it closes that process and relaunches the same isolated workspace minimized without a debugging port or smoke-test driver. The demo command stays attached until the replacement VS Code window closes; restore it from the taskbar for continued manual use. `VSCODE_MCP_PROFILE_ROOT` overrides the default profile root. `VSCODE_USER_DATA_DIR`, `VSCODE_EXTENSIONS_DIR`, `VSCODE_EXECUTABLE_PATH`, `VSCODE_DEMO_PYTHON`, and `VSCODE_MCP_SCREENSHOT` override their individual paths. An unsigned profile fails with an explicit authentication message and writes only a diagnostic screenshot under the system temporary directory.
+On Windows, a small Python launcher uses the native minimized startup flag so automation does not take foreground focus while the user is typing elsewhere. The harness follows VS Code's own Playwright/CDP Chat smoke-test pattern and enables the built-in smoke-test driver only for the capture process. Data navigation stays in one App through host-proxied tools. Explicit chat export fills the real composer through `ui/message`; the harness verifies that text without submitting it and records `host-message`. After a successful `demo:mcp:vscode` capture, it closes that process and relaunches the same isolated workspace minimized without a debugging port or smoke-test driver. The demo command stays attached until the replacement VS Code window closes; restore it from the taskbar for continued manual use. `VSCODE_MCP_PROFILE_ROOT` overrides the default profile root. `VSCODE_USER_DATA_DIR`, `VSCODE_EXTENSIONS_DIR`, `VSCODE_EXECUTABLE_PATH`, `VSCODE_DEMO_PYTHON`, and `VSCODE_MCP_SCREENSHOT` override their individual paths. An unsigned profile fails with an explicit authentication message and retains diagnostics under the system temporary directory.
+
+For presentation capture, set `VSCODE_MCP_SHOWCASE=1` and an explicit `VSCODE_MCP_SCREENSHOT` path outside the public media directory. This selects the natural-language prompt, resets the configured zoom, enters fullscreen, and centers Chat before the same walkthrough. The isolated profile hides session history and sticky prompts. Native CDP screenshots avoid Electron zoom clipping, and bounded host-list scrolling keeps the Reader header visible. Inspect the initial, hierarchy, and export images before promoting those three files into the gallery; the result remains labeled `showcase-capture`, not a separate host qualification.
 
 The dedicated user-data, shared-data, Copilot home, and process-home directories are intentionally separate from the standard VS Code and Agent Host profiles. This guarantees a distinct Electron process, makes the CDP port reliable even while normal VS Code windows are open, excludes standard-profile MCP servers and shared application state, and avoids copying authentication or secret-storage files. A normal named profile can share standard-profile authentication, but it does not provide the same process or Agent Host configuration isolation.
 

@@ -1,10 +1,10 @@
-> Created/edited by GitHub Copilot with human review/feedback by avilevin.
+> Created/edited by GitHub Copilot with human review/feedback by Avi Levin.
 
 # Sefaria Web Components
 
 Render Sefaria passages in your own application without bringing along the Sefaria reader. Use a typed client to obtain text, a factory to prepare it, and a Web Component to display it.
 
-Explore the repository through the interactive [Sefaria Web Components showcase](https://arithmomaniac.github.io/sefaria-web-components/), including live client/factory/component examples, responsive source cards, the Linker, and captured MCP App results.
+Explore the repository through the interactive [Sefaria Web Components showcase](https://arithmomaniac.github.io/sefaria-web-components/), including the supported stateful Reader, a manually composed side-by-side workflow, the Linker, and captured MCP Reader results.
 
 > **Experimental.** This Microsoft Global Hackathon 2026 project has no support or stability guarantee. It is not an official Sefaria product. Packages are currently private workspace packages, not a published installation offering.
 
@@ -39,7 +39,7 @@ The [development guide](docs/development.md) covers Corepack, the Python fixture
 
 The client, text transforms, text segment, bilingual segment, reference label, selectable source card, connections panel, request-free popup, contextual connections reader, DOM-free reader session and controller, controlled reader surface, embeddable Linker demonstration, and Core MCP App are implemented on the [documented implementation baseline](docs/development.md#implemented-on-this-baseline). A source card handles both a single segment and a collection of text from one response.
 
-Run `pnpm dev:reader-workspace` for the supported stateful reader and lower-level spatial website demonstrations, `pnpm dev:connections` for the contextual reader, or `pnpm dev:linker` for the embeddable citation demonstration. The MCP App has rendered successfully in an authenticated, isolated VS Code Copilot Chat session; the repository includes the captured host screenshot, persistent profile bootstrap, and Playwright acceptance harness, and the profile requires one manual Copilot sign-in before its first automated run. Same-App MCP reader navigation remains **planned**. Public hosting and broad live-site qualification for the Linker are also outside the delivered demonstration. [Development](docs/development.md) separates current behavior, superseded plans, and remaining work.
+Run `pnpm dev:reader-workspace` for the supported stateful reader and lower-level spatial website demonstrations, `pnpm dev:connections` for the contextual reader, or `pnpm dev:linker` for the embeddable citation demonstration. The MCP Reader has completed an authenticated, isolated VS Code Copilot Chat walkthrough covering same-App connections, nested navigation, retained breadcrumbs, and explicit chat export; the persistent profile requires one manual Copilot sign-in before its first automated run. Public hosting and broad live-site qualification for the Linker remain outside the delivered demonstration. [Development](docs/development.md) separates current behavior, superseded plans, and remaining work.
 
 ## License and ownership
 

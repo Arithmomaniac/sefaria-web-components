@@ -1,10 +1,10 @@
-> Created/edited by GitHub Copilot with human review/feedback by avilevin.
+> Created/edited by GitHub Copilot with human review/feedback by Avi Levin.
 
 # Integration specification
 
 ## Status
 
-The standalone connections reader, multi-pane website reader workspace, Core MCP App, adaptive connections tool and rendering, VS Code Copilot Chat source-card and composer-delivery walkthrough, and Linker integration are current. A successful App `ui/message` response means the host accepted the follow-up; the host can enqueue it immediately or place it in its composer for explicit submission.
+The standalone connections reader, multi-pane website reader workspace, stateful MCP reader, adaptive connections tool and rendering, authenticated VS Code reader walkthrough, and Linker integration are current. MCP reader data operations use host-proxied server-tool calls. A successful App `ui/message` response applies only to the reader's separate explicit chat-export action and means the host accepted that message for enqueueing or composer placement.
 
 ## Shared integration rules
 
@@ -16,17 +16,17 @@ An integration must not give a reference, raw payload, client, host, or `fetch` 
 
 Unknown JSON must pass a generated `@sefaria/client` validator before component projection. Validation failures report structured paths.
 
-## Public showcase deck [Planned]
+## Public showcase deck [Current]
 
 The GitHub Pages showcase is a static Reveal.js host for project explanation, live browser demonstrations, and captured named-host evidence. It owns presentation state, reference inputs, client creation, cancellation, stale-result suppression, and assignment of factory results to persistent request-free elements.
 
-The React examples bind existing component factories to existing Web Components. A request change runs the owning factory and assigns the new component-specific view model to the same mounted element. Theme, font, viewport width, code-tab, and slide-navigation changes do not run a component factory or recreate that element.
+The React examples bind existing component factories or the supported reader controller to existing Web Components. The Reader slide calls `loadReaderController` with a starting reference and binds the result to one persistent `<sefaria-reader>`. The following interaction slide deliberately demonstrates the lower-level alternative: the host places separate source-card and connections-panel elements in side-by-side columns and owns their session transitions. Theme, font, viewport width, code-tab, and slide-navigation changes do not recreate a mounted element or run a request after settled content.
 
 Live examples call the deployed Sefaria API by default. Network, abort, contract-validation, documented HTTP, projection, partial, and empty outcomes remain distinct. The showcase does not silently replace a failed live request with fixture data. Deterministic tests can inject dated payloads through the existing client boundary without making fixture mode part of the public demonstration.
 
 Interactive demonstrations run in same-origin iframe viewports so resizing changes their actual CSS viewport width and container-query behavior. The frame scrolls independently, inherits the deck's resolved light/dark theme and font tokens, and stays mounted after its first visit. Unvisited examples make no request. Leaving a pending example aborts or supersedes its work; returning exposes retained completed content or an explicit interrupted state rather than retrying invisibly.
 
-The deck can display captured MCP host screenshots, but GitHub Pages does not run the Python MCP server. Screenshot galleries identify recorded evidence and do not imitate an interactive MCP host. Public assets include provenance and exclude authenticated, private, or unrelated browser content.
+The deck displays captured MCP Reader screenshots, but GitHub Pages does not run the Python MCP server. The gallery shows the initial stateful Reader, retained same-App hierarchy, and explicit nested-reference chat export. Screenshot galleries identify recorded evidence and do not imitate an interactive MCP host. Public assets include provenance and exclude authenticated, private, or unrelated browser content.
 
 The Pages artifact contains an allowlisted set of built browser demonstrations. The deck is the site root, existing demonstrations remain under stable subpaths, and the public Linker bookmarklet points to the deployed HTTPS artifact rather than localhost. Pull requests build and test the artifact without publishing; main publishes only after the normal checks and asset approval gates.
 
@@ -72,17 +72,19 @@ Selecting a source segment prunes later panes, updates the retained entry, and i
 
 The MCP App renders Sefaria source material inside an MCP Apps-compatible host. The first render uses the tool result and makes no second request.
 
-The current Core App renders one source card from a corrected `/api/v3/texts/{tref}` payload.
-
-The current connections extension renders the existing request-free connections panel from a corrected `/api/links/{tref}` payload. Selecting a connection sends a user-role follow-up message that asks the assistant to call `get_text` for the exact selected target. The source appears in a later chat result; the connections App neither fetches the source nor replaces itself with it. This composer or queued-message path is not same-App reader navigation.
+The current App renders one persistent request-free `<sefaria-reader>`. A corrected `/api/v3/texts/{tref}` tool result seeds its source synchronously, then the reader controller loads that selected row's connections through the originating MCP server. A corrected `/api/links/{tref}` tool result can instead seed a connections-only reader synchronously.
 
 The App is a self-contained HTML resource. The MCP server can package it without the TypeScript checkout at runtime.
 
-### Reader-controller use [Planned]
+### Reader-controller use [Current]
 
-The planned integrated reader keeps one `@sefaria/components/reader-controller` instance in the TypeScript App instance. Its first render constructs the controller from already validated source or connections content and performs zero requests. Later controller operations use an MCP-specific reader data source whose only transport is a supported host-proxied tool call. The browser-client `loadReaderController` path is not reachable from the MCP App.
+The integrated reader keeps one `@sefaria/components/reader-controller` instance in the TypeScript App instance. Its first render constructs the controller from already validated source or connections content and performs zero requests. Later controller operations use an MCP-specific reader data source whose only transport is a supported host-proxied tool call. The browser-client `loadReaderController` path is not reachable from the MCP App.
 
 The Python tools remain stateless. Each tool result must carry the corrected payload plus effective request metadata sufficient to construct admitted reader content: source reference and edition selectors for text, or reference and resolved `with_text` coverage for links. The App validates both payload and metadata before controller admission. Python does not store reader history, controller snapshots, operation IDs, or expiration state.
+
+The qualified VS Code host advertises `serverTools`, omits `hostContext.toolInfo`, and routes bare `get_text` and `get_links_between_texts` App calls to the originating server. The first integrated reader therefore supports those two bare names only after the host advertises `serverTools`. It does not derive a namespace, list unrelated tools, send a chat message as a transport fallback, or call Sefaria directly. Another host must be qualified separately; unavailable, rejected, malformed, or mismatched tool results remain explicit reader or integration failures.
+
+A source-card tool result seeds the exact returned target row when present, otherwise the first qualified row for a section target. The request-free reader is rendered before any host-proxied continuation. The App then loads that selected row's connections through one `get_links_between_texts` call. A connections tool result seeds a connections-only reader with zero continuation calls. Opening a connection performs the controller's bounded source qualification through `get_text` and then one `get_links_between_texts` call. Back, breadcrumb activation, category changes, paging, and covered preview changes remain local.
 
 If the host destroys the App instance, in-memory reader history is lost. A later App can start from its delivered tool result, but this is not restoration of the prior controller. Durable snapshots, server-side sessions, reference replay, and implicit reconstruction are outside the current contract.
 
@@ -168,9 +170,9 @@ The current tool-result `_meta["sefaria/connections"]` object contains:
 
 The App requires exactly one supported Sefaria result discriminator. It rejects missing or ambiguous metadata rather than guessing from payload shape. For connections, it validates the envelope and then validates `payload` with the generated links response contract selected by the documented 200 or 400 status. Diagnostics prefix generated payload paths with `/structuredContent/payload`.
 
-For a valid success payload, the App retains one capture containing the validated payload and effective request. It chooses Commentary at page zero when available, otherwise the first category in the factory's deterministic order. Overview remains available. Category changes reset to page zero; category, page, and preview-visibility changes call the pure connections factory and make zero requests. The fixed page size remains 20.
+For a valid success payload, the reader controller retains one capture containing the validated payload and effective request. Connections begin at Overview. Category changes reset to page zero; category, page, and visibility changes project the retained capture and make zero requests. The fixed page size remains 20.
 
-A metadata-only result renders entries without previews. Load previews sends a user-role chat request for `get_links_between_texts` with the same reference and explicit `with_text="1"`; it does not call a server tool or `fetch` from the App.
+A metadata-only result renders entries without previews. Load previews calls bare `get_links_between_texts` through the qualified host server-tool capability with the same reference and explicit `with_text="1"`. It does not call `fetch`, send a chat message, or create another App result.
 
 ## MCP boundary sequence
 
@@ -180,8 +182,8 @@ sequenceDiagram
     participant Host as MCP host
     participant App as MCP App
     participant Validator as @sefaria/client validator
-    participant Factory as Source-card pure factory
-    participant Element as sefaria-source-card
+    participant Controller as Reader controller
+    participant Reader as sefaria-reader
 
     Tool->>Tool: GET /api/v3/texts/{tref}
     Tool-->>Host: text content + structuredContent + metadata
@@ -193,19 +195,21 @@ sequenceDiagram
         App-->>Host: integration error state
     else Documented 400 or 404
         Validator-->>App: typed error payload
-        App->>Element: SourceCardHttpErrorViewModel
+        App-->>Host: request-free documented error surface
     else Valid 200 payload
         Validator-->>App: typed corrected payload
-        App->>Factory: validated payload and request tref
-        Factory-->>App: SourceCardViewModel
-        App->>Element: viewModel
-        Element-->>Host: rendered shadow DOM
+        App->>Controller: createReaderController(validated seed)
+        App->>Reader: bind immutable ReaderViewModel
+        Controller->>Host: callServerTool(get_links_between_texts)
+        Host-->>Controller: validated links result
+        Controller->>Reader: replace immutable ReaderViewModel
+        Reader-->>Host: rendered source and connections
     end
 ```
 
-The App makes zero network requests during this sequence.
+The first reader render makes zero requests. Its initial connections continuation uses the host-proxied tool boundary after source content is visible.
 
-### Current connections interaction sequence
+### Current reader navigation sequence
 
 ```mermaid
 sequenceDiagram
@@ -213,32 +217,28 @@ sequenceDiagram
     participant Host as MCP host
     participant App as MCP App
     participant Validator as @sefaria/client validator
-    participant Factory as Connections pure factory
-    participant Panel as sefaria-connections-panel
+    participant Controller as Reader controller
+    participant Reader as sefaria-reader
 
-    Tool->>Tool: GET /api/links/{tref}
-    Tool-->>Host: bounded text + {payload} + connections metadata
-    Host-->>App: one tool result
-    App->>App: validate discriminator, metadata, and envelope
-    App->>Validator: unknown payload and documented status
-    Validator-->>App: typed corrected response
-    App->>Factory: captured payload, request, and local projection
-    Factory-->>App: ConnectionsViewModel
-    App->>Panel: viewModel
-    Panel-->>App: selected target
-    alt Host supports text messages
-        App->>Host: user message requesting get_text(target)
-        Host-->>Tool: later get_text invocation
-    else Unsupported, rejected, or unconfirmed
-        App-->>Host: explicit status and selectable follow-up text
-    end
+    Reader-->>Controller: open current connection
+    Controller->>Host: callServerTool(get_text target)
+    Host-->>Controller: validated target result
+    Controller->>Host: optional callServerTool(get_text context)
+    Host-->>Controller: validated contextual result
+    Controller->>Host: callServerTool(get_links_between_texts)
+    Host-->>Controller: validated links result
+    Controller->>Reader: append immutable history entry
+    Reader-->>Controller: activate Back or ancestor breadcrumb
+    Controller->>Reader: local retained-history projection
 ```
 
-The App resolves a connection activation against the currently rendered entry's ID and target reference. It sends only a fixed instruction containing the target reference as data, requests `version_language="both"`, and excludes preview HTML or arbitrary event text. A forged or stale event sends no message.
+The App resolves a connection activation against the currently rendered entry ID and exact target reference. The controller performs at most two source calls and one links call, requests `version_language="both"`, and excludes preview HTML or arbitrary event text. A forged or stale event performs no tool call.
 
-After explicit activation, the App attempts `ui/message` even when the initialized host omits the optional text-message capability advertisement. It exposes sending, delivered, rejected, and unconfirmed states outside the request-free panel and suppresses duplicate activation while a send is pending. A successful response means that the host accepted delivery; the host may enqueue the message or populate its composer. The App does not automatically retry an uncertain send because the host may already have received it. Unsupported or failed delivery leaves the panel usable and displays selectable follow-up text.
+Back and ancestor breadcrumb activation use retained reader history and make no server-tool call. A source selection issues one links continuation. Category and page changes remain local while capture coverage matches. Preview replacement performs one text-inclusive links call only when the retained capture lacks previews.
 
-A newer tool result, cancellation, or teardown invalidates pending UI continuations and removes result-specific listeners. A late acknowledgement cannot update a newer result. Reader snapshots, Back, breadcrumbs, and in-panel source navigation remain outside this extension.
+The reader's explicit chat-export action is separate from data navigation. After explicit activation, the App attempts `ui/message` even when the initialized host omits the optional text-message capability advertisement. It exposes sending, delivered, rejected, stale, and unconfirmed states outside the request-free reader, suppresses duplicate activation while a send is pending, and does not retry an uncertain send.
+
+A newer tool result, cancellation, or teardown aborts pending controller work, invalidates pending UI continuations, removes result-specific listeners, and disposes the controller. A late server-tool result or message acknowledgement cannot update a newer result.
 
 ## Server and client equivalence
 
@@ -285,26 +285,27 @@ The server rejects a successful payload with more than 400 text leaves before it
 
 ## MCP host acceptance
 
-Core acceptance uses VS Code Copilot Chat as the named MCP Apps-compatible host for rendering, local interaction, and composer delivery. The App attempts `ui/message` after explicit activation even when the host omits the optional text-message capability advertisement, because current VS Code accepts that request and places its content in the composer.
+Core acceptance uses VS Code Copilot Chat as the named MCP Apps-compatible host for rendering, host-proxied same-App tool calls, retained reader history, local interaction, and explicit chat export. The App attempts `ui/message` only after explicit chat-export activation, even when the host omits the optional text-message capability advertisement, because the qualified VS Code host accepts that request and places its content in the composer.
 
 Record:
 
 - the exact VS Code and GitHub Copilot Chat versions
 - the launch configuration
-- the `get_text` invocation and rendered source-card interaction
+- the initial `get_text` invocation, automatic reader connections continuation, same-App hierarchy navigation, breadcrumb activation, and explicit chat export
 - an automated screenshot or a separately recorded automation limitation
 
 Standalone browser rendering does not prove host compatibility. Host limitations remain separate from component failures.
 
 The acceptance harness extends the existing isolated Playwright/CDP flow into one asserted walkthrough:
 
-1. Render the existing Leviticus 19:18 bilingual source-card baseline.
-2. Request Micah 6:8 connections with omitted `with_text` and verify Apps negotiation produces previews and opens Commentary.
-3. Select another available category, return to Commentary, advance one page, and return to page zero without another chat turn.
-4. Activate a displayed connection, including one keyboard activation, verify the App's `ui/message` fills the real VS Code composer with the exact selected target, submit that composer, and verify the subsequent `get_text` invocation and source card.
-5. Request Micah 6:8 with explicit `with_text="0"`, verify metadata-only rendering, activate Load previews, verify the App fills the composer with the explicit `"1"` request, submit it, and verify the later preview-bearing result.
+1. Invoke only `get_text` for Micah 6:8 and verify the reader renders the bilingual source before automatically loading connections through the same App.
+2. Select Commentary, switch to another available category, return, advance one page, and return to page zero without another chat turn.
+3. Activate a displayed connection and verify the same App replaces its current reader entry after host-proxied source qualification and connections loading.
+4. Activate a connection from the child entry and verify the same App retains at least three breadcrumb levels.
+5. Trigger explicit chat export from the deepest entry and verify `ui/message` places that exact selected target in the VS Code composer without performing reader data transport.
+6. Activate the middle breadcrumb and then the root breadcrumb, verifying both retained ancestors restore locally without another chat turn.
 
-The harness tracks new result identities so an older iframe or card cannot satisfy a later stage. Micah 6:8 must expose a second category and at least one category with more than 20 links for the live category/paging stages; missing prerequisites fail with a concrete diagnostic instead of being skipped. Deterministic fixtures remain the authority for stable multi-category and multi-page behavior. Genesis 1:1 is reserved for explicitly identified high-volume tests rather than ordinary examples.
+The harness tracks one initial App frame and requires all later reader stages to remain in that frame. Micah 6:8 must expose a second category, at least one category with more than 20 links, and two navigable connection hops for the live hierarchy stages; missing prerequisites fail with a concrete diagnostic instead of being skipped. Deterministic fixtures remain the authority for stable multi-category, multi-page, failure, cancellation, and metadata-only preview behavior. Genesis 1:1 is reserved for explicitly identified high-volume tests rather than ordinary examples.
 
 Each successful stage records a screenshot, and the run writes a machine-readable result with stages, selected references, host versions, artifacts, and any failure. A partial walkthrough exits nonzero. `capture:mcp:vscode` and `demo:mcp:vscode` execute the same assertions; the demo command additionally retains its current post-capture interactive relaunch.
 
@@ -318,24 +319,24 @@ Each successful stage records a screenshot, and the run writes a machine-readabl
 - `structuredContent` matches a corrected generated API payload.
 - Metadata identifies the fixed operation, documented status, and exact request reference.
 - Unknown payload validation reports structured paths.
-- The App calls the source-card pure factory.
-- The element receives only `SourceCardViewModel`.
+- The App creates one reader controller from validated admitted content.
+- The element receives only immutable `ReaderViewModel` replacements and visual or interaction properties.
 - The first render makes zero requests.
-- Client and server modes produce equal view models for the same payload.
+- A source seed schedules one host-proxied links continuation; a connections-only seed schedules none.
 - A wheel test reads every packaged runtime artifact.
 - Automated tests make no network request.
 - A successful payload larger than the source-card render limit fails as a tool error.
-- VS Code Copilot Chat renders the packaged card from one `get_text` result.
+- VS Code Copilot Chat renders the packaged reader from one initial `get_text` result.
 - The connections tool resolves omitted `with_text` from the initialized client's Apps capability and preserves explicit `"0"` and `"1"` overrides.
 - One connections invocation performs one links request and returns the unchanged validated response inside the specified object envelope.
 - A successful links response larger than 5 MiB decoded or 10,000 entries fails explicitly without partial projection.
 - The App validates connections metadata, envelope, documented status, and corrected payload before projection.
-- The App calls the connections pure factory and gives the element only `ConnectionsViewModel`.
-- Initial category selection, category changes, and paging follow the specified rules and make zero App requests.
-- Connection activation attempts one fixed user-role follow-up for the exact current target. A successful host response can represent immediate enqueueing or composer population.
-- Missing integration wiring, rejected, or unconfirmed messaging leaves the panel usable with exact selectable follow-up text and no automatic retry.
-- Metadata-only rendering preserves explicit caller intent; Load previews requests a later explicit text-inclusive tool call.
-- The extended named-host walkthrough completes every source-card, connections, local-navigation, connected-source, and preview-loading stage with stage-specific assertions and artifacts, recording automatic delivery, composer submission, or manual fallback for each App-initiated follow-up.
+- Category changes and paging project retained captures and make zero host calls.
+- Connection activation performs bounded host-proxied source qualification plus one links continuation in the same App.
+- Back and retained breadcrumb activation restore locally without host calls.
+- Metadata-only rendering preserves explicit caller intent; Load previews performs one host-proxied text-inclusive links call.
+- Explicit chat export sends one fixed user-role message for the exact current target. Rejected, stale, concurrent, or unconfirmed messaging leaves the reader usable and is not retried automatically.
+- The named-host walkthrough completes the initial reader, local connections controls, two same-App connection hops, deep chat export, middle breadcrumb activation, and root breadcrumb activation with stage-specific assertions and artifacts.
 
 ## Linker script purpose
 

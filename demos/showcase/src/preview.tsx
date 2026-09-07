@@ -1,31 +1,30 @@
-import {
-  createSefariaClient,
-  getLinks,
-  getV3Texts,
-  type CoreLinkResponse,
-  type CoreV3TextsResponse,
-  type SefariaClient,
-} from "@sefaria/client";
+import { createSefariaClient } from "@sefaria/client";
 import "@sefaria/components";
 import type {
   ConnectionsProjection,
   ConnectionsRequest,
+  ConnectionsViewModel,
+  SefariaConnectionsPanel,
   SefariaReader,
   SefariaSourceCard,
   SefariaTextSegment,
-  SourceCardRequest,
   SourceCardViewModel,
   TextSegmentRequest,
   TextSegmentViewModel,
 } from "@sefaria/components";
+import { bindReaderController } from "@sefaria/components";
 import {
-  createReaderConnectionsContent,
+  createSefariaReaderDataSource,
+  loadReaderController,
+  type ReaderController,
+  type ReaderControllerSnapshot,
+} from "@sefaria/components/reader-controller";
+import {
   createReaderSession,
-  createReaderSourceContent,
+  type ReaderSourceContent,
   type ReaderSession,
+  type ReaderTransition,
 } from "@sefaria/components/reader-session";
-import { createReaderViewModel } from "@sefaria/components/reader";
-import { loadSourceCardViewModel } from "@sefaria/components/source-card";
 import { loadTextSegmentViewModel } from "@sefaria/components/text-segment";
 import {
   useCallback,
@@ -42,6 +41,7 @@ import { useFactoryViewModel } from "./factory-binding.js";
 import "./styles.css";
 
 const client = createSefariaClient();
+const readerDataSource = createSefariaReaderDataSource(client);
 
 function TextDemo() {
   const [request, setRequest] = useState<TextSegmentRequest>({
@@ -132,30 +132,131 @@ function TextDemo() {
   );
 }
 
-function SourceCardDemo() {
-  const [request, setRequest] = useState<SourceCardRequest>({
-    tref: "Micah 6:6-8",
-  });
-  const [draft, setDraft] = useState(request.tref);
-  const [contentLanguage, setContentLanguage] =
-    useState<SefariaSourceCard["contentLanguage"]>("both");
-  const [layout, setLayout] = useState<SefariaSourceCard["layout"]>("auto");
-  const [englishFont, setEnglishFont] = useState("Georgia");
-  const [hebrewFont, setHebrewFont] = useState("Noto Serif Hebrew");
-  const loading = useMemo<SourceCardViewModel>(
-    () => ({ state: "loading", message: `Loading ${request.tref}.` }),
-    [request.tref],
+function ReaderDemo() {
+  const elementRef = useRef<SefariaReader>(null);
+  const [draft, setDraft] = useState("Micah 6:8");
+  const [status, setStatus] = useState("Waiting for the first request.");
+  const [error, setError] = useState<string>();
+  const controller = useRef<ReaderController | undefined>(undefined);
+  const unbind = useRef<(() => void) | undefined>(undefined);
+  const unsubscribe = useRef<(() => void) | undefined>(undefined);
+  const initialization = useRef<AbortController | undefined>(undefined);
+  const generation = useRef(0);
+
+  const releaseController = useCallback(() => {
+    unsubscribe.current?.();
+    unsubscribe.current = undefined;
+    unbind.current?.();
+    unbind.current = undefined;
+    controller.current?.dispose();
+    controller.current = undefined;
+  }, []);
+
+  const renderStatus = useCallback((snapshot: ReaderControllerSnapshot) => {
+    switch (snapshot.task.state) {
+      case "idle":
+        setStatus(`Showing ${snapshot.reader.label}.`);
+        setError(undefined);
+        break;
+      case "loading-source":
+        setStatus(`Opening ${snapshot.task.targetRef}.`);
+        break;
+      case "loading-connections":
+        setStatus(`Loading connections for ${snapshot.task.request.tref}.`);
+        break;
+      case "error":
+        setStatus(`${snapshot.reader.label} remains open.`);
+        setError(snapshot.task.message);
+        break;
+    }
+  }, []);
+
+  const navigate = useCallback(
+    async (targetRef: string) => {
+      initialization.current?.abort();
+      const currentInitialization = new AbortController();
+      initialization.current = currentInitialization;
+      const currentGeneration = ++generation.current;
+      releaseController();
+      if (elementRef.current !== null) elementRef.current.viewModel = undefined;
+      const normalized = targetRef.trim();
+      setStatus(`Opening ${normalized}.`);
+      setError(undefined);
+      try {
+        const next = await loadReaderController({ tref: normalized }, client, {
+          signal: currentInitialization.signal,
+        });
+        if (
+          currentInitialization.signal.aborted ||
+          currentGeneration !== generation.current
+        ) {
+          next.dispose();
+          return;
+        }
+        const element = elementRef.current;
+        if (element === null) {
+          next.dispose();
+          throw new Error("The reader element is unavailable.");
+        }
+        controller.current = next;
+        unbind.current = bindReaderController(element, next);
+        unsubscribe.current = next.subscribe(renderStatus);
+        initialization.current = undefined;
+      } catch (reason) {
+        if (
+          !currentInitialization.signal.aborted &&
+          currentGeneration === generation.current
+        ) {
+          setStatus(`${normalized} could not be opened.`);
+          setError(reason instanceof Error ? reason.message : String(reason));
+        }
+      }
+    },
+    [releaseController, renderStatus],
   );
-  const result = useFactoryViewModel(
-    request,
-    loading,
-    loadSourceCardViewModel,
-    client,
-  );
-  const elementRef = useRef<SefariaSourceCard>(null);
-  useElementProperty(elementRef, "viewModel", result.viewModel);
-  useElementProperty(elementRef, "contentLanguage", contentLanguage);
-  useElementProperty(elementRef, "layout", layout);
+
+  useEffect(() => {
+    void navigate("Micah 6:8");
+    return () => {
+      initialization.current?.abort();
+      generation.current += 1;
+      releaseController();
+    };
+  }, [navigate, releaseController]);
+
+  useEffect(() => {
+    const onMessage = (event: MessageEvent<unknown>) => {
+      if (event.origin !== location.origin) return;
+      const message = event.data as {
+        readonly type?: string;
+        readonly active?: boolean;
+      };
+      if (
+        message.type !== "sefaria-showcase-active" ||
+        message.active !== false
+      ) {
+        return;
+      }
+      const task = controller.current?.snapshot.task.state;
+      const hasPendingWork =
+        initialization.current !== undefined ||
+        (task !== undefined && task !== "idle" && task !== "error");
+      if (!hasPendingWork) return;
+      initialization.current?.abort();
+      generation.current += 1;
+      releaseController();
+      setStatus("Reader loading was interrupted.");
+      setError(
+        "Reader loading was interrupted when the preview left the active slide.",
+      );
+    };
+    window.addEventListener("message", onMessage);
+    window.parent.postMessage(
+      { type: "sefaria-showcase-ready" },
+      location.origin,
+    );
+    return () => window.removeEventListener("message", onMessage);
+  }, [releaseController]);
 
   return (
     <main className="demo-page">
@@ -163,115 +264,51 @@ function SourceCardDemo() {
         className="demo-controls"
         onSubmit={(event) => {
           event.preventDefault();
-          const tref = draft.trim();
-          if (tref === request.tref) result.reload();
-          else setRequest({ tref });
+          void navigate(draft);
         }}
       >
         <label>
-          Reference or range
+          Start with a source
           <input
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
           />
         </label>
-        <label>
-          Visible text
-          <select
-            value={contentLanguage}
-            onChange={(event) =>
-              setContentLanguage(
-                event.target.value as SefariaSourceCard["contentLanguage"],
-              )
-            }
-          >
-            <option value="both">Both</option>
-            <option value="primary">Primary</option>
-            <option value="translation">Translation</option>
-          </select>
-        </label>
-        <label>
-          Layout
-          <select
-            value={layout}
-            onChange={(event) =>
-              setLayout(event.target.value as SefariaSourceCard["layout"])
-            }
-          >
-            <option value="auto">Responsive</option>
-            <option value="stacked">Stacked</option>
-            <option value="side-by-side">Side by side</option>
-          </select>
-        </label>
-        <label>
-          English font
-          <input
-            value={englishFont}
-            onChange={(event) => setEnglishFont(event.target.value)}
-          />
-        </label>
-        <label>
-          Hebrew font
-          <input
-            value={hebrewFont}
-            onChange={(event) => setHebrewFont(event.target.value)}
-          />
-        </label>
-        <button type="submit">Load</button>
+        <button type="submit">Open reader</button>
       </form>
-      {result.error === undefined ? null : (
+      <p className="demo-status" role="status">
+        {status}
+      </p>
+      {error === undefined ? null : (
         <p className="demo-error" role="alert">
-          {result.error}
+          {error}
         </p>
       )}
-      <section
-        className="demo-result"
-        style={
-          {
-            "--sample-font-english": englishFont,
-            "--sample-font-hebrew": hebrewFont,
-          } as never
-        }
-      >
-        <sefaria-source-card ref={elementRef} />
+      <section className="demo-result demo-reader-result">
+        <sefaria-reader ref={elementRef} />
       </section>
     </main>
   );
 }
 
 interface ReaderPayloadResult {
-  readonly payload: CoreV3TextsResponse;
-  readonly request: SourceCardRequest;
+  readonly content: ReaderSourceContent;
 }
 
 async function requestSource(
-  request: SourceCardRequest,
-  activeClient: SefariaClient,
+  tref: string,
   signal: AbortSignal,
 ): Promise<ReaderPayloadResult> {
-  const result = await getV3Texts({
-    client: activeClient,
-    path: { tref: request.tref },
-    query: {
-      version: ["primary", "translation"],
-      return_format: "default",
-    },
-    signal,
-  });
-  if (result.data === undefined) {
-    throw new Error(
-      result.error?.error ?? "The text request returned no data.",
-    );
-  }
-  return { payload: result.data, request };
+  return {
+    content: await readerDataSource.loadSource({ tref }, signal),
+  };
 }
 
-function ReaderDemo() {
-  const elementRef = useRef<SefariaReader>(null);
+function ManualReaderDemo() {
+  const sourceRef = useRef<SefariaSourceCard>(null);
+  const connectionsRef = useRef<SefariaConnectionsPanel>(null);
   const [draft, setDraft] = useState("Micah 6:8");
   const [session, setSession] = useState<ReaderSession>();
-  const [activePane, setActivePane] =
-    useState<SefariaReader["activePane"]>("source");
   const [error, setError] = useState<string>();
   const controller = useRef<AbortController | undefined>(undefined);
   const linksController = useRef<AbortController | undefined>(undefined);
@@ -292,16 +329,44 @@ function ReaderDemo() {
   const assignSession = useCallback((next: ReaderSession) => {
     setSession(next);
   }, []);
-  const readerViewModel = useMemo(
-    () =>
-      session === undefined ? undefined : createReaderViewModel(session.view),
-    [session],
+  const entry = session?.view.current;
+  const connections = entry?.connections;
+  const sourceViewModel: SourceCardViewModel = entry?.source?.viewModel ?? {
+    state: "loading",
+    message: "Loading source.",
+  };
+  const connectionsViewModel: ConnectionsViewModel =
+    connections?.state === "view" || connections?.state === "loading"
+      ? connections.viewModel
+      : { state: "loading", message: "Select a source to load connections." };
+  useElementProperty(sourceRef, "viewModel", sourceViewModel);
+  useElementProperty(sourceRef, "selectedPosition", entry?.selectedPosition);
+  useElementProperty(
+    sourceRef,
+    "contentLanguage",
+    entry?.presentation.contentLanguage ?? "both",
   );
-  useElementProperty(elementRef, "viewModel", readerViewModel);
-  useElementProperty(elementRef, "activePane", activePane);
+  useElementProperty(sourceRef, "layout", entry?.presentation.layout ?? "auto");
+  useElementProperty(
+    sourceRef,
+    "sideOrder",
+    entry?.presentation.sideOrder ?? "primary-first",
+  );
+  useElementProperty(
+    sourceRef,
+    "selectable",
+    entry?.source?.viewModel.state === "data",
+  );
+  useElementProperty(connectionsRef, "viewModel", connectionsViewModel);
+  useElementProperty(
+    connectionsRef,
+    "showPreviews",
+    entry?.presentation.showConnectionPreviews ?? true,
+  );
 
   const loadSource = useCallback(
-    async (request: SourceCardRequest, replace = false) => {
+    async (tref: string, replace = false) => {
+      if (replace) initialSelectionPhase.current = 0;
       controller.current?.abort();
       linksController.current?.abort();
       linksOperation.current += 1;
@@ -324,29 +389,21 @@ function ReaderDemo() {
       sourcePending.current = true;
       setError(undefined);
       try {
-        const result = await requestSource(
-          request,
-          client,
-          currentController.signal,
-        );
+        const result = await requestSource(tref, currentController.signal);
         if (expected !== operation.current) return;
         sourcePending.current = false;
-        const content = createReaderSourceContent(
-          result.payload,
-          result.request,
-        );
         if (replace || navigationSession === undefined) {
-          assignSession(createReaderSession({ source: content }));
+          assignSession(createReaderSession({ source: result.content }));
           return;
         }
         const begun = navigationSession.beginSourceNavigation(
           navigationSession.view.currentEntryId,
-          request,
+          result.content.request,
         );
         if (begun.state !== "applied") throw new Error(begun.reason);
         const completed = begun.session.completeSourceNavigation(
           begun.value.operationId,
-          { source: content },
+          { source: result.content },
         );
         if (completed.state !== "applied") throw new Error(completed.reason);
         assignSession(completed.session);
@@ -401,27 +458,17 @@ function ReaderDemo() {
         operationId: begun.value.operationId,
       };
       try {
-        const result = await getLinks({
-          client,
-          path: { tref },
-          query: { with_text: "1", with_sheet_links: "0" },
-          signal: currentController.signal,
-        });
+        const content = await readerDataSource.loadConnections(
+          request,
+          {},
+          currentController.signal,
+        );
         if (
           currentController.signal.aborted ||
           expected !== linksOperation.current
         ) {
           return;
         }
-        const payload: CoreLinkResponse | undefined =
-          result.data ?? result.error;
-        if (payload === undefined) throw new Error("No links response.");
-        const content = createReaderConnectionsContent(
-          payload,
-          request,
-          {},
-          result.response.status === 400 ? 400 : 200,
-        );
         const completed = begun.session.completeConnections(
           begun.value.operationId,
           content,
@@ -447,7 +494,7 @@ function ReaderDemo() {
   useEffect(() => {
     if (initialSourceStarted.current) return;
     initialSourceStarted.current = true;
-    void loadSource({ tref: "Micah 6:8" }, true);
+    void loadSource("Micah 6:8", true);
   }, [loadSource]);
 
   useEffect(() => {
@@ -519,45 +566,44 @@ function ReaderDemo() {
     };
   }, [assignSession]);
 
-  const onReaderEvent = useCallback(
+  const onSourceEvent = useCallback(
     (event: Event) => {
       if (session === undefined) return;
       const custom = event as CustomEvent<Record<string, unknown>>;
-      const entryId = String(custom.detail.originEntryId);
-      if (event.type === "sefaria-reader-source-select") {
-        const position = custom.detail.position;
-        const ref = custom.detail.ref;
-        if (!Array.isArray(position) || typeof ref !== "string") return;
-        const selected = session.selectSourcePosition(
-          entryId,
-          position as number[],
-        );
-        if (selected.state !== "applied") return;
-        assignSession(selected.session);
-        void loadConnections(
-          selected.session.view.currentEntryId,
-          ref,
-          selected.session,
-        );
-      } else if (event.type === "sefaria-reader-connection-select") {
+      const position = custom.detail.position;
+      const ref = custom.detail.ref;
+      if (!Array.isArray(position) || typeof ref !== "string") return;
+      const selected = session.selectSourcePosition(
+        session.view.currentEntryId,
+        position as number[],
+      );
+      if (selected.state !== "applied") return;
+      assignSession(selected.session);
+      void loadConnections(
+        selected.session.view.currentEntryId,
+        ref,
+        selected.session,
+      );
+    },
+    [assignSession, loadConnections, session],
+  );
+
+  const onConnectionsEvent = useCallback(
+    (event: Event) => {
+      if (session === undefined) return;
+      const custom = event as CustomEvent<Record<string, unknown>>;
+      const entryId = session.view.currentEntryId;
+      if (event.type === "sefaria-connection-select") {
         const targetRef = custom.detail.targetRef;
-        if (typeof targetRef === "string") void loadSource({ tref: targetRef });
-      } else if (event.type === "sefaria-reader-back") {
-        const next = session.back();
-        if (next.state === "applied") assignSession(next.session);
-      } else if (event.type === "sefaria-reader-history-activate") {
-        const target = custom.detail.entryId;
-        if (typeof target !== "string") return;
-        const next = session.activate(target);
-        if (next.state === "applied") assignSession(next.session);
-      } else if (event.type === "sefaria-reader-connections-category-change") {
+        if (typeof targetRef === "string") void loadSource(targetRef);
+      } else if (event.type === "sefaria-connections-category-change") {
         const category = custom.detail.category;
         const next = session.projectConnections(entryId, {
           ...(typeof category === "string" ? { category } : {}),
           page: 0,
         });
         if (next.state === "applied") assignSession(next.session);
-      } else if (event.type === "sefaria-reader-connections-page-change") {
+      } else if (event.type === "sefaria-connections-page-change") {
         const page = custom.detail.page;
         if (typeof page !== "number") return;
         const current = session.view.current.connections;
@@ -568,33 +614,66 @@ function ReaderDemo() {
           page,
         });
         if (next.state === "applied") assignSession(next.session);
-      } else if (event.type === "sefaria-reader-pane-change") {
-        const pane = custom.detail.pane;
-        if (pane === "source" || pane === "connections") setActivePane(pane);
       }
     },
-    [assignSession, loadConnections, loadSource, session],
+    [assignSession, loadSource, session],
+  );
+
+  const supersedeManualReaderWork = useCallback(
+    (current: ReaderSession): ReaderSession => {
+      controller.current?.abort();
+      linksController.current?.abort();
+      operation.current += 1;
+      linksOperation.current += 1;
+      sourcePending.current = false;
+      const pendingConnections = connectionsPending.current;
+      connectionsPending.current = undefined;
+      if (pendingConnections === undefined) return current;
+      const cancelled = current.cancelOperation(
+        pendingConnections.operationId,
+        "Connections loading was superseded by reader history.",
+      );
+      return cancelled.state === "applied" ? cancelled.session : current;
+    },
+    [],
+  );
+
+  const restoreHistory = useCallback(
+    (transition: (current: ReaderSession) => ReaderTransition) => {
+      if (session === undefined) return;
+      const current = supersedeManualReaderWork(session);
+      const next = transition(current);
+      if (next.state === "applied") assignSession(next.session);
+    },
+    [assignSession, session, supersedeManualReaderWork],
   );
 
   useEffect(() => {
-    const element = elementRef.current;
+    const element = sourceRef.current;
+    if (element === null) return;
+    element.addEventListener("sefaria-source-select", onSourceEvent);
+    return () => {
+      element.removeEventListener("sefaria-source-select", onSourceEvent);
+    };
+  }, [onSourceEvent, session]);
+
+  useEffect(() => {
+    const element = connectionsRef.current;
     if (element === null) return;
     const events = [
-      "sefaria-reader-source-select",
-      "sefaria-reader-connection-select",
-      "sefaria-reader-back",
-      "sefaria-reader-history-activate",
-      "sefaria-reader-connections-category-change",
-      "sefaria-reader-connections-page-change",
-      "sefaria-reader-pane-change",
+      "sefaria-connection-select",
+      "sefaria-connections-category-change",
+      "sefaria-connections-page-change",
     ];
-    for (const name of events) element.addEventListener(name, onReaderEvent);
+    for (const name of events) {
+      element.addEventListener(name, onConnectionsEvent);
+    }
     return () => {
       for (const name of events) {
-        element.removeEventListener(name, onReaderEvent);
+        element.removeEventListener(name, onConnectionsEvent);
       }
     };
-  }, [onReaderEvent, session]);
+  }, [onConnectionsEvent, session]);
 
   return (
     <main className="demo-page">
@@ -602,7 +681,7 @@ function ReaderDemo() {
         className="demo-controls"
         onSubmit={(event) => {
           event.preventDefault();
-          void loadSource({ tref: draft.trim() }, true);
+          void loadSource(draft.trim(), true);
         }}
       >
         <label>
@@ -619,11 +698,56 @@ function ReaderDemo() {
           {error}
         </p>
       )}
-      <section className="demo-result">
+      <section className="demo-result manual-reader">
         {session === undefined ? (
           <p>Select Open reader to begin.</p>
         ) : (
-          <sefaria-reader ref={elementRef} />
+          <>
+            <nav className="manual-reader-history" aria-label="Reader history">
+              <button
+                type="button"
+                disabled={session.view.entries.length < 2}
+                onClick={() => restoreHistory((current) => current.back())}
+              >
+                Back
+              </button>
+              {session.view.breadcrumbs.map((breadcrumb) => (
+                <button
+                  key={breadcrumb.entryId}
+                  type="button"
+                  aria-current={breadcrumb.current ? "page" : undefined}
+                  onClick={() =>
+                    restoreHistory((current) =>
+                      current.activate(breadcrumb.entryId),
+                    )
+                  }
+                >
+                  {breadcrumb.label}
+                </button>
+              ))}
+            </nav>
+            <div className="manual-reader-columns">
+              <section className="manual-reader-column" aria-label="Source">
+                <h2>Source</h2>
+                <sefaria-source-card ref={sourceRef} />
+              </section>
+              <section
+                className="manual-reader-column"
+                aria-label="Connections"
+              >
+                <h2>Connections</h2>
+                {connections?.state === "unavailable" ? (
+                  <p
+                    role={connections.reason === "failed" ? "alert" : "status"}
+                  >
+                    {connections.message}
+                  </p>
+                ) : (
+                  <sefaria-connections-panel ref={connectionsRef} />
+                )}
+              </section>
+            </div>
+          </>
         )}
       </section>
     </main>
@@ -633,6 +757,6 @@ function ReaderDemo() {
 const query = new URLSearchParams(location.search);
 const demo = query.get("demo");
 const root = createRoot(document.querySelector("#preview-root")!);
-if (demo === "source") root.render(<SourceCardDemo />);
-else if (demo === "reader") root.render(<ReaderDemo />);
+if (demo === "reader") root.render(<ReaderDemo />);
+else if (demo === "manual-reader") root.render(<ManualReaderDemo />);
 else root.render(<TextDemo />);
