@@ -78,9 +78,9 @@ for (const required of [
   "media/sefaria-reader.png",
   "media/torah-research-board.png",
   "media/lishkod.png",
-  "media/mcp-source-card.png",
-  "media/mcp-connections.png",
-  "media/mcp-category.png",
+  "media/mcp-reader.png",
+  "media/mcp-reader-hierarchy.png",
+  "media/mcp-reader-chat-export.png",
   "demos/linker/sefaria-linker.js",
   "demos/connections/index.html",
 ]) {

@@ -8,8 +8,10 @@ import {
 
 import {
   createConnectionsInteraction,
+  createMcpReaderDataSource,
+  renderReaderToolResult,
   renderStatus,
-  renderToolResult,
+  waitForMcpConnection,
 } from "./app.js";
 
 function findRoot(): HTMLElement {
@@ -42,11 +44,27 @@ if (new URLSearchParams(window.location.search).has("standalone")) {
 } else {
   const app = new App({ name: "Sefaria MCP App", version: "0.0.0" });
   let disposeResult = (): void => {};
+  const dataSource = createMcpReaderDataSource({
+    callServerTool: async (params, options) => {
+      await waitForMcpConnection(connected, options?.signal);
+      if (app.getHostCapabilities()?.serverTools === undefined) {
+        throw new Error(
+          "This MCP host does not support App-initiated server tool calls.",
+        );
+      }
+      return app.callServerTool(params, options);
+    },
+  });
   const interaction = createConnectionsInteraction(app);
 
   app.ontoolresult = (result) => {
     disposeResult();
-    disposeResult = renderToolResult(root, result, interaction);
+    disposeResult = renderReaderToolResult(
+      root,
+      result,
+      dataSource,
+      interaction,
+    );
   };
   app.ontoolcancelled = () => {
     disposeResult();
@@ -63,8 +81,8 @@ if (new URLSearchParams(window.location.search).has("standalone")) {
     return {};
   };
 
-  void app
-    .connect()
+  const connected = app.connect();
+  void connected
     .then(() => {
       const context = app.getHostContext();
       if (context) {

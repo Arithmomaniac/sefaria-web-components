@@ -30,16 +30,16 @@ import "prismjs/components/prism-jsx.js";
 import "prismjs/components/prism-tsx.js";
 
 import {
+  manualReaderExampleSource,
   pipelineExampleSource,
   readerExampleSource,
-  sourceCardExampleSource,
   textExampleSource,
 } from "./example-source.js";
 import { useElementProperty } from "./element-property.js";
 import "./styles.css";
 
 type ShowcaseTheme = "system" | "light" | "dark";
-type DemoKind = "text" | "source" | "reader" | "linker";
+type DemoKind = "text" | "reader" | "manual-reader" | "linker";
 type WorkbenchMode = "preview" | "code" | "split";
 type PipelineStage = "client" | "view-model" | "element";
 
@@ -325,8 +325,8 @@ function PipelinePanel({
 }
 
 function demoSource(kind: DemoKind): string {
-  if (kind === "source") return sourceCardExampleSource;
   if (kind === "reader") return readerExampleSource;
+  if (kind === "manual-reader") return manualReaderExampleSource;
   if (kind === "linker") {
     return `<!-- Minimal embed; the preview also reports status and aborts scans. -->
 <script src="https://…/sefaria-linker.js"></script>
@@ -557,19 +557,19 @@ function initializeGallery(): void {
   if (image === null || caption === null || position === null) return;
   const items = [
     {
-      src: "./media/mcp-source-card.png",
-      alt: "Sefaria source card rendered in VS Code Copilot Chat",
-      caption: "Bilingual source card in Copilot Chat",
+      src: "./media/mcp-reader.png",
+      alt: "Sefaria Reader rendered in VS Code Copilot Chat",
+      caption: "Stateful Reader in Copilot Chat",
     },
     {
-      src: "./media/mcp-connections.png",
-      alt: "Sefaria connections panel rendered in VS Code Copilot Chat",
-      caption: "Connections projected from one validated tool result",
+      src: "./media/mcp-reader-hierarchy.png",
+      alt: "Sefaria Reader showing three retained levels in VS Code Copilot Chat",
+      caption: "Same-App navigation retains a three-level reader history",
     },
     {
-      src: "./media/mcp-category.png",
-      alt: "The Sefaria connections App after selecting another connection category",
-      caption: "Selecting Targum reprojects the same connections payload",
+      src: "./media/mcp-reader-chat-export.png",
+      alt: "Sefaria Reader exporting its deepest reference to Copilot Chat",
+      caption: "Any retained reader level can be exported explicitly to chat",
     },
   ];
   let current = 0;

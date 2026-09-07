@@ -1,4 +1,4 @@
-import { mkdir, writeFile } from "node:fs/promises";
+import { copyFile, mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { execFile, spawn } from "node:child_process";
 import net from "node:net";
 import os from "node:os";
@@ -22,6 +22,11 @@ import {
   resolveVscodeDemoProfile,
   resolveVscodeExecutable,
 } from "./vscode-demo-profile.js";
+import {
+  captureVscodeViewport,
+  frameReaderForCapture,
+  prepareShowcaseLayout,
+} from "./vscode-capture-layout.js";
 
 const workspace = path.resolve(import.meta.dirname, "../../..");
 const executablePath = resolveVscodeExecutable();
@@ -38,13 +43,22 @@ const showcaseOnly = process.env.VSCODE_MCP_SHOWCASE === "1";
 const execFileAsync = promisify(execFile);
 const CONNECTIONS_REFERENCE = "Micah 6:8";
 const artifacts: Record<string, string> = {};
+const stagedCaptures = new Map<string, string>();
+const captureDirectory = await mkdtemp(
+  path.join(os.tmpdir(), "sefaria-capture-"),
+);
 const completedStages: string[] = [];
 const deliveryModes: Record<
   string,
-  "automatic" | "composer-submitted" | "manual-fallback"
+  | "automatic"
+  | "composer-submitted"
+  | "host-message"
+  | "manual-fallback"
+  | "same-app-tool"
 > = {};
 let currentStage = "launch";
 let selectedReference: string | undefined;
+const hierarchyReferences: string[] = [CONNECTIONS_REFERENCE];
 
 if (showcaseOnly && process.env.VSCODE_MCP_SCREENSHOT === undefined) {
   throw new Error(
@@ -76,223 +90,279 @@ try {
     throw new Error("VS Code exposed no Playwright browser context.");
   }
   page = await findWorkbenchPage(context);
-  await page.setViewportSize({ width: 1_600, height: 900 });
-  await page.waitForTimeout(4_000);
-  await runCommand(page, "Chat: Open Chat");
+  await page.waitForTimeout(10_000);
+  await openChat(page);
   await clickIfVisible(page, /Maximize Secondary Side Bar/i);
   await page.keyboard.press("Escape");
+  await selectExclusiveChatToolGroup(page, "sefaria-components-demo");
   if (showcaseOnly) {
-    await runCommand(page, "View: Reset Zoom");
-    await runCommand(page, "View: Zoom Out");
-    await runCommand(page, "View: Zoom Out");
+    await prepareShowcaseLayout(page);
   }
   const seenAppFrames = new Set<Frame>();
 
-  showcaseWalkthrough: {
-    currentStage = "source-card";
-    await submitPrompt(
-      page,
-      showcaseOnly
-        ? "Using Sefaria, show me Micah 6:8 in Hebrew and English as an interactive source card. Show the card only; do not repeat or analyze the payload afterward."
-        : "Use the sefaria-components-demo get_text tool to show Leviticus 19:18 in both languages.",
-    );
-    const sourceFrame = await waitForNewSourceCard(
-      page,
-      seenAppFrames,
-      showcaseOnly ? "Micah 6:8" : "Leviticus 19:18",
-      true,
-    );
-    await waitForTurnIdle(page);
-    await scrollFrameIntoView(sourceFrame);
-    await captureStage(page, "source-card", output);
-    completedStages.push(currentStage);
+  currentStage = "reader-initial";
+  await submitPrompt(
+    page,
+    showcaseOnly
+      ? `Using Sefaria, show me ${CONNECTIONS_REFERENCE} in Hebrew and English as an interactive Reader. Show the App only; do not repeat or analyze the payload afterward.`
+      : `Use the sefaria-components-demo get_text tool to show ${CONNECTIONS_REFERENCE} in both languages.`,
+  );
+  const readerFrame = await waitForNewSourceCard(
+    page,
+    seenAppFrames,
+    CONNECTIONS_REFERENCE,
+    true,
+  );
+  await waitForTurnIdle(page);
+  let panel = await waitForPanel(
+    readerFrame,
+    (snapshot) =>
+      snapshot.state === "data" &&
+      snapshot.previewsIncluded &&
+      snapshot.categories.length > 0,
+  );
+  await captureStage(readerFrame, "reader-initial", output);
 
-    currentStage = "connections-default";
-    await submitPrompt(
-      page,
-      showcaseOnly
-        ? `Using Sefaria, show me an interactive connections panel for ${CONNECTIONS_REFERENCE}. Show the panel only; do not repeat or analyze the payload afterward.`
-        : `Use the sefaria-components-demo get_links_between_texts tool with only the reference argument ${CONNECTIONS_REFERENCE}. Do not specify with_text.`,
-    );
-    const connectionsFrame = await waitForNewConnectionsPanel(
-      page,
-      seenAppFrames,
-    );
-    await waitForTurnIdle(page);
-    let panel = await readPanel(connectionsFrame);
-    assertPanel(
-      panel.category === "Commentary",
-      `Expected Commentary to open first, received ${String(panel.category)}.`,
-    );
-    assertPanel(panel.previewsIncluded, "Expected Apps-default previews.");
-    assertPanel(
-      panel.previewCount > 0,
-      "Expected at least one rendered connection preview.",
-    );
-    await scrollFrameIntoView(connectionsFrame);
-    await captureStage(page, "connections", stageOutput("connections"));
-    completedStages.push(currentStage);
+  await showConnectionsPane(readerFrame);
+  await activateButton(
+    readerFrame.getByRole("button", { name: /^Commentary \(/ }),
+  );
+  panel = await waitForPanel(
+    readerFrame,
+    (snapshot) =>
+      snapshot.category === "Commentary" && snapshot.previewCount > 0,
+  );
+  assertPanel(
+    panel.category === "Commentary",
+    `Expected Commentary after selection, received ${String(panel.category)}.`,
+  );
+  assertPanel(panel.previewsIncluded, "Expected Apps-default previews.");
+  assertPanel(
+    panel.previewCount > 0,
+    "Expected at least one rendered connection preview.",
+  );
+  await captureStage(readerFrame, "connections", stageOutput("connections"));
+  completedStages.push(currentStage);
 
-    currentStage = "connections-category";
-    const alternate = panel.categories
-      .filter((category) => category.id !== "Commentary")
-      .sort((left, right) => left.count - right.count)[0];
-    assertPanel(
-      alternate !== undefined,
-      `${CONNECTIONS_REFERENCE} returned no second connection category.`,
-    );
+  currentStage = "connections-category";
+  const alternate = panel.categories.find(
+    (category) => category.id !== "Commentary",
+  );
+  assertPanel(
+    alternate !== undefined,
+    `${CONNECTIONS_REFERENCE} returned no second connection category.`,
+  );
+  await activateButton(
+    readerFrame.getByRole("button", {
+      name: new RegExp(`^${escapeRegex(alternate!.id)} \\(`),
+    }),
+  );
+  panel = await waitForPanel(
+    readerFrame,
+    (snapshot) => snapshot.category === alternate!.id && snapshot.page === 0,
+  );
+  await captureStage(
+    readerFrame,
+    "connections-category",
+    stageOutput("category"),
+  );
+  await activateButton(
+    readerFrame.getByRole("button", { name: /^Commentary \(/ }),
+  );
+  panel = await waitForPanel(
+    readerFrame,
+    (snapshot) => snapshot.category === "Commentary" && snapshot.page === 0,
+  );
+  completedStages.push(currentStage);
+
+  currentStage = "connections-paging";
+  const pagingCategory = panel.categories.find(
+    (category) => category.count > panel.pageSize,
+  );
+  assertPanel(
+    pagingCategory !== undefined,
+    `${CONNECTIONS_REFERENCE} returned no category with more than ${panel.pageSize} connections.`,
+  );
+  if (pagingCategory!.id !== panel.category) {
     await activateButton(
-      connectionsFrame.getByRole("button", {
-        name: new RegExp(`^${escapeRegex(alternate!.id)} \\(`),
+      readerFrame.getByRole("button", {
+        name: new RegExp(`^${escapeRegex(pagingCategory!.id)} \\(`),
       }),
     );
     panel = await waitForPanel(
-      connectionsFrame,
-      (snapshot) => snapshot.category === alternate!.id && snapshot.page === 0,
-    );
-    await scrollFrameIntoView(connectionsFrame);
-    await captureStage(page, "connections-category", stageOutput("category"));
-    completedStages.push(currentStage);
-    if (showcaseOnly) break showcaseWalkthrough;
-    await activateButton(
-      connectionsFrame.getByRole("button", { name: /^Commentary \(/ }),
-    );
-    panel = await waitForPanel(
-      connectionsFrame,
-      (snapshot) => snapshot.category === "Commentary" && snapshot.page === 0,
-    );
-
-    currentStage = "connections-paging";
-    const pagingCategory = panel.categories.find(
-      (category) => category.count > panel.pageSize,
-    );
-    assertPanel(
-      pagingCategory !== undefined,
-      `${CONNECTIONS_REFERENCE} returned no category with more than ${panel.pageSize} connections.`,
-    );
-    if (pagingCategory!.id !== panel.category) {
-      await activateButton(
-        connectionsFrame.getByRole("button", {
-          name: new RegExp(`^${escapeRegex(pagingCategory!.id)} \\(`),
-        }),
-      );
-      panel = await waitForPanel(
-        connectionsFrame,
-        (snapshot) =>
-          snapshot.category === pagingCategory!.id && snapshot.page === 0,
-      );
-    }
-    const firstPageTargets = panel.targetRefs;
-    await activateButton(
-      connectionsFrame.getByRole("button", { name: "More" }),
-    );
-    panel = await waitForPanel(
-      connectionsFrame,
-      (snapshot) => snapshot.page === 1,
-    );
-    assertPanel(
-      JSON.stringify(panel.targetRefs) !== JSON.stringify(firstPageTargets),
-      "The second connections page repeated the first page entries.",
-    );
-    await captureStage(page, "connections-page-2", stageOutput("page-2"));
-    await activateButton(
-      connectionsFrame.getByRole("button", { name: "Previous" }),
-    );
-    panel = await waitForPanel(
-      connectionsFrame,
+      readerFrame,
       (snapshot) =>
-        snapshot.page === 0 &&
-        JSON.stringify(snapshot.targetRefs) ===
-          JSON.stringify(firstPageTargets),
+        snapshot.category === pagingCategory!.id && snapshot.page === 0,
     );
-    completedStages.push(currentStage);
-
-    currentStage = "connected-source";
-    selectedReference = panel.targetRefs[0];
-    assertPanel(
-      selectedReference !== undefined,
-      "The active connections page contained no selectable connection.",
-    );
-    const openButton = connectionsFrame
-      .getByRole("button", {
-        name: `Open ${selectedReference} in context`,
-      })
-      .first();
-    await openButton.focus();
-    await openButton.press("Enter");
-    const sourceFollowUp = `Use get_text with reference "${selectedReference}" and version_language "both" to show the selected source.`;
-    deliveryModes["connected-source"] = await completeFollowUp(
-      page,
-      connectionsFrame,
-      sourceFollowUp,
-      "connected-source",
-    );
-    await waitForNewSourceCard(page, seenAppFrames, selectedReference!);
-    await waitForTurnIdle(page);
-    await captureStage(
-      page,
-      "connected-source",
-      stageOutput("connected-source"),
-    );
-    completedStages.push(currentStage);
-
-    currentStage = "connections-metadata-only";
-    await submitPrompt(
-      page,
-      `Use the sefaria-components-demo get_links_between_texts tool for ${CONNECTIONS_REFERENCE} with with_text set to "0".`,
-    );
-    const metadataFrame = await waitForNewConnectionsPanel(page, seenAppFrames);
-    await waitForTurnIdle(page);
-    panel = await readPanel(metadataFrame);
-    assertPanel(
-      !panel.previewsIncluded,
-      "Explicit with_text=0 unexpectedly included previews.",
-    );
-    await metadataFrame
-      .getByRole("button", { name: "Load previews" })
-      .waitFor({ state: "visible" });
-    await captureStage(
-      page,
-      "connections-metadata-only",
-      stageOutput("metadata-only"),
-    );
-    completedStages.push(currentStage);
-
-    currentStage = "connections-load-previews";
-    await activateButton(
-      metadataFrame.getByRole("button", { name: "Load previews" }),
-    );
-    const previewFollowUp = `Use get_links_between_texts with reference "${CONNECTIONS_REFERENCE}" and with_text "1" to show connection previews.`;
-    deliveryModes["load-previews"] = await completeFollowUp(
-      page,
-      metadataFrame,
-      previewFollowUp,
-      "load-previews",
-    );
-    const previewFrame = await waitForNewConnectionsPanel(
-      page,
-      seenAppFrames,
-      (snapshot) => snapshot.previewsIncluded && snapshot.previewCount > 0,
-      "a preview-bearing connections panel",
-    );
-    await waitForTurnIdle(page);
-    panel = await readPanel(previewFrame);
-    await captureStage(
-      page,
-      "connections-loaded-previews",
-      stageOutput("loaded-previews"),
-    );
-    completedStages.push(currentStage);
   }
+  const firstPageTargets = panel.targetRefs;
+  await activateButton(readerFrame.getByRole("button", { name: "More" }));
+  panel = await waitForPanel(readerFrame, (snapshot) => snapshot.page === 1);
+  assertPanel(
+    JSON.stringify(panel.targetRefs) !== JSON.stringify(firstPageTargets),
+    "The second connections page repeated the first page entries.",
+  );
+  await captureStage(readerFrame, "connections-page-2", stageOutput("page-2"));
+  await activateButton(readerFrame.getByRole("button", { name: "Previous" }));
+  panel = await waitForPanel(
+    readerFrame,
+    (snapshot) =>
+      snapshot.page === 0 &&
+      JSON.stringify(snapshot.targetRefs) === JSON.stringify(firstPageTargets),
+  );
+  completedStages.push(currentStage);
 
+  currentStage = "connected-source";
+  selectedReference = panel.targetRefs[0];
+  assertPanel(
+    selectedReference !== undefined,
+    "The active connections page contained no selectable connection.",
+  );
+  const openButton = readerFrame
+    .getByRole("button", {
+      name: `Open ${selectedReference} in context`,
+    })
+    .first();
+  await openButton.focus();
+  await openButton.press("Enter");
+  await waitForSourceCard(readerFrame, selectedReference!);
+  await waitForPanel(
+    readerFrame,
+    (snapshot) => snapshot.state === "data" && snapshot.page === 0,
+  );
+  deliveryModes["connected-source"] = "same-app-tool";
+  await captureStage(
+    readerFrame,
+    "connected-source",
+    stageOutput("connected-source"),
+  );
+  completedStages.push(currentStage);
+
+  hierarchyReferences.push(selectedReference);
+  currentStage = "reader-hierarchy";
+  panel = await waitForPanel(
+    readerFrame,
+    (snapshot) => snapshot.state === "data" && snapshot.categories.length > 0,
+  );
+  await showConnectionsPane(readerFrame);
+  const childCategory = panel.categories[0];
+  assertPanel(
+    childCategory !== undefined,
+    `${selectedReference} returned no connection category for a second reader hop.`,
+  );
+  await activateButton(
+    readerFrame.getByRole("button", {
+      name: new RegExp(`^${escapeRegex(childCategory.id)} \\(`),
+    }),
+  );
+  panel = await waitForPanel(
+    readerFrame,
+    (snapshot) =>
+      snapshot.category === childCategory.id && snapshot.targetRefs.length > 0,
+  );
+  const grandchildReference = panel.targetRefs[0];
+  assertPanel(
+    grandchildReference !== undefined,
+    `${selectedReference} returned no selectable connection for a second reader hop.`,
+  );
+  await activateButton(
+    readerFrame
+      .getByRole("button", {
+        name: `Open ${grandchildReference} in context`,
+      })
+      .first(),
+  );
+  await waitForSourceCard(readerFrame, grandchildReference);
+  hierarchyReferences.push(grandchildReference);
+  const hierarchy = await waitForReader(
+    readerFrame,
+    (snapshot) =>
+      snapshot.selectedRef === grandchildReference &&
+      snapshot.breadcrumbs.length >= 3,
+  );
+  deliveryModes["reader-hierarchy"] = "same-app-tool";
+  await waitForPanel(
+    readerFrame,
+    (snapshot) => snapshot.state === "data" || snapshot.state === "empty",
+  );
+  await captureStage(
+    readerFrame,
+    "reader-hierarchy",
+    stageOutput("reader-hierarchy"),
+  );
+  completedStages.push(currentStage);
+
+  currentStage = "reader-chat-export";
+  await activateButton(
+    readerFrame.getByRole("button", {
+      name: `Send ${grandchildReference} to chat`,
+    }),
+  );
+  await waitForComposerText(
+    page,
+    `Use get_text with reference "${grandchildReference}"`,
+  );
+  deliveryModes["chat-export"] = "host-message";
+  await captureStage(readerFrame, "chat-export", stageOutput("chat-export"));
+  await clearComposer(page);
+  completedStages.push(currentStage);
+
+  currentStage = "reader-breadcrumb-middle";
+  const middle = hierarchy.breadcrumbs.at(-2);
+  assertPanel(
+    middle !== undefined,
+    "The reader hierarchy has no middle entry.",
+  );
+  await activateButton(
+    readerFrame.getByRole("button", { name: middle.label, exact: true }),
+  );
+  await waitForReader(
+    readerFrame,
+    (snapshot) => snapshot.selectedRef === selectedReference,
+  );
+  await captureStage(
+    readerFrame,
+    "reader-breadcrumb-middle",
+    stageOutput("breadcrumb-middle"),
+  );
+  completedStages.push(currentStage);
+
+  currentStage = "reader-breadcrumb-root";
+  const rootBreadcrumb = hierarchy.breadcrumbs[0];
+  assertPanel(
+    rootBreadcrumb !== undefined,
+    "The reader hierarchy has no root.",
+  );
+  await activateButton(
+    readerFrame.getByRole("button", {
+      name: rootBreadcrumb.label,
+      exact: true,
+    }),
+  );
+  await waitForReader(
+    readerFrame,
+    (snapshot) => snapshot.selectedRef === CONNECTIONS_REFERENCE,
+  );
+  await captureStage(
+    readerFrame,
+    "reader-breadcrumb-root",
+    stageOutput("breadcrumb-root"),
+  );
+  completedStages.push(currentStage);
+
+  for (const [destination, staged] of stagedCaptures) {
+    await copyFile(staged, destination);
+  }
   await writeWalkthroughResult(page, {
     status: showcaseOnly ? "showcase-capture" : "passed",
     completedStages,
     selectedReference,
+    hierarchyReferences,
     artifacts,
     deliveryModes,
   });
   captured = true;
+  await rm(captureDirectory, { recursive: true });
   console.log(`Captured VS Code MCP App walkthrough: ${walkthroughOutput()}`);
   if (keepOpen) {
     await code.kill();
@@ -309,7 +379,9 @@ try {
 } catch (error) {
   if (page !== undefined) {
     const screenshot = await Promise.allSettled([
-      page.screenshot({ path: failureOutput, fullPage: true }),
+      captureVscodeViewport(page).then((image) =>
+        writeFile(failureOutput, image),
+      ),
     ]);
     if (screenshot[0]?.status === "fulfilled") {
       console.error(`VS Code failure screenshot: ${failureOutput}`);
@@ -320,10 +392,14 @@ try {
     completedStages,
     failedStage: currentStage,
     selectedReference,
+    hierarchyReferences,
     artifacts,
     deliveryModes,
     error: error instanceof Error ? error.message : String(error),
-  }).catch(() => undefined);
+  }).catch((diagnosticError: unknown) => {
+    console.error("Could not write capture failure details:", diagnosticError);
+  });
+  console.error(`Unpublished capture diagnostics: ${captureDirectory}`);
   throw error;
 } finally {
   if (!keepOpen || !captured) {
@@ -335,25 +411,117 @@ try {
   }
 }
 
-async function runCommand(page: Page, command: string): Promise<void> {
-  await page.keyboard.press("Control+Shift+P");
-  const input = page.locator(".quick-input-box input").last();
-  await input.waitFor({ state: "visible", timeout: 15_000 });
-  await input.fill(command);
-  await input.press("Enter");
+async function openChat(page: Page): Promise<void> {
+  const input = chatInput(page);
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    await page.keyboard.press("Control+Alt+I");
+    try {
+      await input.waitFor({ state: "visible", timeout: 30_000 });
+      return;
+    } catch (error) {
+      if (!(error instanceof Error) || error.name !== "TimeoutError")
+        throw error;
+      await page.waitForTimeout(5_000);
+    }
+  }
+  throw new Error("VS Code Copilot Chat did not open within 100 seconds.");
 }
 
 async function submitPrompt(page: Page, prompt: string): Promise<void> {
-  const input = page
-    .locator(
-      ".interactive-input-part .monaco-editor, .chat-input-container .monaco-editor",
-    )
-    .last();
+  const input = chatInput(page);
   await input.waitFor({ state: "visible", timeout: 30_000 });
   await page.keyboard.press("Escape");
   await input.click({ force: true });
   await page.keyboard.insertText(prompt);
   await clickChatSubmit(page);
+}
+
+async function selectExclusiveChatToolGroup(
+  page: Page,
+  serverName: string,
+): Promise<void> {
+  const button = page
+    .locator(
+      '[aria-label*="Configure Tools"], [title*="Configure Tools"], [aria-label*="Tools"]',
+    )
+    .last();
+  await button.waitFor({ state: "visible", timeout: 30_000 });
+  await button.click();
+  const picker = page.locator(".quick-input-widget").last();
+  await picker.waitFor({ state: "visible", timeout: 10_000 });
+  const builtInRow = picker
+    .locator(".monaco-list-row")
+    .filter({ hasText: /^Built-In/ })
+    .first();
+  await builtInRow.waitFor({ state: "visible", timeout: 10_000 });
+  await setToolGroupSelected(builtInRow, false, "Built-In");
+  const serverRow = picker
+    .locator(".monaco-list-row")
+    .filter({ hasText: serverName })
+    .last();
+  await serverRow.waitFor({ state: "visible", timeout: 10_000 });
+  await setToolGroupSelected(serverRow, true, serverName);
+  await picker
+    .getByText("1 Selected", { exact: true })
+    .waitFor({ state: "visible", timeout: 10_000 });
+  await picker.getByRole("button", { name: "OK" }).click();
+}
+
+async function setToolGroupSelected(
+  row: Locator,
+  selected: boolean,
+  label: string,
+): Promise<void> {
+  const checkbox = row
+    .locator('[role="checkbox"], .monaco-custom-toggle')
+    .first();
+  const expected = String(selected);
+  if ((await checkbox.getAttribute("aria-checked")) !== expected) {
+    await checkbox.click();
+    await checkbox.waitFor({ state: "visible" });
+    if ((await checkbox.getAttribute("aria-checked")) !== expected) {
+      throw new Error(
+        `The ${label} tool group could not be ${selected ? "enabled" : "disabled"}.`,
+      );
+    }
+  }
+}
+
+function chatInput(page: Page): Locator {
+  return page
+    .locator(
+      ".interactive-input-part .monaco-editor, .chat-input-container .monaco-editor",
+    )
+    .last();
+}
+
+async function waitForComposerText(
+  page: Page,
+  expected: string,
+): Promise<void> {
+  const input = chatInput(page);
+  await input.waitFor({ state: "visible", timeout: 30_000 });
+  await input
+    .locator(".view-lines")
+    .filter({ hasText: expected })
+    .waitFor({ state: "visible", timeout: 30_000 });
+}
+
+async function clearComposer(page: Page): Promise<void> {
+  const input = chatInput(page);
+  await input.click();
+  await page.keyboard.press("Control+A");
+  await page.keyboard.press("Backspace");
+}
+
+async function clickChatSubmit(page: Page): Promise<void> {
+  const send = page
+    .locator(
+      ".interactive-input-part .action-label.codicon-arrow-up-compact:not(.disabled)",
+    )
+    .last();
+  await send.waitFor({ state: "visible", timeout: 5_000 });
+  await send.click();
 }
 
 async function clickIfVisible(page: Page, name: RegExp): Promise<void> {
@@ -372,6 +540,16 @@ async function clickTextIfVisible(page: Page, text: RegExp): Promise<void> {
 
 async function activateButton(button: Locator): Promise<void> {
   await button.evaluate((element) => (element as HTMLButtonElement).click());
+}
+
+async function showConnectionsPane(frame: Frame): Promise<void> {
+  const button = frame.getByRole("button", {
+    name: "Connections",
+    exact: true,
+  });
+  if (await button.isVisible()) {
+    await activateButton(button);
+  }
 }
 
 async function waitForNewSourceCard(
@@ -413,37 +591,101 @@ async function waitForNewSourceCard(
   );
 }
 
-async function waitForNewConnectionsPanel(
-  page: Page,
-  seenFrames: Set<Frame>,
-  predicate: (snapshot: PanelSnapshot) => boolean = () => true,
-  description = "a connections panel",
-): Promise<Frame> {
+async function waitForSourceCard(
+  frame: Frame,
+  expectedReference: string,
+  requireTranslation = false,
+): Promise<void> {
   const deadline = Date.now() + 120_000;
-  let lastSnapshot: PanelSnapshot | undefined;
   while (Date.now() < deadline) {
-    await handleHostPrompts(page);
-    for (const frame of page.frames()) {
-      if (seenFrames.has(frame)) continue;
-      try {
-        const panel = frame.locator("sefaria-connections-panel");
-        if ((await panel.count()) === 0) continue;
-        const snapshot = await readPanel(frame);
-        if (snapshot.state === "data") {
-          seenFrames.add(frame);
-          lastSnapshot = snapshot;
-          if (predicate(snapshot)) return frame;
-        }
-      } catch (error) {
-        if (isTransientFrameError(error, page)) continue;
-        throw error;
+    const snapshot = await readReader(frame);
+    if (snapshot !== undefined) {
+      if (
+        snapshot.selectedRef === expectedReference &&
+        snapshot.sourceViewState === "data" &&
+        (!requireTranslation || snapshot.hasTranslation)
+      ) {
+        return;
       }
     }
-    await failIfSignedOut(page, deadline);
-    await page.waitForTimeout(1_000);
+    const card = frame.locator("sefaria-source-card").first();
+    if ((await card.count()) > 0) {
+      const text = await card.evaluate(
+        (element) => element.shadowRoot?.textContent ?? "",
+      );
+      if (
+        text.includes(expectedReference) &&
+        text.includes("Primary text:") &&
+        (!requireTranslation || text.includes("Translation:"))
+      ) {
+        return;
+      }
+    }
+    await new Promise((resolve) => setTimeout(resolve, 250));
   }
   throw new Error(
-    `VS Code did not render ${description} within 120 seconds. Last panel: ${JSON.stringify(lastSnapshot)}`,
+    `The reader did not render source content for ${expectedReference} within 120 seconds.`,
+  );
+}
+
+interface ReaderSnapshot {
+  readonly selectedRef: string | undefined;
+  readonly sourceViewState: string | undefined;
+  readonly hasTranslation: boolean;
+  readonly breadcrumbs: readonly {
+    readonly label: string;
+    readonly current: boolean;
+  }[];
+}
+
+async function readReader(frame: Frame): Promise<ReaderSnapshot | undefined> {
+  const reader = frame.locator("sefaria-reader").first();
+  if ((await reader.count()) === 0) return undefined;
+  return reader.evaluate((element) => {
+    const component = element as HTMLElement & {
+      viewModel?: {
+        selectedTarget?: { ref?: string };
+        breadcrumbs?: readonly {
+          label: string;
+          current: boolean;
+        }[];
+        source?: {
+          viewModel?: {
+            state?: string;
+            items?: readonly {
+              translation?: { state?: string };
+            }[];
+          };
+        };
+      };
+    };
+    const viewModel = component.viewModel;
+    return {
+      selectedRef: viewModel?.selectedTarget?.ref,
+      sourceViewState: viewModel?.source?.viewModel?.state,
+      hasTranslation:
+        viewModel?.source?.viewModel?.items?.some(
+          (item) => item.translation?.state === "text",
+        ) ?? false,
+      breadcrumbs: viewModel?.breadcrumbs ?? [],
+    };
+  });
+}
+
+async function waitForReader(
+  frame: Frame,
+  predicate: (snapshot: ReaderSnapshot) => boolean,
+): Promise<ReaderSnapshot> {
+  const deadline = Date.now() + 120_000;
+  let lastSnapshot: ReaderSnapshot | undefined;
+  while (Date.now() < deadline) {
+    const snapshot = await readReader(frame);
+    lastSnapshot = snapshot;
+    if (snapshot !== undefined && predicate(snapshot)) return snapshot;
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+  throw new Error(
+    `The reader did not reach the expected history state. Last snapshot: ${JSON.stringify(lastSnapshot)}`,
   );
 }
 
@@ -557,74 +799,16 @@ async function failIfSignedOut(page: Page, deadline: number): Promise<void> {
   }
 }
 
-async function completeFollowUp(
-  page: Page,
-  appFrame: Frame,
-  expectedText: string,
-  artifactPrefix: string,
-): Promise<"automatic" | "composer-submitted" | "manual-fallback"> {
-  const deadline = Date.now() + 30_000;
-  while (Date.now() < deadline) {
-    const renderedText = page.getByText(expectedText, { exact: true }).last();
-    if (await renderedText.isVisible()) {
-      const composer = renderedText.locator(
-        "xpath=ancestor::*[contains(concat(' ', normalize-space(@class), ' '), ' interactive-input-part ') or contains(concat(' ', normalize-space(@class), ' '), ' chat-input-container ')][1]",
-      );
-      if ((await composer.count()) === 0) {
-        return "automatic";
-      }
-      const artifact = `${artifactPrefix}-composer`;
-      await captureStage(page, artifact, stageOutput(artifact));
-      await clickChatSubmit(page);
-      return "composer-submitted";
-    }
-
-    const fallback = appFrame.locator(
-      'textarea[aria-label="Follow-up request"]',
-    );
-    if (
-      (await fallback.isVisible()) &&
-      (await fallback.inputValue()) === expectedText
-    ) {
-      const artifact = `${artifactPrefix}-fallback`;
-      await captureStage(page, artifact, stageOutput(artifact));
-      await submitPrompt(page, expectedText);
-      return "manual-fallback";
-    }
-    await new Promise((resolve) => setTimeout(resolve, 250));
-  }
-  throw new Error(
-    "The App neither sent the expected follow-up nor exposed its exact fallback text.",
-  );
-}
-
-async function clickChatSubmit(page: Page): Promise<void> {
-  const send = page
-    .locator(
-      ".interactive-input-part .action-label.codicon-arrow-up-compact:not(.disabled)",
-    )
-    .last();
-  await send.waitFor({ state: "visible", timeout: 5_000 });
-  await send.click();
-}
-
 async function captureStage(
-  page: Page,
+  frame: Frame,
   name: string,
   filePath: string,
 ): Promise<void> {
-  await page.screenshot({ path: filePath, fullPage: true });
+  const staged = path.join(captureDirectory, path.basename(filePath));
+  await frameReaderForCapture(frame);
+  await writeFile(staged, await captureVscodeViewport(frame.page()));
+  stagedCaptures.set(filePath, staged);
   artifacts[name] = portableArtifactPath(filePath);
-}
-
-async function scrollFrameIntoView(frame: Frame): Promise<void> {
-  const element = await frame.frameElement();
-  await element.evaluate((iframe) =>
-    (iframe as Element).scrollIntoView({
-      block: "center",
-      inline: "nearest",
-    }),
-  );
 }
 
 function portableArtifactPath(filePath: string): string {
@@ -638,7 +822,11 @@ function portableArtifactPath(filePath: string): string {
 function stageOutput(suffix: string): string {
   const extension = path.extname(output);
   const base = extension === "" ? output : output.slice(0, -extension.length);
-  return `${base}-${suffix}${extension}`;
+  const normalizedSuffix =
+    base.endsWith("-reader") && suffix.startsWith("reader-")
+      ? suffix.slice("reader-".length)
+      : suffix;
+  return `${base}-${normalizedSuffix}${extension}`;
 }
 
 function walkthroughOutput(): string {
@@ -656,7 +844,9 @@ async function writeWalkthroughResult(
       ? undefined
       : await page.evaluate(() => navigator.userAgent).catch(() => undefined);
   await writeFile(
-    walkthroughOutput(),
+    result.status === "failed"
+      ? path.join(captureDirectory, "failure.json")
+      : walkthroughOutput(),
     `${JSON.stringify(
       {
         ...result,

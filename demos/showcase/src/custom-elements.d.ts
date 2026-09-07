@@ -1,4 +1,5 @@
 import type {
+  SefariaConnectionsPanel,
   SefariaReader,
   SefariaSourceCard,
   SefariaTextSegment,
@@ -16,6 +17,10 @@ declare module "react" {
         HTMLAttributes<SefariaSourceCard>,
         SefariaSourceCard
       > & { ref?: Ref<SefariaSourceCard> };
+      "sefaria-connections-panel": DetailedHTMLProps<
+        HTMLAttributes<SefariaConnectionsPanel>,
+        SefariaConnectionsPanel
+      > & { ref?: Ref<SefariaConnectionsPanel> };
       "sefaria-reader": DetailedHTMLProps<
         HTMLAttributes<SefariaReader>,
         SefariaReader

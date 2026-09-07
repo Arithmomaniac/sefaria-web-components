@@ -4,7 +4,7 @@
 
 **Accepted direction:** reuse the source card and connections panel, retain immutable history in a headless reader session, coordinate the supported stateful flow through a DOM-free reader controller, and render it in a controlled surface with Back and breadcrumbs. Share the controller and visual contracts between the browser and MCP App while supplying environment-specific data sources.
 
-This is an illustrated explanation, not the normative API reference. **Current baseline** refers to repository commit `a513c6dd2aabafc6277a103339a6edd66928dadb`, plus the website reader demonstrations on this branch as of September 7, 2026. **Observed** describes pinned upstream source. **Planned** identifies accepted work that has not landed on the baseline. The [component](../specs/components.md) and [integration](../specs/integrations.md) specifications remain authoritative.
+This is an illustrated explanation, not the normative API reference. **Current baseline** refers to repository commit `f0078bdeff56238dec3e257e3804c5f431efe257`, plus the integrated MCP reader on this branch as of September 7, 2026. **Observed** describes pinned upstream source. **Planned** identifies accepted work that has not landed on the baseline. The [component](../specs/components.md) and [integration](../specs/integrations.md) specifications remain authoritative.
 
 ## The questions this answers
 
@@ -26,15 +26,15 @@ _Current UI, captured from the merged demo using committed text and links fixtur
 | Source card | Bounded text rendering, metadata-backed segment targets, controlled selection, focus/reveal behavior | Connections loading or reader history |
 | Connections panel | Category summaries, 20-entry pages, bounded previews, action events | Target navigation, requests, or history |
 | Browser demo host | Displayed section, active segment, captures, projection settings, cancellation, stale-result suppression | Back stack or breadcrumbs |
-| Adaptive MCP App | Host-delivered source or links result validation, pure component projection, local connections category/page controls, explicit chat follow-up | Same-App connected-source navigation or reader history |
+| Stateful MCP App | Host-delivered source or links result validation, one reader controller, host-proxied source/connections operations, local category/page controls, retained breadcrumbs, explicit chat export | Direct Sefaria requests, Python-held history, durable restoration |
 
 The [browser host](../../demos/connections-panel-live-demo/src/app.ts) opens a target, obtains its server-provided context when needed, selects the first qualified segment, and loads that segment's connections. It makes at most two text operations and one links operation for that flow. Selecting another displayed segment needs only a links operation. Category/page changes project the current capture with zero requests; preview acquisition is a separate explicit action. See the [current interaction contract](../specs/integrations.md#standalone-connections-reader-current).
 
-The current MCP experience is still narrower than the planned integrated reader:
+The current MCP experience now uses the same supported reader controller and controlled surface:
 
-![Existing source-card MCP App rendered inside VS Code Copilot Chat.](../images/mcp-app-vscode.png)
+![Stateful MCP reader rendered inside VS Code Copilot Chat.](../images/mcp-app-vscode-reader-hierarchy.png)
 
-_Existing named-host source-card capture; provenance is recorded in [MCP host interaction](../evidence.md#mcp-host-interaction). The merged App also renders connections and sends an explicit chat follow-up, but neither behavior establishes Back or same-App host-proxied tool calls._
+_Authenticated named-host capture after two same-App connection hops. The reader retains three breadcrumb levels; provenance is recorded in [MCP host interaction](../evidence.md#mcp-host-interaction)._
 
 The supported session and controlled surface now provide history across coordinated reader workspaces. The multi-pane website demo additionally proves that a host can preserve spatial context without adding another text renderer or a public arbitrary-panel abstraction.
 
@@ -56,9 +56,9 @@ For our bounded product, the accepted supported surface has one active text-and-
 
 The shared surface is a **controlled renderer**: it receives a reader-specific view model plus presentation/interaction properties and emits actions. It does not receive raw API payloads, request objects, a client, or the session's complete capture store.
 
-![Proposed shared reader surface and session above separate browser and MCP execution paths, converging at pure projection and rendering.](../images/reader-navigation-boundaries.png)
+![Shared reader surface and session above separate browser and MCP execution paths, converging at pure projection and rendering.](../images/reader-navigation-boundaries.png)
 
-_Proposed runtime paths, showing the browser capture-and-project variant. An existing async factory already performs its pure projection internally; it does not need projection a second time. Blue arrows carry commands or results; purple dashed arrows describe type-only contracts. The Sefaria payload is an external JSON boundary. Diagram source: [editable HTML/SVG](../images/reader-navigation.html)._
+_Runtime paths, showing the browser capture-and-project variant. An existing async factory already performs its pure projection internally; it does not need projection a second time. Blue arrows carry commands or results; purple dashed arrows describe type-only contracts. The Sefaria payload is an external JSON boundary. Diagram source: [editable HTML/SVG](../images/reader-navigation.html)._
 
 | Owner | Responsibility | Explicit exclusion |
 | --- | --- | --- |
@@ -93,13 +93,13 @@ The current website demo exposes both browser composition choices without preten
 
 ### MCP execution
 
-The initial render remains unchanged: the server's tool result supplies corrected API JSON; the App validates it and calls the pure factory. There is no duplicate first-render text request.
+The server's initial tool result supplies corrected API JSON. The App validates it, creates the reader controller from admitted content, and renders without a duplicate first-render text request.
 
-For a later interaction needing data, the planned integrated App coordinator must call a server tool through the MCP host. The exact installed SDK capability and named-host permission path remain a qualification gate rather than an assumed `callServerTool` API. The server requests Sefaria, and the App validates the returned operation/status/request metadata and payload before pure projection. It does **not** call the browser async factory against Sefaria as a fallback.
+For a later interaction needing data, the App controller calls a server tool through the MCP host. The qualified VS Code host advertises `serverTools` and routes bare same-server `get_text` and `get_links_between_texts` calls to the originating server. The server requests Sefaria, and the App validates the returned operation/status/request metadata and payload before admission. It does **not** call the browser async factory against Sefaria as a fallback.
 
 The [MCP Apps architecture](https://apps.extensions.modelcontextprotocol.io/api/classes/app.App.html) describes host-proxied tool calls; the [overview](https://modelcontextprotocol.io/extensions/apps/overview) distinguishes those calls from sending messages or updating model context. Clicking a connection need not ask the language model to invent the next step. Host tool availability and permissions still apply.
 
-The current `get_links_between_texts` tool preserves the corrected array payload inside the specified MCP object envelope. Request identity and documented status remain available for the existing validation-and-projection boundary. The current selected-connection action deliberately sends a chat follow-up; integrated same-App navigation is separate planned work and must not claim success from that composer path.
+The current `get_links_between_texts` tool preserves the corrected array payload inside the specified MCP object envelope. Request identity and documented status remain available for the validation-and-admission boundary. Selected-connection actions use host-proxied tools inside the same App. `ui/message` remains a separate explicit export action and is not reader data transport.
 
 Back, breadcrumbs, and category/page changes covered by retained captures stay local to the App. A host that denies a needed tool call gets an integration-owned unavailable/error presentation, not a hidden direct request. Browser Back must not be used to navigate the surrounding chat.
 
@@ -163,6 +163,6 @@ The shared reader surface earns its place by owning navigation presentation and 
 
 The component specification now settles push/update rules, stable identities, retained-history limits, pending connections, capture accounting, pinning, and explicit rejection. Durable persistence, Forward, browser URL integration, native mobile rendering, and a public arbitrary-panel manager are deferred.
 
-For the MCP connections work, preserve these seams: explicit component actions; host-mediated data access; corrected payloads with request/status identity; shared pure projection; and operation-scoped completion that cannot overwrite a newer navigation. Do not make the server own visual history or return a reader view model as `structuredContent`.
+For MCP reader work, preserve these seams: explicit component actions; host-mediated data access; corrected payloads with request/status identity; shared pure projection; and operation-scoped completion that cannot overwrite a newer navigation. Do not make the server own visual history or return a reader view model as `structuredContent`.
 
-The session foundation proves page-2/Back/page-3 reprojection, late completion rejection, bounded admission, shared capture accounting, interrupted pending connections, and pinned-entry behavior without I/O. The controlled surface renders paired and single-pane workspaces, history bounds, explicit unavailable states, responsive pane selection, and host-scoped actions without requests. The website package now demonstrates both that supported controlled component in an interactive regular website and the alternative viewport-bound spatial composition with independent scrolling, wide pane history, compact one-pane presentation, source and descendant pruning, exact uncached request counts, local connections reprojection, visible pane limits, partial destination failure, and stale-result rejection. The integrated MCP reader remains planned; its acceptance still includes a denied host tool call and same-App navigation through the actual named-host path.
+The session foundation proves page-2/Back/page-3 reprojection, late completion rejection, bounded admission, shared capture accounting, interrupted pending connections, and pinned-entry behavior without I/O. The controlled surface renders paired and single-pane workspaces, history bounds, explicit unavailable states, responsive pane selection, and host-scoped actions without requests. The website package demonstrates both that supported controlled component in an interactive regular website and the alternative viewport-bound spatial composition with independent scrolling, wide pane history, compact one-pane presentation, source and descendant pruning, exact uncached request counts, local connections reprojection, visible pane limits, partial destination failure, and stale-result rejection. The integrated MCP reader adds validated host-proxied continuation, two-hop same-App navigation, deep explicit chat export, and local restoration of middle and root breadcrumbs in the actual named host.

@@ -260,21 +260,23 @@
         <section id="source-card">
           <div class="slide-grid">
             <div class="slide-copy">
-              <h2>Aggregate components come ready-made</h2>
+              <h2>Stateful readers come ready-made</h2>
               <p class="lead">
-                The delivered source card composes many bilingual segments from
-                one response and attributes each edition once.
+                Supply a starting reference and client. The controller retains
+                history, loads connections, and keeps the request-free Reader
+                current.
               </p>
             </div>
             <div
               class="demo-workbench"
-              data-demo="source"
-              data-title="Source card"
+              data-demo="reader"
+              data-title="Supported reader"
             ></div>
           </div>
           <aside class="notes">
-            Ten child views still mean one outer text request and zero child
-            requests.
+            The supported factory returns after the initial source and
+            connections settle. The persistent Reader emits actions; the
+            controller owns continuing navigation and cancellation.
           </aside>
         </section>
 
@@ -283,20 +285,20 @@
             <div class="slide-copy">
               <h2>Compose the interaction you need</h2>
               <p class="lead">
-                Your host combines delivered components and decides how
-                selection drives connections, navigation, and new requests.
+                Lower-level hosts can place source and connections components in
+                their own side-by-side workflow and own the spatial policy.
               </p>
             </div>
             <div
               class="demo-workbench"
-              data-demo="reader"
-              data-title="Connected reader"
+              data-demo="manual-reader"
+              data-title="Manual side-by-side reader"
             ></div>
           </div>
           <aside class="notes">
-            The controlled reader is request-free. The React host translates
-            element events into reader-session transitions and validated
-            requests.
+            This is deliberately not the composite Reader. The React host uses
+            the lower-level session and shared data source, then places separate
+            source-card and connections-panel elements in columns.
           </aside>
         </section>
 
@@ -324,10 +326,11 @@
         <section id="mcp">
           <div class="slide-grid">
             <div class="slide-copy">
-              <h2>Bring the same components into Copilot Chat</h2>
+              <h2>Bring the same Reader into Copilot Chat</h2>
               <p class="lead">
-                The MCP server fetches corrected payloads. The App validates,
-                projects, and renders without another request.
+                The first corrected payload seeds the Reader without another
+                request. Continuing navigation stays in the App through
+                host-proxied tools.
               </p>
             </div>
             <div class="mcp-gallery" aria-label="MCP App screenshots">
@@ -341,11 +344,11 @@
               <figure>
                 <img
                   data-gallery-image
-                  src="./media/mcp-source-card.png"
-                  alt="Sefaria source card rendered in VS Code Copilot Chat"
+                  src="./media/mcp-reader.png"
+                  alt="Sefaria Reader rendered in VS Code Copilot Chat"
                 />
                 <figcaption data-gallery-caption>
-                  Bilingual source card in Copilot Chat
+                  Stateful Reader in Copilot Chat
                 </figcaption>
               </figure>
               <button type="button" data-gallery-next aria-label="Next image">

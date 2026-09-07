@@ -6,17 +6,30 @@ import {
   validateExternalResponse,
 } from "@sefaria/client";
 import {
-  SefariaConnectionsPanel,
+  bindReaderController,
+  SefariaReader,
   SefariaSourceCard,
   type SourceCardViewModel,
 } from "@sefaria/components";
 import {
-  CONNECTIONS_PAGE_SIZE,
-  createConnectionsViewModel,
   type ConnectionsProjection,
   type ConnectionsRequest,
 } from "@sefaria/components/connections-panel";
-import { createSourceCardViewModel } from "@sefaria/components/source-card";
+import {
+  createReaderController,
+  ReaderControllerError,
+  type ReaderController,
+  type ReaderControllerDataSource,
+  type ReaderControllerSnapshot,
+} from "@sefaria/components/reader-controller";
+import {
+  createReaderConnectionsContent,
+  createReaderSourceContent,
+  type ReaderConnectionsContent,
+  type ReaderEntrySeed,
+  type ReaderSourceContent,
+} from "@sefaria/components/reader-session";
+import type { SourceCardRequest } from "@sefaria/components/source-card";
 
 const SOURCE_CARD_META_KEY = "sefaria/source-card";
 const CONNECTIONS_META_KEY = "sefaria/connections";
@@ -32,6 +45,17 @@ interface ToolResultLike {
   readonly isError?: boolean | undefined;
   readonly structuredContent?: unknown;
   readonly _meta?: Record<string, unknown> | undefined;
+}
+
+/** Host-proxied server-tool boundary used by the stateful MCP reader. */
+export interface McpReaderToolHost {
+  callServerTool(
+    params: {
+      readonly name: string;
+      readonly arguments?: Readonly<Record<string, unknown>>;
+    },
+    options?: { readonly signal?: AbortSignal },
+  ): Promise<ToolResultLike>;
 }
 
 interface SourceCardMetadata {
@@ -86,10 +110,55 @@ export function createConnectionsInteraction(
   };
 }
 
-/** Validates and renders one MCP tool result into the App root. */
-export function renderToolResult(
+/** Waits for the App connection without allowing cancelled work to continue. */
+export async function waitForMcpConnection(
+  connected: Promise<unknown>,
+  signal?: AbortSignal,
+): Promise<void> {
+  await connected;
+  signal?.throwIfAborted();
+}
+
+/** Creates the controller data source backed only by host-proxied MCP tools. */
+export function createMcpReaderDataSource(
+  host: McpReaderToolHost,
+): ReaderControllerDataSource {
+  return {
+    loadSource: async (request, signal) => {
+      requireSupportedSourceRequest(request);
+      const result = await host.callServerTool(
+        {
+          name: "get_text",
+          arguments: {
+            reference: request.tref,
+            version_language: "both",
+          },
+        },
+        { signal },
+      );
+      return admitSourceContent(result, request);
+    },
+    loadConnections: async (request, projection, signal) => {
+      const result = await host.callServerTool(
+        {
+          name: "get_links_between_texts",
+          arguments: {
+            reference: request.tref,
+            with_text: request.withText === false ? "0" : "1",
+          },
+        },
+        { signal },
+      );
+      return admitConnectionsContent(result, request, projection);
+    },
+  };
+}
+
+/** Renders one validated tool result as a continuing stateful MCP reader. */
+export function renderReaderToolResult(
   root: HTMLElement,
   result: ToolResultLike,
+  dataSource: ReaderControllerDataSource,
   interaction?: ConnectionsInteraction,
 ): () => void {
   if (result.isError === true) {
@@ -103,11 +172,340 @@ export function renderToolResult(
     return noCleanup;
   }
 
-  if (metadata.data.kind === "source-card") {
-    renderSourceCardResult(root, result, metadata.data);
+  let initialSelection:
+    { readonly position: readonly number[]; readonly ref: string } | undefined;
+  let seed: ReaderEntrySeed;
+  try {
+    if (metadata.data.kind === "source-card") {
+      if (metadata.data.status !== 200) {
+        renderSourceCardResult(root, result, metadata.data);
+        return noCleanup;
+      }
+      const source = admitSourceContent(
+        result,
+        metadata.data.request,
+        metadata.data,
+      );
+      initialSelection = selectInitialSource(
+        source,
+        metadata.data.request.tref,
+      );
+      seed = {
+        source,
+        selectedPosition: initialSelection.position,
+      };
+    } else {
+      seed = {
+        connections: admitConnectionsContent(
+          result,
+          metadata.data.request,
+          {},
+          metadata.data,
+        ),
+      };
+    }
+  } catch (error) {
+    if (error instanceof IntegrationBoundaryError) {
+      renderIntegrationError(root, error.issues);
+    } else {
+      renderToolError(root, [{ type: "text", text: errorMessage(error) }]);
+    }
     return noCleanup;
   }
-  return renderConnectionsResult(root, result, metadata.data, interaction);
+
+  let controller: ReaderController;
+  try {
+    controller = createReaderController(seed, dataSource);
+  } catch (error) {
+    renderToolError(root, [{ type: "text", text: errorMessage(error) }]);
+    return noCleanup;
+  }
+
+  const section = document.createElement("section");
+  const reader = new SefariaReader();
+  reader.chatExport = interaction !== undefined;
+  const status = document.createElement("p");
+  status.hidden = true;
+  section.append(reader, status);
+  root.replaceChildren(section);
+
+  let disposed = false;
+  let pendingChatExport = false;
+  const unbind = bindReaderController(reader, controller);
+  const unsubscribe = controller.subscribe((snapshot) => {
+    renderReaderTask(status, snapshot);
+  });
+  if (initialSelection !== undefined) {
+    const selection = initialSelection;
+    queueMicrotask(() => {
+      if (disposed) return;
+      void controller
+        .selectSource({
+          originEntryId: controller.snapshot.reader.currentEntryId,
+          position: selection.position,
+          ref: selection.ref,
+        })
+        .catch((error: unknown) => {
+          if (!disposed) {
+            status.hidden = false;
+            status.setAttribute("role", "alert");
+            status.textContent = errorMessage(error);
+          }
+        });
+    });
+  }
+  const onChatExport = (event: Event): void => {
+    if (disposed || pendingChatExport || interaction === undefined) return;
+    const detail = customDetail(event);
+    const snapshot = controller.snapshot.reader;
+    if (
+      detail?.originEntryId !== snapshot.currentEntryId ||
+      typeof detail.targetRef !== "string" ||
+      detail.targetRef !== snapshot.selectedTarget?.ref
+    ) {
+      status.hidden = false;
+      status.setAttribute("role", "alert");
+      status.textContent = "Ignored a stale reader chat export.";
+      return;
+    }
+    pendingChatExport = true;
+    status.hidden = false;
+    status.setAttribute("role", "status");
+    status.textContent = "Sending the selected reference to chat.";
+    void interaction
+      .sendMessage(sourceFollowUp(detail.targetRef))
+      .then((response) => {
+        if (disposed) return;
+        status.setAttribute(
+          "role",
+          response.isError === true ? "alert" : "status",
+        );
+        status.textContent =
+          response.isError === true
+            ? "The host rejected the chat export."
+            : "The selected reference was delivered to chat.";
+      })
+      .catch(() => {
+        if (disposed) return;
+        status.setAttribute("role", "alert");
+        status.textContent =
+          "The chat export could not be confirmed and was not retried.";
+      })
+      .finally(() => {
+        pendingChatExport = false;
+      });
+  };
+  reader.addEventListener("sefaria-reader-chat-export", onChatExport);
+
+  return () => {
+    disposed = true;
+    reader.removeEventListener("sefaria-reader-chat-export", onChatExport);
+    unsubscribe();
+    unbind();
+    controller.dispose();
+  };
+}
+
+class IntegrationBoundaryError extends Error {
+  readonly issues: readonly ContractIssue[];
+
+  constructor(issues: readonly ContractIssue[]) {
+    super(
+      issues
+        .map((issue) => `${issue.instancePath}: ${issue.message}`)
+        .join("\n"),
+    );
+    this.name = "IntegrationBoundaryError";
+    this.issues = issues;
+  }
+}
+
+function admitSourceContent(
+  result: ToolResultLike,
+  request: SourceCardRequest,
+  knownMetadata?: SourceCardMetadata,
+): ReaderSourceContent {
+  throwToolFailure(result);
+  const metadata = knownMetadata ?? requireSourceMetadata(result);
+  if (metadata.request.tref !== request.tref) {
+    throw new IntegrationBoundaryError([
+      sourceMetadataIssue(
+        "/request/tref",
+        `Expected ${JSON.stringify(request.tref)}.`,
+      ),
+    ]);
+  }
+  const validation = validateExternalResponse(
+    {
+      method: metadata.method,
+      path: metadata.path,
+      status: metadata.status,
+    },
+    result.structuredContent,
+  );
+  if (!validation.valid) throw new IntegrationBoundaryError(validation.issues);
+  if (metadata.status !== 200) {
+    throw new ReaderControllerError(
+      "source-http",
+      (result.structuredContent as CoreErrorResponse).error,
+      metadata.status,
+    );
+  }
+
+  return createReaderSourceContent(
+    result.structuredContent as CoreV3TextsResponse,
+    request,
+  );
+}
+
+function admitConnectionsContent(
+  result: ToolResultLike,
+  request: ConnectionsRequest,
+  projection: ConnectionsProjection,
+  knownMetadata?: ConnectionsMetadata,
+): ReaderConnectionsContent {
+  throwToolFailure(result);
+  const metadata = knownMetadata ?? requireConnectionsMetadata(result);
+  if (
+    metadata.request.tref !== request.tref ||
+    metadata.request.withText !== (request.withText !== false)
+  ) {
+    throw new IntegrationBoundaryError([
+      connectionsMetadataIssue(
+        "/request",
+        "Expected the exact requested reference and preview coverage.",
+      ),
+    ]);
+  }
+  const envelope = validateConnectionsEnvelope(result.structuredContent);
+  if (!envelope.valid) throw new IntegrationBoundaryError(envelope.issues);
+  const payloadIssue = validateConnectionsPayloadLimit(envelope.payload);
+  if (payloadIssue) throw new IntegrationBoundaryError([payloadIssue]);
+  const validation = validateExternalResponse(
+    {
+      method: metadata.method,
+      path: metadata.path,
+      status: metadata.status,
+    },
+    envelope.payload,
+  );
+  if (!validation.valid) {
+    throw new IntegrationBoundaryError(
+      validation.issues.map((issue) => ({
+        ...issue,
+        instancePath: `/structuredContent/payload${issue.instancePath}`,
+      })),
+    );
+  }
+  return createReaderConnectionsContent(
+    envelope.payload as CoreLinkResponse,
+    request,
+    projection,
+    metadata.status,
+  );
+}
+
+function requireSourceMetadata(result: ToolResultLike): SourceCardMetadata {
+  const metadata = validateMetadata(result._meta);
+  if (!metadata.valid) throw new IntegrationBoundaryError(metadata.issues);
+  if (metadata.data.kind !== "source-card") {
+    throw new IntegrationBoundaryError([
+      integrationIssue(
+        "/_meta",
+        "Expected source-card result metadata.",
+        "invalid-metadata",
+      ),
+    ]);
+  }
+  return metadata.data;
+}
+
+function requireConnectionsMetadata(
+  result: ToolResultLike,
+): ConnectionsMetadata {
+  const metadata = validateMetadata(result._meta);
+  if (!metadata.valid) throw new IntegrationBoundaryError(metadata.issues);
+  if (metadata.data.kind !== "connections") {
+    throw new IntegrationBoundaryError([
+      integrationIssue(
+        "/_meta",
+        "Expected connections result metadata.",
+        "invalid-metadata",
+      ),
+    ]);
+  }
+  return metadata.data;
+}
+
+function throwToolFailure(result: ToolResultLike): void {
+  if (result.isError === true) {
+    throw new Error(toolErrorMessage(result.content));
+  }
+}
+
+function toolErrorMessage(content: readonly unknown[] | undefined): string {
+  return (
+    content?.find(
+      (item): item is { readonly type: "text"; readonly text: string } =>
+        isRecord(item) && item.type === "text" && typeof item.text === "string",
+    )?.text ?? "The Sefaria MCP tool failed without a text message."
+  );
+}
+
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
+function requireSupportedSourceRequest(request: SourceCardRequest): void {
+  if (request.primary !== undefined || request.translation !== undefined) {
+    throw new Error(
+      "The MCP reader supports the default primary and translation selectors only.",
+    );
+  }
+}
+
+function selectInitialSource(
+  source: ReaderSourceContent,
+  requestedRef: string,
+): { readonly position: readonly number[]; readonly ref: string } {
+  if (source.viewModel.state !== "data") {
+    throw new Error(`${requestedRef} did not produce selectable source data.`);
+  }
+  const selected =
+    source.viewModel.items.find((item) => item.ref === requestedRef) ??
+    source.viewModel.items.find(
+      (item): item is typeof item & { readonly ref: string } =>
+        typeof item.ref === "string",
+    );
+  if (!selected || typeof selected.ref !== "string") {
+    throw new Error(`${requestedRef} did not produce a selectable source row.`);
+  }
+  return { position: selected.position, ref: selected.ref };
+}
+
+function renderReaderTask(
+  status: HTMLParagraphElement,
+  snapshot: ReaderControllerSnapshot,
+): void {
+  const task = snapshot.task;
+  if (task.state === "idle") {
+    status.hidden = true;
+    status.textContent = "";
+    return;
+  }
+  status.hidden = false;
+  if (task.state === "loading-source") {
+    status.setAttribute("role", "status");
+    status.textContent = `Loading ${task.targetRef}.`;
+    return;
+  }
+  if (task.state === "loading-connections") {
+    status.setAttribute("role", "status");
+    status.textContent = `Loading connections for ${task.request.tref}.`;
+    return;
+  }
+  status.setAttribute("role", "alert");
+  status.textContent = task.message;
 }
 
 /** Renders an integration-owned status message outside component elements. */
@@ -123,6 +521,9 @@ function renderSourceCardResult(
   result: ToolResultLike,
   metadata: SourceCardMetadata,
 ): void {
+  if (metadata.status === 200) {
+    throw new Error("Source success results must render through the reader.");
+  }
   const validation = validateExternalResponse(
     {
       method: metadata.method,
@@ -136,241 +537,13 @@ function renderSourceCardResult(
     return;
   }
 
-  const viewModel =
-    metadata.status === 200
-      ? createSourceCardViewModel(
-          result.structuredContent as CoreV3TextsResponse,
-          metadata.request,
-        )
-      : createSourceCardHttpErrorViewModel(
-          metadata.status,
-          result.structuredContent as CoreErrorResponse,
-        );
+  const viewModel = createSourceCardHttpErrorViewModel(
+    metadata.status,
+    result.structuredContent as CoreErrorResponse,
+  );
   const card = new SefariaSourceCard();
   card.viewModel = viewModel;
   root.replaceChildren(card);
-}
-
-function renderConnectionsResult(
-  root: HTMLElement,
-  result: ToolResultLike,
-  metadata: ConnectionsMetadata,
-  interaction: ConnectionsInteraction | undefined,
-): () => void {
-  const envelope = validateConnectionsEnvelope(result.structuredContent);
-  if (!envelope.valid) {
-    renderIntegrationError(root, envelope.issues);
-    return noCleanup;
-  }
-  const payloadIssue = validateConnectionsPayloadLimit(envelope.payload);
-  if (payloadIssue) {
-    renderIntegrationError(root, [payloadIssue]);
-    return noCleanup;
-  }
-  const validation = validateExternalResponse(
-    {
-      method: metadata.method,
-      path: metadata.path,
-      status: metadata.status,
-    },
-    envelope.payload,
-  );
-  if (!validation.valid) {
-    renderIntegrationError(
-      root,
-      validation.issues.map((issue) => ({
-        ...issue,
-        instancePath: `/structuredContent/payload${issue.instancePath}`,
-      })),
-    );
-    return noCleanup;
-  }
-
-  const payload = envelope.payload as CoreLinkResponse;
-  let projection = initialConnectionsProjection(payload, metadata);
-  let viewModel = createConnectionsViewModel(
-    payload,
-    metadata.request,
-    projection,
-    metadata.status,
-  );
-  const section = document.createElement("section");
-  const panel = new SefariaConnectionsPanel();
-  panel.viewModel = viewModel;
-  const status = document.createElement("p");
-  status.hidden = true;
-  const fallback = document.createElement("textarea");
-  fallback.readOnly = true;
-  fallback.hidden = true;
-  fallback.setAttribute("aria-label", "Follow-up request");
-  section.append(panel, status, fallback);
-  root.replaceChildren(section);
-
-  let disposed = false;
-  let pending = false;
-
-  const setStatus = (
-    message: string,
-    role: "status" | "alert" = "status",
-    followUp?: string,
-  ): void => {
-    status.hidden = false;
-    status.setAttribute("role", role);
-    status.textContent = message;
-    fallback.hidden = followUp === undefined;
-    fallback.value = followUp ?? "";
-  };
-
-  const updateProjection = (next: ConnectionsProjection): void => {
-    projection = next;
-    viewModel = createConnectionsViewModel(
-      payload,
-      metadata.request,
-      projection,
-      metadata.status,
-    );
-    panel.viewModel = viewModel;
-  };
-
-  const sendFollowUp = async (message: string): Promise<void> => {
-    if (pending || disposed) return;
-    if (!interaction) {
-      setStatus(
-        "The App is not connected to a message host. Use the request below.",
-        "alert",
-        message,
-      );
-      return;
-    }
-
-    pending = true;
-    setStatus("Sending follow-up request.");
-    try {
-      const response = await interaction.sendMessage(message);
-      if (disposed) return;
-      if (response.isError === true) {
-        setStatus(
-          "The host rejected the follow-up. Use the request below.",
-          "alert",
-          message,
-        );
-      } else {
-        setStatus("Follow-up request delivered to the host.");
-      }
-    } catch {
-      if (!disposed) {
-        setStatus(
-          "The follow-up could not be confirmed. It may already have been sent; use the request below if needed.",
-          "alert",
-          message,
-        );
-      }
-    } finally {
-      pending = false;
-    }
-  };
-
-  const onCategoryChange = (event: Event): void => {
-    const detail = customDetail(event);
-    const category = detail?.category;
-    if (
-      category !== null &&
-      (typeof category !== "string" ||
-        viewModel.state !== "data" ||
-        !viewModel.categories.some((candidate) => candidate.id === category))
-    ) {
-      setStatus("Ignored an invalid connections category.", "alert");
-      return;
-    }
-    updateProjection(category === null ? {} : { category, page: 0 });
-  };
-
-  const onPageChange = (event: Event): void => {
-    const page = customDetail(event)?.page;
-    if (
-      viewModel.state !== "data" ||
-      viewModel.category === null ||
-      typeof page !== "number" ||
-      !Number.isSafeInteger(page) ||
-      page < 0 ||
-      page * CONNECTIONS_PAGE_SIZE >= viewModel.total
-    ) {
-      setStatus("Ignored an invalid connections page.", "alert");
-      return;
-    }
-    updateProjection({ category: viewModel.category, page });
-  };
-
-  const onConnectionSelect = (event: Event): void => {
-    const detail = customDetail(event);
-    if (
-      viewModel.state !== "data" ||
-      typeof detail?.id !== "string" ||
-      typeof detail.targetRef !== "string"
-    ) {
-      setStatus("Ignored an invalid connection selection.", "alert");
-      return;
-    }
-    const entry = viewModel.entries.find(
-      (candidate) =>
-        candidate.id === detail.id && candidate.targetRef === detail.targetRef,
-    );
-    if (!entry) {
-      setStatus("Ignored a stale connection selection.", "alert");
-      return;
-    }
-    void sendFollowUp(sourceFollowUp(entry.targetRef));
-  };
-
-  const onPreviewRequest = (): void => {
-    if (viewModel.state !== "data" || viewModel.previewsIncluded) {
-      setStatus("Ignored an invalid preview request.", "alert");
-      return;
-    }
-    void sendFollowUp(previewsFollowUp(metadata.request.tref));
-  };
-
-  panel.addEventListener(
-    "sefaria-connections-category-change",
-    onCategoryChange,
-  );
-  panel.addEventListener("sefaria-connections-page-change", onPageChange);
-  panel.addEventListener("sefaria-connection-select", onConnectionSelect);
-  panel.addEventListener(
-    "sefaria-connections-preview-request",
-    onPreviewRequest,
-  );
-
-  return () => {
-    disposed = true;
-    panel.removeEventListener(
-      "sefaria-connections-category-change",
-      onCategoryChange,
-    );
-    panel.removeEventListener("sefaria-connections-page-change", onPageChange);
-    panel.removeEventListener("sefaria-connection-select", onConnectionSelect);
-    panel.removeEventListener(
-      "sefaria-connections-preview-request",
-      onPreviewRequest,
-    );
-  };
-}
-
-function initialConnectionsProjection(
-  payload: CoreLinkResponse,
-  metadata: ConnectionsMetadata,
-): ConnectionsProjection {
-  const summary = createConnectionsViewModel(
-    payload,
-    metadata.request,
-    {},
-    metadata.status,
-  );
-  if (summary.state !== "data" || summary.categories.length === 0) return {};
-  const category =
-    summary.categories.find((candidate) => candidate.id === "Commentary") ??
-    summary.categories[0];
-  return category ? { category: category.id, page: 0 } : {};
 }
 
 function validateMetadata(
@@ -633,10 +806,6 @@ function createSourceCardHttpErrorViewModel(
 
 function sourceFollowUp(targetRef: string): string {
   return `Use get_text with reference ${JSON.stringify(targetRef)} and version_language "both" to show the selected source.`;
-}
-
-function previewsFollowUp(reference: string): string {
-  return `Use get_links_between_texts with reference ${JSON.stringify(reference)} and with_text "1" to show connection previews.`;
 }
 
 function renderIntegrationError(

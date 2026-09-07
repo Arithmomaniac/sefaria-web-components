@@ -27,6 +27,8 @@ const settings = {
   },
   "chat.mcp.gallery.enabled": false,
   "chat.plugins.enabled": false,
+  "chat.stickyScroll.enabled": false,
+  "chat.viewSessions.enabled": false,
   "extensions.autoCheckUpdates": false,
   "extensions.autoUpdate": "off",
   "extensions.ignoreRecommendations": true,
@@ -35,6 +37,7 @@ const settings = {
   "window.commandCenter": false,
   "window.zoomLevel": 1,
   "window.restoreWindows": "none",
+  "workbench.activityBar.location": "hidden",
   "workbench.colorTheme": "Default Light Modern",
   "workbench.startupEditor": "none",
 } as const;

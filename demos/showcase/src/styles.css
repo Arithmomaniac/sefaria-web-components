@@ -607,7 +607,13 @@ body {
 }
 
 .pipeline-render > sefaria-text-segment,
-.demo-result > :is(sefaria-text-segment, sefaria-source-card, sefaria-reader) {
+.demo-result
+  > :is(
+    sefaria-text-segment,
+    sefaria-source-card,
+    sefaria-connections-panel,
+    sefaria-reader
+  ) {
   --sefaria-surface: var(--surface);
   --sefaria-surface-muted: var(--surface-muted);
   --sefaria-fg: var(--ink);
@@ -770,12 +776,93 @@ body {
   color: var(--danger);
 }
 
-.demo-result > :is(sefaria-text-segment, sefaria-source-card, sefaria-reader) {
+.demo-result
+  > :is(
+    sefaria-text-segment,
+    sefaria-source-card,
+    sefaria-connections-panel,
+    sefaria-reader
+  ),
+.manual-reader-column > :is(sefaria-source-card, sefaria-connections-panel) {
   --sefaria-font-english:
     var(--sample-font-english, Georgia), "Times New Roman", serif;
   --sefaria-font-hebrew:
     var(--sample-font-hebrew, "Noto Serif Hebrew"), "SBL Hebrew",
     "Times New Roman", serif;
+}
+
+.demo-status {
+  color: var(--muted);
+}
+
+.demo-reader-result {
+  container-type: inline-size;
+}
+
+.demo-reader-result > sefaria-reader {
+  display: block;
+  width: min(100%, 90rem);
+  margin-inline: auto;
+}
+
+.manual-reader {
+  container-type: inline-size;
+}
+
+.manual-reader-history {
+  display: flex;
+  gap: 0.5rem;
+  margin-block-end: 1rem;
+  overflow-x: auto;
+}
+
+.manual-reader-history button {
+  flex: 0 0 auto;
+  min-height: 2.25rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.4rem 0.75rem;
+  color: var(--ink);
+  background: var(--surface-muted);
+  font: 10pt var(--deck-sans);
+  cursor: pointer;
+}
+
+.manual-reader-history button[aria-current="page"] {
+  border-color: var(--berry);
+  color: white;
+  background: var(--berry);
+}
+
+.manual-reader-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 1rem;
+  min-width: 0;
+}
+
+.manual-reader-column {
+  min-width: 0;
+  max-height: 70vh;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 0.8rem;
+  padding: 0.85rem;
+  background: var(--surface);
+}
+
+.manual-reader-column > h2 {
+  margin-block: 0 0.75rem;
+  color: var(--muted);
+  font: 650 11pt var(--deck-sans);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+@container (max-width: 44rem) {
+  .manual-reader-columns {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 780px) {

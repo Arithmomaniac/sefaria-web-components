@@ -11,10 +11,10 @@ The public [interactive showcase](https://arithmomaniac.github.io/sefaria-web-co
 1. [Render text](guides/render-text.md): run a demo, choose a component, and put a source card in a browser app.
 2. [How the pieces fit together](guides/data-flow.md): understand the client, factories, view models, and elements, including the already-fetched-data path.
 3. [Linker demonstration](linker-demo.md): embed citation detection and request-free popups or run the same script as a bookmarklet.
-4. [MCP App demonstration](mcp-app-demo.md): run the corrected-payload source card and connections panel in VS Code Copilot Chat and inspect the asserted walkthrough artifacts.
+4. [MCP App demonstration](mcp-app-demo.md): run the stateful reader in VS Code Copilot Chat and inspect same-App connection navigation, retained breadcrumbs, and explicit chat export.
 5. [Text markup, with examples](guides/text-markup.md): recognize footnotes, commentary markers, Masorah spans, links, and other HTML inside a passage.
 6. [Intentional differences](guides/differences.md): understand which Sefaria behaviors we preserve and which we deliberately change.
-7. [Reader navigation, illustrated](guides/reader-navigation.md): compare the multi-pane and supported-controller website demos, Sefaria navigation ownership, the current DOM-free reader session, controller, and controlled surface, and the planned integrated MCP consumer.
+7. [Reader navigation, illustrated](guides/reader-navigation.md): compare the multi-pane and supported-controller website demos, Sefaria navigation ownership, and the current DOM-free reader session, controller, controlled surface, and integrated MCP consumer.
 
 **Current** means available on the documented repository baseline. **Planned** means an intended contract that is not yet delivered there. **Observed** describes evidence from a named source or capture, not a universal promise about every Sefaria text.
 

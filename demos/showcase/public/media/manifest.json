@@ -1,6 +1,6 @@
 {
   "captureDate": "2026-09-07",
-  "captureMethod": "Playwright with headless installed Chrome at 1600x900; browser chrome excluded",
+  "captureMethod": "Public sites: Playwright with headless installed Chrome at 1600x900, browser chrome excluded. MCP gallery: authenticated isolated VS Code 1.136.1, native CDP surface at 1920x1200, readable configured zoom, full-width Chat, session history and sticky prompt hidden.",
   "publicOnly": true,
   "entries": [
     {
@@ -61,35 +61,35 @@
       ]
     },
     {
-      "id": "mcp-source-card",
-      "filename": "mcp-source-card.png",
+      "id": "mcp-reader",
+      "filename": "mcp-reader.png",
       "status": "captured",
       "source": "Authenticated isolated VS Code Copilot Chat profile",
-      "captionSuggestion": "A bilingual Micah 6:8 source card rendered as an MCP App in Copilot Chat.",
+      "captionSuggestion": "The stateful Micah 6:8 Reader rendered as an MCP App in Copilot Chat.",
       "limitations": [
         "Recorded host demonstration; GitHub Pages does not run the MCP server.",
-        "Captured in VS Code light mode with the secondary side bar maximized."
+        "Captured in VS Code light mode with full-width Chat, no history subpane, and the Reader header visible."
       ]
     },
     {
-      "id": "mcp-connections",
-      "filename": "mcp-connections.png",
+      "id": "mcp-reader-hierarchy",
+      "filename": "mcp-reader-hierarchy.png",
       "status": "captured",
       "source": "Authenticated isolated VS Code Copilot Chat profile",
-      "captionSuggestion": "A large Micah 6:8 connections payload rendered as an interactive MCP App.",
+      "captionSuggestion": "The Reader after two same-App connection hops, with three retained breadcrumb levels.",
       "limitations": [
         "Recorded host demonstration; GitHub Pages does not run the MCP server.",
         "Connection results reflect the live payload captured on 2026-09-07."
       ]
     },
     {
-      "id": "mcp-category",
-      "filename": "mcp-category.png",
+      "id": "mcp-reader-chat-export",
+      "filename": "mcp-reader-chat-export.png",
       "status": "captured",
       "source": "Authenticated isolated VS Code Copilot Chat profile",
-      "captionSuggestion": "The same connections App after selecting the Targum category.",
+      "captionSuggestion": "The deepest retained Reader reference explicitly exported to the Copilot Chat composer.",
       "limitations": [
-        "The category change is local projection over the retained connections payload.",
+        "The export is a separate user action from Reader data navigation.",
         "Recorded host demonstration; GitHub Pages does not run the MCP server."
       ]
     }
