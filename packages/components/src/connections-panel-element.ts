@@ -21,6 +21,8 @@ export class SefariaConnectionsPanel extends SefariaElement {
       :host {
         min-width: 0;
         max-width: 100%;
+        overflow: hidden;
+        border-radius: var(--_sefaria-panel-radius);
       }
       nav {
         display: flex;
@@ -33,7 +35,7 @@ export class SefariaConnectionsPanel extends SefariaElement {
         color: inherit;
         background: transparent;
         border: 1px solid var(--_sefaria-border);
-        border-radius: 0.3rem;
+        border-radius: var(--_sefaria-control-radius);
         padding: 0.4rem 0.6rem;
         cursor: pointer;
         max-width: 100%;

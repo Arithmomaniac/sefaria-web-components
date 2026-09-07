@@ -338,9 +338,11 @@ function demoSource(kind: DemoKind): string {
 }
 
 function demoUrl(kind: DemoKind): string {
-  return kind === "linker"
-    ? "./linker-preview.html"
-    : `./preview.html?demo=${kind}`;
+  return kind === "manual-reader"
+    ? "./workspace-preview.html"
+    : kind === "linker"
+      ? "./linker-preview.html"
+      : `./preview.html?demo=${kind}`;
 }
 
 function DemoWorkbench({

@@ -69,6 +69,10 @@ body {
   background: var(--page);
 }
 
+.reveal .slides section:has(.demo-workbench) {
+  padding-inline-end: clamp(1rem, 2vw, 2rem);
+}
+
 .reveal h1,
 .reveal h2,
 .reveal p,
@@ -799,10 +803,43 @@ body {
   container-type: inline-size;
 }
 
-.demo-reader-result > sefaria-reader {
-  display: block;
-  width: min(100%, 90rem);
-  margin-inline: auto;
+.reader-demo-page {
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  gap: 0.65rem;
+  height: 100vh;
+  min-height: 0;
+  padding: 0.75rem;
+  overflow: hidden;
+}
+
+.reader-demo-page .demo-controls {
+  margin: 0;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+}
+
+.reader-demo-page .demo-feedback {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.reader-demo-page :is(.demo-status, .demo-error) {
+  margin: 0;
+}
+
+.reader-demo-page .demo-reader-result {
+  min-height: 0;
+  padding: 0;
+  overflow: hidden;
+  border-radius: 0.5rem;
+}
+
+.reader-demo-page .demo-reader-result > sefaria-reader {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  margin: 0;
 }
 
 .manual-reader {

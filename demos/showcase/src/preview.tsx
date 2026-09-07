@@ -259,7 +259,7 @@ function ReaderDemo() {
   }, [releaseController]);
 
   return (
-    <main className="demo-page">
+    <main className="demo-page reader-demo-page">
       <form
         className="demo-controls"
         onSubmit={(event) => {
@@ -276,14 +276,16 @@ function ReaderDemo() {
         </label>
         <button type="submit">Open reader</button>
       </form>
-      <p className="demo-status" role="status">
-        {status}
-      </p>
-      {error === undefined ? null : (
-        <p className="demo-error" role="alert">
-          {error}
+      <div className="demo-feedback">
+        <p className="demo-status" role="status">
+          {status}
         </p>
-      )}
+        {error === undefined ? null : (
+          <p className="demo-error" role="alert">
+            {error}
+          </p>
+        )}
+      </div>
       <section className="demo-result demo-reader-result">
         <sefaria-reader ref={elementRef} />
       </section>
