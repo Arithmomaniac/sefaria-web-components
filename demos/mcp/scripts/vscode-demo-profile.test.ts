@@ -102,6 +102,9 @@ describe("VS Code MCP demo profile", () => {
       "extensions.autoUpdate": "off",
       "extensions.ignoreRecommendations": true,
       "update.mode": "none",
+      "window.commandCenter": false,
+      "window.zoomLevel": 1,
+      "workbench.colorTheme": "Default Light Modern",
       "workbench.startupEditor": "none",
     });
     expect(settings["chat.mcp.discovery.enabled"]).toEqual({

@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <meta
+      name="description"
+      content="An interactive tour of Sefaria Web Components, a Microsoft Global Hackathon 2026 project."
+    />
+    <title>Sefaria Web Components</title>
+  </head>
+  <body>
+    <div class="reveal">
+      <div class="slides">
+        <section id="title" class="title-slide">
+          <div class="title-mark" aria-hidden="true">ס</div>
+          <p class="title-meta">Microsoft Global Hackathon 2026</p>
+          <h1>Sefaria Web Components</h1>
+          <p class="tagline">Sefaria texts. Your interface.</p>
+          <p class="disclaimer">
+            Experimental open-source project · not an official Sefaria product
+          </p>
+          <aside class="notes">
+            Introduce the project as a portable rendering and integration
+            toolkit, not a replacement for Sefaria's reader.
+          </aside>
+        </section>
+
+        <section id="what-is-sefaria">
+          <div class="slide-grid">
+            <div class="slide-copy">
+              <h2>A library built for connection</h2>
+              <p class="lead">
+                Sefaria brings Jewish texts, translations, commentary, and their
+                relationships into one free digital library.
+              </p>
+              <p>
+                Sefaria brings primary sources, translations, commentary, and
+                attribution into one navigable corpus.
+              </p>
+            </div>
+            <div class="visual-frame image-pair">
+              <figure>
+                <img
+                  src="./media/sefaria-library.png"
+                  alt="Sefaria library discovery page"
+                />
+                <figcaption>Discover the library</figcaption>
+              </figure>
+              <figure>
+                <img
+                  src="./media/sefaria-reader.png"
+                  alt="Sefaria bilingual reader and connections"
+                />
+                <figcaption>Read texts in context</figcaption>
+              </figure>
+            </div>
+          </div>
+          <aside class="notes">
+            Emphasize that Sefaria supplies the canonical library, metadata,
+            translations, and network of textual relationships.
+          </aside>
+        </section>
+
+        <section id="ecosystem">
+          <div class="slide-grid">
+            <div class="slide-copy">
+              <h2>One library. Many interfaces.</h2>
+              <p class="lead">
+                Independent developers use Sefaria’s open data to build
+                research, learning, and reading experiences of their own.
+              </p>
+              <p>
+                Every new surface needs trustworthy data and correct, accessible
+                text rendering.
+              </p>
+            </div>
+            <div class="visual-frame image-pair">
+              <figure>
+                <img
+                  src="./media/torah-research-board.png"
+                  alt="Torah Research Board powered by Sefaria"
+                />
+                <figcaption>Torah Research Board</figcaption>
+              </figure>
+              <figure>
+                <img
+                  src="./media/lishkod.png"
+                  alt="Lishkod learning application powered by Sefaria"
+                />
+                <figcaption>Lishkod</figcaption>
+              </figure>
+            </div>
+          </div>
+          <aside class="notes">
+            The official Powered by Sefaria directory is a partial list. Avoid
+            unverified project-growth claims or treating Linker-site counts as
+            API-project counts.
+          </aside>
+        </section>
+
+        <section id="problem" class="problem-slide">
+          <div class="slide-grid">
+            <div class="slide-copy">
+              <h2>Getting JSON is the easy part</h2>
+              <p class="lead">
+                Every new surface must preserve the text’s structure, meaning,
+                accessibility, and reading experience.
+              </p>
+            </div>
+            <div class="problem-grid">
+              <article>
+                <strong>Contracts</strong>
+                <p>Incomplete API descriptions and data-dependent shapes.</p>
+              </article>
+              <article>
+                <strong>Text</strong>
+                <p>Markup, footnotes, vocalization, bidi, and attribution.</p>
+              </article>
+              <article>
+                <strong>Interface</strong>
+                <p>Responsive composition, keyboard use, and screen readers.</p>
+              </article>
+              <article>
+                <strong>Polish</strong>
+                <p>
+                  Light/dark themes, typography, focus, and host integration.
+                </p>
+              </article>
+            </div>
+          </div>
+          <aside class="notes">
+            Sefaria documents its text formatting. This project adds corrected
+            typed boundaries, deterministic projection, and reusable
+            request-free rendering.
+          </aside>
+        </section>
+
+        <section id="client" class="pipeline-slide">
+          <header class="pipeline-series-header">
+            <p>
+              <strong>One delivered path</strong>
+              <span>Three explicit responsibility boundaries</span>
+            </p>
+            <nav aria-label="Component delivery path">
+              <a href="#/client" aria-current="step">
+                <strong>1</strong><span>Validated data</span>
+              </a>
+              <a href="#/view-model">
+                <strong>2</strong><span>View model</span>
+              </a>
+              <a href="#/element"> <strong>3</strong><span>Rendering</span> </a>
+            </nav>
+          </header>
+          <div class="slide-grid">
+            <div class="slide-copy">
+              <h2>Trust data at the boundary</h2>
+              <p class="lead">
+                Inside one delivered component path, generated operations and
+                runtime validation protect the transport contract.
+              </p>
+            </div>
+            <div class="pipeline-slot" data-pipeline-stage="client"></div>
+          </div>
+          <aside class="notes">
+            The public client stays thin. Documented HTTP errors remain typed;
+            network failures and invalid JSON stay failures.
+          </aside>
+        </section>
+
+        <section id="view-model" class="pipeline-slide">
+          <header class="pipeline-series-header">
+            <p>
+              <strong>One delivered path</strong>
+              <span>Three explicit responsibility boundaries</span>
+            </p>
+            <nav aria-label="Component delivery path">
+              <a href="#/client">
+                <strong>1</strong><span>Validated data</span>
+              </a>
+              <a href="#/view-model" aria-current="step">
+                <strong>2</strong><span>View model</span>
+              </a>
+              <a href="#/element"> <strong>3</strong><span>Rendering</span> </a>
+            </nav>
+          </header>
+          <div class="slide-grid">
+            <div class="slide-copy">
+              <h2>Project only what the component needs</h2>
+              <p class="lead">
+                The same path uses a pure factory to turn validated payload data
+                into one render-ready view model.
+              </p>
+            </div>
+            <div class="pipeline-slot" data-pipeline-stage="view-model"></div>
+          </div>
+          <aside class="notes">
+            This is where sanitization, footnotes, direction, and
+            component-specific empty/error states are resolved.
+          </aside>
+        </section>
+
+        <section id="element" class="pipeline-slide">
+          <header class="pipeline-series-header">
+            <p>
+              <strong>One delivered path</strong>
+              <span>Three explicit responsibility boundaries</span>
+            </p>
+            <nav aria-label="Component delivery path">
+              <a href="#/client">
+                <strong>1</strong><span>Validated data</span>
+              </a>
+              <a href="#/view-model">
+                <strong>2</strong><span>View model</span>
+              </a>
+              <a href="#/element" aria-current="step">
+                <strong>3</strong><span>Rendering</span>
+              </a>
+            </nav>
+          </header>
+          <div class="slide-grid">
+            <div class="slide-copy">
+              <h2>Render without requesting</h2>
+              <p class="lead">
+                The path ends at a Web Component that receives the model,
+                renders it, and makes zero requests.
+              </p>
+            </div>
+            <div class="pipeline-slot" data-pipeline-stage="element"></div>
+          </div>
+          <aside class="notes">
+            The same model can be supplied by a browser client, stored data, or
+            an MCP tool result after validation.
+          </aside>
+        </section>
+
+        <section id="all-together">
+          <div class="slide-grid">
+            <div class="slide-copy">
+              <h2>Deliver one finished component experience</h2>
+              <p class="lead">
+                The host wiring connects input, client, and factory while the
+                same request-free element stays mounted.
+              </p>
+              <p class="drag-hint">Drag the preview's right edge ↔</p>
+            </div>
+            <div
+              class="demo-workbench"
+              data-demo="text"
+              data-title="Text segment"
+            ></div>
+          </div>
+          <aside class="notes">
+            Reference changes call the existing async factory. Theme, font, and
+            viewport changes are presentation-only and do not refetch.
+          </aside>
+        </section>
+
+        <section id="source-card">
+          <div class="slide-grid">
+            <div class="slide-copy">
+              <h2>Aggregate components come ready-made</h2>
+              <p class="lead">
+                The delivered source card composes many bilingual segments from
+                one response and attributes each edition once.
+              </p>
+            </div>
+            <div
+              class="demo-workbench"
+              data-demo="source"
+              data-title="Source card"
+            ></div>
+          </div>
+          <aside class="notes">
+            Ten child views still mean one outer text request and zero child
+            requests.
+          </aside>
+        </section>
+
+        <section id="interactions">
+          <div class="slide-grid">
+            <div class="slide-copy">
+              <h2>Compose the interaction you need</h2>
+              <p class="lead">
+                Your host combines delivered components and decides how
+                selection drives connections, navigation, and new requests.
+              </p>
+            </div>
+            <div
+              class="demo-workbench"
+              data-demo="reader"
+              data-title="Connected reader"
+            ></div>
+          </div>
+          <aside class="notes">
+            The controlled reader is request-free. The React host translates
+            element events into reader-session transitions and validated
+            requests.
+          </aside>
+        </section>
+
+        <section id="linker">
+          <div class="slide-grid">
+            <div class="slide-copy">
+              <h2>Bring Sefaria to an ordinary article</h2>
+              <p class="lead">
+                The Linker detects citations and opens the same request-free
+                popup without taking over the host page.
+              </p>
+            </div>
+            <div
+              class="demo-workbench"
+              data-demo="linker"
+              data-title="Linker article"
+            ></div>
+          </div>
+          <aside class="notes">
+            The classic script owns explicit detection and polling. The popup
+            still receives only its view model.
+          </aside>
+        </section>
+
+        <section id="mcp">
+          <div class="slide-grid">
+            <div class="slide-copy">
+              <h2>Bring the same components into Copilot Chat</h2>
+              <p class="lead">
+                The MCP server fetches corrected payloads. The App validates,
+                projects, and renders without another request.
+              </p>
+            </div>
+            <div class="mcp-gallery" aria-label="MCP App screenshots">
+              <button
+                type="button"
+                data-gallery-previous
+                aria-label="Previous image"
+              >
+                ‹
+              </button>
+              <figure>
+                <img
+                  data-gallery-image
+                  src="./media/mcp-source-card.png"
+                  alt="Sefaria source card rendered in VS Code Copilot Chat"
+                />
+                <figcaption data-gallery-caption>
+                  Bilingual source card in Copilot Chat
+                </figcaption>
+              </figure>
+              <button type="button" data-gallery-next aria-label="Next image">
+                ›
+              </button>
+              <p data-gallery-position aria-live="polite">1 of 3</p>
+            </div>
+          </div>
+          <aside class="notes">
+            This slide shows captured named-host acceptance. GitHub Pages does
+            not run the Python MCP server.
+          </aside>
+        </section>
+
+        <section id="close" class="closing-slide">
+          <blockquote>
+            “This project is brilliant and could have a huge impact on everyone
+            in the community.”
+          </blockquote>
+          <p class="quote-attribution">
+            Sarah Engel Kreitman · Developer Outreach, Sefaria
+          </p>
+          <a
+            class="repo-link"
+            href="https://github.com/Arithmomaniac/sefaria-web-components"
+          >
+            github.com/Arithmomaniac/sefaria-web-components
+          </a>
+          <p class="disclaimer">
+            An experimental Microsoft Global Hackathon 2026 project
+          </p>
+          <aside class="notes">
+            This is a shortened contiguous excerpt from Sarah's longer feedback.
+            Do not attribute the separate OpenDev aspiration to Sarah.
+          </aside>
+        </section>
+      </div>
+    </div>
+    <div class="deck-toolbar" aria-label="Presentation appearance">
+      <label>
+        Theme
+        <select data-deck-theme>
+          <option value="system">System</option>
+          <option value="light">Light</option>
+          <option value="dark">Dark</option>
+        </select>
+      </label>
+    </div>
+    <div id="pipeline-root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

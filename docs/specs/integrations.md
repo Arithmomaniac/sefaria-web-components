@@ -16,6 +16,20 @@ An integration must not give a reference, raw payload, client, host, or `fetch` 
 
 Unknown JSON must pass a generated `@sefaria/client` validator before component projection. Validation failures report structured paths.
 
+## Public showcase deck [Planned]
+
+The GitHub Pages showcase is a static Reveal.js host for project explanation, live browser demonstrations, and captured named-host evidence. It owns presentation state, reference inputs, client creation, cancellation, stale-result suppression, and assignment of factory results to persistent request-free elements.
+
+The React examples bind existing component factories to existing Web Components. A request change runs the owning factory and assigns the new component-specific view model to the same mounted element. Theme, font, viewport width, code-tab, and slide-navigation changes do not run a component factory or recreate that element.
+
+Live examples call the deployed Sefaria API by default. Network, abort, contract-validation, documented HTTP, projection, partial, and empty outcomes remain distinct. The showcase does not silently replace a failed live request with fixture data. Deterministic tests can inject dated payloads through the existing client boundary without making fixture mode part of the public demonstration.
+
+Interactive demonstrations run in same-origin iframe viewports so resizing changes their actual CSS viewport width and container-query behavior. The frame scrolls independently, inherits the deck's resolved light/dark theme and font tokens, and stays mounted after its first visit. Unvisited examples make no request. Leaving a pending example aborts or supersedes its work; returning exposes retained completed content or an explicit interrupted state rather than retrying invisibly.
+
+The deck can display captured MCP host screenshots, but GitHub Pages does not run the Python MCP server. Screenshot galleries identify recorded evidence and do not imitate an interactive MCP host. Public assets include provenance and exclude authenticated, private, or unrelated browser content.
+
+The Pages artifact contains an allowlisted set of built browser demonstrations. The deck is the site root, existing demonstrations remain under stable subpaths, and the public Linker bookmarklet points to the deployed HTTPS artifact rather than localhost. Pull requests build and test the artifact without publishing; main publishes only after the normal checks and asset approval gates.
+
 ## Interaction task flow
 
 An integration owns the task lifecycle for user-triggered data changes. It selects authoritative captured data, validated server data, or a supplied client.
