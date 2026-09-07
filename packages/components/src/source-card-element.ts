@@ -43,11 +43,12 @@ export class SefariaSourceCard extends SefariaElement {
         max-width: 100%;
         min-width: 0;
         border: 1px solid var(--_sefaria-border);
-        border-radius: 0.75rem;
+        border-radius: var(--_sefaria-panel-radius);
         padding: 1.25rem;
       }
 
       header {
+        display: var(--_sefaria-source-card-header-display, block);
         margin-block-end: 1.25rem;
         padding-block-end: 0.75rem;
         border-block-end: 1px solid var(--_sefaria-border);
@@ -103,7 +104,7 @@ export class SefariaSourceCard extends SefariaElement {
         color: inherit;
         background: transparent;
         border: 0;
-        border-radius: 0.2rem;
+        border-radius: var(--_sefaria-control-radius);
         padding: 0.2rem 0.3rem;
         align-self: start;
         cursor: pointer;

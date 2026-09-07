@@ -73,6 +73,7 @@ await cp(
 for (const required of [
   "index.html",
   "preview.html",
+  "workspace-preview.html",
   "linker-preview.html",
   "media/sefaria-library.png",
   "media/sefaria-reader.png",

@@ -7,6 +7,7 @@ export default defineConfig({
       input: {
         index: "index.html",
         preview: "preview.html",
+        workspace: "workspace-preview.html",
       },
     },
   },

@@ -44,6 +44,8 @@ export class SefariaReader extends SefariaElement {
     css`
       :host {
         container-type: inline-size;
+        display: grid;
+        grid-template-rows: auto minmax(0, 1fr);
         min-width: 0;
         max-width: 100%;
         overflow: hidden;
@@ -197,23 +199,35 @@ export class SefariaReader extends SefariaElement {
 
       .panes {
         display: grid;
-        grid-template-columns: minmax(0, 3fr) minmax(18rem, 2fr);
-        gap: 1rem;
-        align-items: start;
+        grid-template-columns: minmax(0, 68fr) minmax(13rem, 32fr);
+        align-items: stretch;
         min-width: 0;
-        padding: 1.25rem;
+        min-height: 0;
+        overflow: hidden;
+        padding: 0;
         background: var(--_sefaria-surface);
       }
 
       .pane {
         min-width: 0;
+        min-height: 0;
+        overflow-y: auto;
+        scrollbar-width: thin;
+        padding: 1rem;
       }
 
       .pane[data-pane="connections"] {
-        padding: 1.25rem;
-        border: 1px solid var(--_sefaria-border);
-        border-radius: 0.75rem;
-        background: var(--_sefaria-surface);
+        border-inline-start: 1px solid var(--_sefaria-border);
+        background: var(--_sefaria-surface-muted);
+      }
+
+      sefaria-source-card {
+        --_sefaria-source-card-header-display: none;
+
+        display: block;
+        padding: 0;
+        border: 0;
+        border-radius: 0;
       }
 
       .unavailable {
@@ -225,7 +239,7 @@ export class SefariaReader extends SefariaElement {
         color: var(--_sefaria-fg-muted);
       }
 
-      @container (max-width: 44rem) {
+      @container (max-width: 40rem) {
         .actions {
           align-items: stretch;
         }
@@ -236,7 +250,15 @@ export class SefariaReader extends SefariaElement {
 
         .panes {
           display: block;
-          padding: 1rem;
+          overflow-y: auto;
+        }
+
+        .pane[data-pane="connections"] {
+          border-inline-start: 0;
+        }
+
+        .pane {
+          overflow-y: visible;
         }
 
         .pane[data-active="false"] {
@@ -263,6 +285,9 @@ export class SefariaReader extends SefariaElement {
     const viewModel = this.viewModel;
     if (viewModel === undefined) return nothing;
     const activePane = this.#effectivePane(viewModel);
+    const ancestors = viewModel.breadcrumbs.filter(
+      (breadcrumb) => !breadcrumb.current,
+    );
     return html`
       <header class="reader-header">
         <div class="history-row">
@@ -275,26 +300,18 @@ export class SefariaReader extends SefariaElement {
           >
             Back
           </button>
-          <nav aria-label="Reader history">
+          <nav aria-label="Reader history" ?hidden=${ancestors.length === 0}>
             <ol>
-              ${viewModel.breadcrumbs.map(
+              ${ancestors.map(
                 (breadcrumb) =>
                   html`<li>
-                    ${
-                      breadcrumb.current
-                        ? html`<span
-                            class="crumb current-crumb"
-                            aria-current="page"
-                            >${breadcrumb.label}</span
-                          >`
-                        : html`<button
-                            class="crumb"
-                            type="button"
-                            @click=${() => this.#activate(breadcrumb.entryId)}
-                          >
-                            ${breadcrumb.label}
-                          </button>`
-                    }
+                    <button
+                      class="crumb"
+                      type="button"
+                      @click=${() => this.#activate(breadcrumb.entryId)}
+                    >
+                      ${breadcrumb.label}
+                    </button>
                   </li>`,
               )}
             </ol>
@@ -307,7 +324,9 @@ export class SefariaReader extends SefariaElement {
               </p>`
             : nothing
         }
-        <h2 data-current-heading="true" tabindex="-1">${viewModel.label}</h2>
+        <h2 data-current-heading="true" tabindex="-1" aria-current="page">
+          ${viewModel.label}
+        </h2>
         <div class="actions">
           <div class="pane-switch" role="group" aria-label="Reader panes">
             <button

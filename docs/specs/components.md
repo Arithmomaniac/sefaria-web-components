@@ -84,9 +84,9 @@ The reader session does not expose a public serialized snapshot schema. Durable 
 
 The element emits Back, breadcrumb activation, source selection, connections category/page/preview actions, connection selection, compact-pane selection, and explicit chat-export actions. Every action includes the current entry ID so the host can reject stale work. Child actions are stopped and re-emitted once under reader-specific event names.
 
-On a wide container, source and connections render side by side. At a container width of 44rem or less, one pane is visible and the controlled `activePane` property selects it. A source-only or connections-only model selects the available pane for presentation. Pane changes and resize do not change semantic history or request data.
+On a wide container, source and connections render side by side in an approximately 68/32 split with a simple pane separator rather than nested card chrome. When the host assigns a bounded block size, the reader header remains visible and each wide pane scrolls independently; the element does not claim a viewport height on its own. At a container width of 40rem or less, one pane is visible and the controlled `activePane` property selects it. A source-only or connections-only model selects the available pane for presentation. Pane changes and resize do not change semantic history or request data.
 
-The history trail uses real buttons for retained ancestors and `aria-current="page"` for the current entry. Back is disabled when no retained predecessor exists. A truncated history boundary is visible. Initial render and pane-only changes do not move focus; after `currentEntryId` changes, the current heading receives focus and is revealed.
+The history trail uses real buttons for retained ancestors, while the current heading carries `aria-current="page"` without duplicating the current label as a breadcrumb. Back is disabled when no retained predecessor exists. A truncated history boundary is visible. Initial render and pane-only changes do not move focus; after `currentEntryId` changes, the current heading receives focus and is revealed.
 
 An explicit chat-export control appears only when the host enables it and the model contains an exact selected target. Activating it emits an action; the element has no chat SDK dependency and does not claim delivery.
 
@@ -234,6 +234,8 @@ Every public element:
 - supports keyboard operation
 - uses `--sefaria-*` custom properties
 - emits no global style
+
+Shared shape tokens are `--sefaria-panel-radius`, which defaults to `0.75rem` for component surfaces, and `--sefaria-control-radius`, which defaults to `0.3rem` for ordinary internal controls. A host can set either token on one element or an ancestor theme container. Placement, dimensions, and gaps between components remain host layout rather than component theme tokens.
 
 No element accepts:
 

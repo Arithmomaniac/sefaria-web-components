@@ -23,6 +23,8 @@ export const sefariaTokenDefaults = css`
     --_sefaria-danger: var(--sefaria-danger, light-dark(#9c1c1c, #ffaaa4));
     --_sefaria-link: var(--sefaria-link, light-dark(#8e2449, #ff93b4));
     --_sefaria-shadow: var(--sefaria-shadow, 0 1rem 3rem rgb(0 0 0 / 28%));
+    --_sefaria-panel-radius: var(--sefaria-panel-radius, 0.75rem);
+    --_sefaria-control-radius: var(--sefaria-control-radius, 0.3rem);
     --_sefaria-font-scale: var(--sefaria-font-scale, 1);
     --_sefaria-font-hebrew: var(
       --sefaria-font-hebrew,

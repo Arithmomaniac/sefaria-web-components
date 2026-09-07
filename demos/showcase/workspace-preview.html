@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sefaria spatial reader preview</title>
+  </head>
+  <body>
+    <div id="reader-site" data-component-shape="square">
+      <header id="site-header">
+        <form id="reader-form">
+          <label for="tref">Reference</label>
+          <input id="tref" name="tref" value="Micah 6:8" />
+          <button type="submit">Open</button>
+        </form>
+        <nav id="pane-path" aria-label="Open reader panes"></nav>
+        <p id="status" role="status">Loading Micah 6:8.</p>
+        <p id="host-error" role="alert" hidden></p>
+      </header>
+      <main id="workspace" aria-label="Spatial reader workspace"></main>
+    </div>
+    <script type="module" src="./src/workspace-preview.ts"></script>
+  </body>
+</html>

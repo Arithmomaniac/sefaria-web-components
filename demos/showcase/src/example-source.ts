@@ -64,32 +64,21 @@ unsubscribe();
 unbind();
 controller.dispose();`;
 
-export const manualReaderExampleSource = `const dataSource =
-  createSefariaReaderDataSource(client);
-let session = createReaderSession({
-  source: await dataSource.loadSource({ tref: "Micah 6:8" }, signal),
-});
+export const manualReaderExampleSource = `const readerSite =
+  document.querySelector<HTMLElement>("#reader-site");
 
-sourceCard.viewModel = session.view.current.source?.viewModel;
-connectionsPanel.viewModel =
-  session.view.current.connections?.state === "view"
-    ? session.view.current.connections.viewModel
-    : undefined;
+if (!readerSite) throw new Error("Reader site is required.");
 
-sourceCard.addEventListener("sefaria-source-select", async (event) => {
-  const selected = session.selectSourcePosition(
-    session.view.currentEntryId,
-    event.detail.position,
-  );
-  if (selected.state !== "applied") return;
-  session = selected.session;
-  const request = { tref: event.detail.ref, withText: true };
-  const begun = session.beginConnections(session.view.currentEntryId, request);
-  if (begun.state !== "applied") return;
-  const content = await dataSource.loadConnections(request, {}, signal);
-  session = begun.session.completeConnections(
-    begun.value.operationId,
-    content,
-  ).session;
-  renderSeparateColumns(session.view.current);
-});`;
+readerSite.style.setProperty("--sefaria-panel-radius", "0");
+readerSite.style.setProperty("--sefaria-control-radius", "0");
+
+const workspace = startReaderWorkspace(document);
+
+await workspace.navigate("Micah 6:8", false);
+
+// The host owns ordered pane placement and descendant pruning.
+// Components remain request-free; the workspace coordinates factories.
+workspace.activatePane(workspace.view.panes.at(-1).id);
+
+// On teardown:
+workspace.dispose();`;

@@ -157,9 +157,11 @@ export function startReaderWorkspace(
   const render = (): void => {
     panePath.replaceChildren();
     if (!session || !spatial) {
+      delete workspace.dataset.paneCount;
       workspace.replaceChildren();
       return;
     }
+    workspace.dataset.paneCount = String(spatial.panes.length);
     workspace.replaceChildren();
     for (const pane of spatial.panes) {
       const entry = session.view.entries.find(
@@ -205,24 +207,22 @@ export function startReaderWorkspace(
         ? `Source: ${entry.label}`
         : `Connections: ${entry.label}`,
     );
-    const toolbar = document.createElement("div");
-    toolbar.className = "pane-toolbar";
-    const title = document.createElement("strong");
-    title.textContent =
-      pane.kind === "source" ? entry.label : `${entry.label} connections`;
-    toolbar.append(title);
     if (pane.id !== spatial?.panes[0]?.id) {
+      const toolbar = document.createElement("div");
+      toolbar.className = "pane-toolbar";
       const close = document.createElement("button");
       close.type = "button";
-      close.textContent = "Close";
+      close.textContent = "×";
       close.setAttribute(
         "aria-label",
-        `Close ${title.textContent} and later panes`,
+        `Close ${
+          pane.kind === "source" ? entry.label : `${entry.label} connections`
+        } and later panes`,
       );
       close.addEventListener("click", () => closePane(pane.id));
       toolbar.append(close);
+      section.append(toolbar);
     }
-    section.append(toolbar);
     if (pane.kind === "source") {
       section.append(createSourceElement(pane, entry));
     } else {

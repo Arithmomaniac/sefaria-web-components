@@ -86,6 +86,18 @@ test("category and page buttons emit semantic events without mutating the model"
   expect(element.viewModel).toBe(data);
 });
 
+test("inherits panel and control shape tokens from the host", async () => {
+  const element = await mount();
+  element.style.setProperty("--sefaria-panel-radius", "0px");
+  element.style.setProperty("--sefaria-control-radius", "0px");
+  await element.updateComplete;
+
+  expect(getComputedStyle(element).borderRadius).toBe("0px");
+  expect(
+    getComputedStyle(element.shadowRoot!.querySelector("button")!).borderRadius,
+  ).toBe("0px");
+});
+
 test("handles explicit loading/error states and narrow host widths", async () => {
   const element = await mount({
     state: "loading",
