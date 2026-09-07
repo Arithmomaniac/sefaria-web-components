@@ -2,9 +2,9 @@
 
 # A reader with history: what to share, what to keep in the host
 
-**Accepted direction:** reuse the source card and connections panel, add a headless reader session, and compose them in a controlled reader surface with Back and breadcrumbs. Share the interaction semantics and visual surface between the browser and MCP App. Keep their request execution separate.
+**Accepted direction:** reuse the source card and connections panel, retain immutable history in a headless reader session, coordinate the supported stateful flow through a DOM-free reader controller, and render it in a controlled surface with Back and breadcrumbs. Share the controller and visual contracts between the browser and MCP App while supplying environment-specific data sources.
 
-This is an illustrated explanation, not the normative API reference. **Current baseline** refers to repository commit `e93990dad1c0d38585a55b5449424f6b8d48e927`, plus the controlled reader surface on this branch as of September 7, 2026. **Observed** describes pinned upstream source. **Planned** identifies accepted work that has not landed on the baseline. The [component](../specs/components.md) and [integration](../specs/integrations.md) specifications remain authoritative.
+This is an illustrated explanation, not the normative API reference. **Current baseline** refers to repository commit `a513c6dd2aabafc6277a103339a6edd66928dadb`, plus the website reader demonstrations on this branch as of September 7, 2026. **Observed** describes pinned upstream source. **Planned** identifies accepted work that has not landed on the baseline. The [component](../specs/components.md) and [integration](../specs/integrations.md) specifications remain authoritative.
 
 ## The questions this answers
 
@@ -36,7 +36,7 @@ The current MCP experience is still narrower than the planned integrated reader:
 
 _Existing named-host source-card capture; provenance is recorded in [MCP host interaction](../evidence.md#mcp-host-interaction). The merged App also renders connections and sends an explicit chat follow-up, but neither behavior establishes Back or same-App host-proxied tool calls._
 
-The missing feature is therefore **history across coordinated reader workspaces**, not another text renderer.
+The supported session and controlled surface now provide history across coordinated reader workspaces. The multi-pane website demo additionally proves that a host can preserve spatial context without adding another text renderer or a public arbitrary-panel abstraction.
 
 ## 2. What Sefaria owns, and what we are not copying
 
@@ -88,6 +88,8 @@ controller.dispose();
 The controller uses the client for source and connections requests, retains admitted captures in its private session, and supplies rendering snapshots to the request-free element. A host can keep its own markup or use the lower-level session and `createSefariaReaderDataSource` when it needs spatial pane policy.
 
 The standalone page can eventually integrate reader navigation with its URL and browser Back, but that should be an explicit host feature. The session should not write global browser history itself.
+
+The current website demo exposes both browser composition choices without pretending they have the same ownership needs. Its multi-pane page renders the existing source-card and connections-panel elements directly, uses one reader session for semantic entries and captures, uses `createSefariaReaderDataSource` for request parity, and keeps ordered pane identity, parent placement, compact selection, and pane closing private to the demo. Its controlled page uses `loadReaderController` and `bindReaderController`, so the host supplies the starting reference and client while the controller owns continuing reader state. A committed spatial child source replaces the origin connections pane and gains its own connections pane; a pending or failed child source does not erase the committed origin.
 
 ### MCP execution
 
@@ -152,7 +154,7 @@ Native mobile could reuse DOM-free navigation semantics, but the current Lit ele
 | --- | --- | --- |
 | Duplicate the demo coordinator in each host | Fast initially; selection, errors, and Back can drift | Useful only while learning the MCP interaction boundary |
 | Shared session, host-specific UI | Reuses history without imposing visual structure; duplicates navigation presentation | A valid escape hatch |
-| Shared session plus controlled reader surface | Reuses history and breadcrumb/pane UX; adapters remain host-specific | **Recommended target** |
+| Stateful controller plus controlled reader surface | Reuses history, execution semantics, and breadcrumb/pane UX; data sources remain host-specific | **Recommended target** |
 | Autonomous reader element with its own transport | Easy-looking embed API; mixes data access, application policy, and rendering | Conflicts with current ownership rules |
 
 The shared reader surface earns its place by owning navigation presentation and responsive composition, not by being a convenient place to put requests. The existing demo was a useful first host, not a failed component design.
@@ -163,4 +165,4 @@ The component specification now settles push/update rules, stable identities, re
 
 For the MCP connections work, preserve these seams: explicit component actions; host-mediated data access; corrected payloads with request/status identity; shared pure projection; and operation-scoped completion that cannot overwrite a newer navigation. Do not make the server own visual history or return a reader view model as `structuredContent`.
 
-The session foundation proves page-2/Back/page-3 reprojection, late completion rejection, bounded admission, shared capture accounting, interrupted pending connections, and pinned-entry behavior without I/O. The controlled surface now renders paired and single-pane workspaces, history bounds, explicit unavailable states, responsive pane selection, and host-scoped actions without requests. The website workspace and integrated MCP reader remain later slices. Their acceptance still includes a denied MCP tool call, target-text success with links failure, and wide-to-narrow resizing without requests through the actual browser and named-host paths.
+The session foundation proves page-2/Back/page-3 reprojection, late completion rejection, bounded admission, shared capture accounting, interrupted pending connections, and pinned-entry behavior without I/O. The controlled surface renders paired and single-pane workspaces, history bounds, explicit unavailable states, responsive pane selection, and host-scoped actions without requests. The website package now demonstrates both that supported controlled component in an interactive regular website and the alternative viewport-bound spatial composition with independent scrolling, wide pane history, compact one-pane presentation, source and descendant pruning, exact uncached request counts, local connections reprojection, visible pane limits, partial destination failure, and stale-result rejection. The integrated MCP reader remains planned; its acceptance still includes a denied host tool call and same-App navigation through the actual named-host path.

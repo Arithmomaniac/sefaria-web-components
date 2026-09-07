@@ -2,7 +2,7 @@
 
 # Development
 
-This contributor guide describes the current implementation on this branch as of September 7, 2026, based on `origin/main` commit `e93990dad1c0d38585a55b5449424f6b8d48e927` plus the controlled reader surface.
+This contributor guide describes the current implementation on this branch as of September 7, 2026, based on `origin/main` commit `a513c6dd2aabafc6277a103339a6edd66928dadb` plus the website reader workspace.
 
 The sections below separate delivered baseline behavior, changes from older plans, and work that remains intended. A runnable command is not proof that the corresponding integration is finished.
 
@@ -29,6 +29,7 @@ For reader-oriented explanations, use the friendly guides rather than the archiv
 | `demos/bilingual-segment-live-demo` | Provides an interactive HTML form, presets, and display controls that make one deployed Sefaria API request and render `<sefaria-bilingual-segment>`. |
 | `demos/source-card-live-demo` | Makes one deployed v3 text request for segment, range, spanning, nested non-spanning, and one-sided presets, renders `<sefaria-source-card>`, and attributes each selected edition once at card level. |
 | `demos/connections-panel-live-demo` | Synchronizes a selectable source card and connections panel, opens a target in its server-provided parent section, selects its first segment, and pages a captured links response without child requests. |
+| `demos/reader-workspace` | Demonstrates a regular website host with viewport-height spatial panes over the lower-level reader session and shared browser data source, plus an interactive host that uses `loadReaderController` and `bindReaderController` with the supported `<sefaria-reader>` component. |
 | `demos/mcp` | Exposes live `get_text` and adaptive `get_links_between_texts` tools, packages a single-file App, validates corrected payloads, calls the source-card and connections pure factories, renders request-free elements without App-side requests, and provides an authenticated isolated VS Code walkthrough with negotiated chat fallback. |
 | `demos/linker` | Builds an embeddable classic script, bookmarklet loader, automatic and no-autostart article pages, asynchronous citation detection, safe DOM linking, and request-free popups. Public hosting and broad live-site qualification remain external. |
 | `tests/compatibility` | Delivers focused pinned client and transform comparisons, a composed v3 validate-to-transform smoke case, and grouped qualification output without network access. The evidence is representative and non-exhaustive. |
@@ -52,11 +53,10 @@ These are remaining intended capabilities, not removed plans. A scaffold, comman
 | Planned capability | Intended result | Contract |
 | --- | --- | --- |
 | Public Linker hosting and broader live-site qualification | Host the built artifact and prove the bounded integration against representative third-party sites and browser policies | [Linker demonstration](linker-demo.md), [Linker integration](specs/integrations.md#linker-script-purpose) |
-| Website reader workspace | Demonstrate viewport-height independently scrolling source and connections panes while keeping spatial pane policy outside the public session | [Reader navigation guide](guides/reader-navigation.md) |
 | Integrated MCP reader | Qualify same-App host-proxied tool calls, then use the supported reader while retaining explicit chat export | [MCP App](specs/integrations.md#mcp-app-purpose) |
 | Broader compatibility coverage | Extend the small current suite with additional source-backed cases, without promising exhaustive corpus equivalence | [Compatibility evidence](evidence.md#current-focused-compatibility-qualification) |
 
-The client, text-transform foundations, current components, controlled reader, contextual reader demo, adaptive MCP App, current named-host composer-delivery acceptance, and Linker demonstration are already delivered. Same-App MCP tool-call navigation is not established by the composer flow. New component slices still need concrete consumers; they do not justify restoring the superseded generalized model or hidden client policies.
+The client, text-transform foundations, current components, controlled reader, contextual and multi-pane website reader demos, adaptive MCP App, current named-host composer-delivery acceptance, and Linker demonstration are already delivered. Same-App MCP tool-call navigation is not established by the composer flow. New component slices still need concrete consumers; they do not justify restoring the superseded generalized model or hidden client policies.
 
 ## Technology
 
@@ -90,6 +90,7 @@ TypeScript emits reusable ES modules. Vite builds the browser demonstrations and
 | `demos/mcp` | Corrected-payload MCP boundary, live FastMCP server, self-contained App, and isolated VS Code acceptance tooling |
 | `demos/linker` | Third-party citation detection, DOM linking, and popup integration |
 | `demos/connections-panel-live-demo` | Interactive contextual source-card and connections-panel host |
+| `demos/reader-workspace` | Interactive multi-pane website host and controlled `<sefaria-reader>` host over the DOM-free reader session |
 
 Workspace dependencies use `workspace:*`. All workspace packages remain private during the hackathon.
 
@@ -285,6 +286,16 @@ pnpm dev:connections
 ```
 
 The host loads a connection target and its server-provided parent section when necessary, selects the first target segment, and requests that segment's links. Reader-row selection makes only a links request. Category changes, 20-entry paging, and showing or hiding captured previews make no request. A labels-only links response exposes an explicit Load previews action rather than fetching inside the element.
+
+## Run the multi-pane website reader
+
+```powershell
+pnpm dev:reader-workspace
+```
+
+The command serves two linked interactive pages. The root page is a realistic regular-website consumer rather than a component state gallery: its host uses one DOM-free reader session for semantic entries and capture retention, while demo-private state owns ordered pane IDs, parent relationships, compact selection, and the 20-visible-pane limit. Wide containers scroll horizontally across independently scrolling source and connections panes; compact containers show one selected pane and a path switch.
+
+`/controlled.html` demonstrates the public stateful convenience path. The host calls `loadReaderController` with the starting reference and client, then binds the returned controller to one persistent `<sefaria-reader>` with `bindReaderController`. The controller owns continuing requests, cancellation, session transitions, captures, Back, breadcrumbs, and local connections projection while the element remains request-free.
 
 ## Run the MCP App server
 

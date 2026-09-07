@@ -4,7 +4,7 @@
 
 ## Status
 
-The Core MCP App, adaptive connections tool and rendering, VS Code Copilot Chat source-card and composer-delivery walkthrough, and Linker integration are current. A successful App `ui/message` response means the host accepted the follow-up; the host can enqueue it immediately or place it in its composer for explicit submission.
+The standalone connections reader, multi-pane website reader workspace, Core MCP App, adaptive connections tool and rendering, VS Code Copilot Chat source-card and composer-delivery walkthrough, and Linker integration are current. A successful App `ui/message` response means the host accepted the follow-up; the host can enqueue it immediately or place it in its composer for explicit submission.
 
 ## Shared integration rules
 
@@ -41,6 +41,18 @@ A same-section range opens at its first addressed segment, not a multisegment se
 For local category/page changes, the host explicitly captures the validated result of the generated `getLinks` operation and calls the connections pure factory. The capture records its exact reference and text-inclusion coverage and is discarded on target replacement. This is an explicit capture-and-project client path, alongside the one-request async view-model factory, not a cache or hidden observer hook. Both paths share the same pure projection. Category changes, paging, and showing/hiding already captured previews make zero requests. Metadata-only captures require an explicit Load previews action to replace them with one text-inclusive links response.
 
 The API has no transport paging parameter: UI paging bounds projection and rendering, not server work or downloaded response bytes. A superseded navigation, links load, or preview load must never overwrite a newer target or page. A failed contextual-section request leaves the previous reader committed and aborts its sibling links operation. A rejected links operation does not roll back an already established reader selection; the integration clears the loading connections surface and reports its own terminal failure outside the request-free element.
+
+## Multi-pane website reader workspace [Current]
+
+The regular-website spatial demonstration uses one `@sefaria/components/reader-session` for semantic entries, selected positions, admitted source and links captures, operation eligibility, and bounded retention. Its host separately owns ordered stable pane IDs, source-to-connections and ancestor-to-child placement, active compact pane, pane pins, cancellation, and physical operation timing. It uses `createSefariaReaderDataSource` for source and links requests rather than duplicating the component-default selectors. This demo-private spatial state is not a public arbitrary-panel manager and is not part of `<sefaria-reader>`.
+
+The same demo package also serves an interactive supported-reader page. Its host calls `loadReaderController` with the initial reference and client, then calls `bindReaderController` for one persistent `<sefaria-reader>` element. The returned controller owns continuing session transitions, cancellation, captures, and event handling. This page proves the public stateful convenience path for a regular website; it does not make the element autonomous or add spatial pane policy to the controller.
+
+A wide viewport contains a horizontally scrolling workspace of fixed-width source and connections panes. Each pane scrolls vertically without moving another pane. A compact container shows exactly one active pane and exposes the ordered pane path as controls; switching presentation does not mutate semantic history or request data.
+
+The root opens as source plus connections. Selecting a connection keeps the origin connections pane visible while child source text is pending. After that source commits, the host replaces the origin connections pane with the child source, appends child connections, and pins each visible pane's entry. Closing a non-root pane or activating an ancestor removes its spatial descendants, releases their pins before semantic pruning, cancels obsolete work, and rejects later completions by generation and session operation identity.
+
+Selecting a source segment prunes later panes, updates the retained entry, and issues one links request. Connections category and page changes project the retained successful links capture with zero I/O. A text success followed by links failure keeps the text pane and renders an explicit connections failure. The demo permits at most 20 visible panes and rejects another opening with a visible instruction to close panes; it never silently removes pinned ancestors.
 
 ## MCP App purpose
 

@@ -22,6 +22,7 @@
     "dev:source-card": "pnpm --filter @sefaria-demo/source-card-live-demo dev",
     "dev:linker": "pnpm --filter @sefaria-demo/linker dev",
     "dev:mcp": "pnpm build:mcp && uv run --no-sync --directory demos/mcp/fixture-server sefaria-mcp-app-fixture",
+    "dev:reader-workspace": "pnpm --filter @sefaria-demo/reader-workspace dev",
     "dev:ref-label": "pnpm --filter @sefaria-demo/ref-label-live-demo dev",
     "dev:text-segment": "pnpm --filter @sefaria-demo/text-segment-live-demo dev",
     "format": "prettier --write .",

@@ -784,13 +784,15 @@
               <td>DOM, MCP SDK, HTTP, hidden retries</td>
             </tr>
             <tr>
-              <td>Host coordinator</td>
+              <td>Reader controller</td>
               <td>
-                Executes the session's requested work, manages cancellation and
-                operation identity, validates external results, calls factories,
-                reports completion
+                Executes source and connections work, manages cancellation and
+                operation identity, validates effective requests, owns one
+                private session, publishes immutable snapshots
               </td>
-              <td>A second independent history stack</td>
+              <td>
+                Spatial pane placement, persistence, retries, chat delivery
+              </td>
             </tr>
             <tr>
               <td>Controlled reader surface</td>
@@ -812,19 +814,19 @@
         </table>
       </div>
       <p>
-        "Headless" means usable without a DOM element. The accepted session
-        lives at <code>@sefaria/components/reader-session</code>, not in another
-        npm package. Likewise, the planned reader surface is a visual
-        composition, not a new client facade or a composite async factory that
-        secretly calls child async factories.
+        "Headless" means usable without a DOM element. The immutable session
+        lives at <code>@sefaria/components/reader-session</code>, and the
+        supported stateful coordinator lives at
+        <code>@sefaria/components/reader-controller</code>. The reader surface
+        remains a request-free visual composition.
       </p>
       <h3>Browser execution</h3>
       <p>
-        A segment event goes to the browser coordinator. It calls the typed
-        client or existing async factory, or projects an explicitly held capture
-        when that capture covers the action. Results update session-owned state,
-        which supplies rendering data to the surface. A host can keep its own
-        markup instead of using the shared surface.
+        An ordinary website calls <code>loadReaderController</code> with its
+        starting reference and client, then calls
+        <code>bindReaderController</code> for one persistent reader element. A
+        host that needs spatial pane policy can instead use the lower-level
+        session and shared browser data source.
       </p>
       <p>
         The standalone page can eventually integrate reader navigation with its
@@ -1147,10 +1149,10 @@
               <td>A valid escape hatch</td>
             </tr>
             <tr>
-              <td>Shared session plus controlled reader surface</td>
+              <td>Stateful controller plus controlled reader surface</td>
               <td>
-                Reuses history and breadcrumb/pane UX; adapters remain
-                host-specific
+                Reuses history, execution semantics, and breadcrumb/pane UX;
+                data sources remain host-specific
               </td>
               <td><strong>Recommended target</strong></td>
             </tr>
@@ -1191,11 +1193,10 @@
         The session foundation proves page-2/Back/page-3 reprojection, late
         completion rejection, bounded admission, shared capture accounting,
         interrupted pending connections, and pinned-entry behavior without I/O.
-        The controlled surface, website workspace, and integrated MCP reader
-        remain later slices. Their acceptance still includes a denied MCP tool
-        call, target-text success with links failure, and wide-to-narrow
-        resizing without requests through the actual browser and named-host
-        paths.
+        The controlled surface and both website demonstrations are current. The
+        integrated MCP reader remains a later slice; its acceptance still
+        includes a denied MCP tool call and same-App navigation through the
+        actual named-host path.
       </p>
     </main>
   </body>

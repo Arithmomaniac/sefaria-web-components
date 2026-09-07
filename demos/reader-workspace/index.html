@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sefaria reader workspace</title>
+  </head>
+  <body>
+    <div id="reader-site">
+      <header id="site-header">
+        <div class="demo-heading">
+          <strong>Multi-pane website demo</strong>
+          <a href="/controlled.html">Open the controlled component demo</a>
+        </div>
+        <form id="reader-form">
+          <label>
+            Reference
+            <input name="tref" value="Micah 6:8" required />
+          </label>
+          <button type="submit">Open workspace</button>
+        </form>
+        <nav id="pane-path" aria-label="Open reader panes"></nav>
+        <p id="status" role="status">Waiting for the first request.</p>
+        <p id="host-error" role="alert" hidden></p>
+      </header>
+      <main id="workspace" aria-label="Reader workspace"></main>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
