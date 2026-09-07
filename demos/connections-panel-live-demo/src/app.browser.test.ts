@@ -81,6 +81,39 @@ test("initial navigation can preserve host focus", async () => {
   demo.dispose();
 });
 
+test("direct capture requests retain the connections factory query defaults", async () => {
+  const requests: URL[] = [];
+  const demo = startConnectionsDemo(
+    document,
+    createSefariaClient({
+      cache: false,
+      fetch: async (input) => {
+        const request = input instanceof Request ? input : new Request(input);
+        requests.push(new URL(request.url));
+        return response(request);
+      },
+    }),
+  );
+
+  await demo.navigate("Genesis 1:2");
+  document.querySelector<HTMLInputElement>("#metadata-only")!.checked = true;
+  await demo.navigate("Genesis 1:2");
+
+  const links = requests.filter((url) =>
+    url.pathname.startsWith("/api/links/"),
+  );
+  expect(
+    links.map((url) => ({
+      withText: url.searchParams.get("with_text"),
+      withSheetLinks: url.searchParams.get("with_sheet_links"),
+    })),
+  ).toEqual([
+    { withText: "1", withSheetLinks: "0" },
+    { withText: "0", withSheetLinks: "0" },
+  ]);
+  demo.dispose();
+});
+
 test("local paging/category/preview display use only the current capture", async () => {
   const fetch = vi.fn<typeof globalThis.fetch>(async (input) =>
     response(input instanceof Request ? input : new Request(input)),

@@ -12,7 +12,7 @@ Sefaria supplies texts and their metadata. This project supplies a small client,
 4. [MCP App demonstration](mcp-app-demo.md): run the corrected-payload source card and connections panel in VS Code Copilot Chat and inspect the asserted walkthrough artifacts.
 5. [Text markup, with examples](guides/text-markup.md): recognize footnotes, commentary markers, Masorah spans, links, and other HTML inside a passage.
 6. [Intentional differences](guides/differences.md): understand which Sefaria behaviors we preserve and which we deliberately change.
-7. [Reader navigation, illustrated](guides/reader-navigation.md): compare the merged reader demo, Sefaria navigation ownership, the current DOM-free reader session, and planned website, controlled-surface, and integrated MCP consumers.
+7. [Reader navigation, illustrated](guides/reader-navigation.md): compare the multi-pane and supported-controller website demos, Sefaria navigation ownership, the current DOM-free reader session, controller, and controlled surface, and the planned integrated MCP consumer.
 
 **Current** means available on the documented repository baseline. **Planned** means an intended contract that is not yet delivered there. **Observed** describes evidence from a named source or capture, not a universal promise about every Sefaria text.
 

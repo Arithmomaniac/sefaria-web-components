@@ -6,7 +6,7 @@ For a first explanation with examples, read [How the pieces fit together](guides
 
 ## Summary
 
-This design defines a generated API foundation with corrections and component-owned view models. Elements render view models and never request data. The client, text-processing packages, text-segment, bilingual-segment, reference-label, source-card, popup, connections-panel, DOM-free reader session and controller, controlled reader surface, MCP App, and Linker vertical slices are current.
+This design defines a generated API foundation with corrections and component-owned view models. Elements render view models and never request data. The client, text-processing packages, text-segment, bilingual-segment, reference-label, source-card, popup, connections-panel, DOM-free reader session and controller, controlled reader surface, regular-website reader workspace, MCP App, and Linker vertical slices are current.
 
 ## Scope
 
@@ -20,7 +20,7 @@ Core is the stable first product boundary. It is not a delivery phase or issue p
 
 Core includes the eight API operations, all three text-processing capabilities, the text primitives, the source card with its bounded text collection, the popup, the Linker demonstration, and the MCP source-card App. See [Development](development.md) for current implementation details.
 
-The connections panel, standalone contextual reader, DOM-free reader session, and stateful reader controller are implemented outside Core. The session adds bounded semantic history and capture ownership. The controller adds supported request execution, cancellation, and subscriptions without changing the request-free element boundary.
+The connections panel, standalone contextual reader, DOM-free reader session, stateful reader controller, controlled reader, and regular-website reader workspace are implemented outside Core. The session adds bounded semantic history and capture ownership. The controller adds supported request execution, cancellation, and subscriptions without changing the request-free element boundary. The website workspace separately demonstrates lower-level spatial pane ownership.
 
 ## Source authority
 
@@ -69,6 +69,7 @@ Each OpenAPI correction starts with the original Sefaria route, handler, respons
 | `@sefaria/components/reader` | Request-free projection from session state to one controlled reader rendering model | Captures, operations, requests, session mutation, or arbitrary spatial pane management |
 | `@sefaria/components/reader-controller` | Stateful reader-session ownership, initial and interaction-driven execution, cancellation, stale-result suppression, and subscriber notification | DOM rendering, spatial pane policy, persistence, retries, fallback transport, or chat delivery |
 | `@sefaria/components` elements | Layout, interaction, accessibility, theming, and DOM rendering | References, raw JSON, clients, hosts, fetch functions, or requests |
+| Website reader demonstrations | The supported page binds the public controller; the workspace page owns lower-level session coordination, pane placement, pane pin lifetime, compact selection, and spatial descendant pruning while reusing the shared browser data source | Public arbitrary-panel contracts, duplicate semantic history, or element-owned requests |
 | Integrations | Tool input, host behavior, boundary validation, and factory calls | A second domain model or duplicate rendering implementation |
 | Specifications | Intended behavior and acceptance rules | Mutable issue state |
 | `docs/evidence.md` | Observed source and deployed behavior | Normative product contracts |

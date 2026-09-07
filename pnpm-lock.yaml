@@ -105,6 +105,15 @@ importers:
         specifier: workspace:*
         version: link:../../../packages/components
 
+  demos/reader-workspace:
+    dependencies:
+      '@sefaria/client':
+        specifier: workspace:*
+        version: link:../../packages/client
+      '@sefaria/components':
+        specifier: workspace:*
+        version: link:../../packages/components
+
   demos/ref-label-live-demo:
     dependencies:
       '@sefaria/client':
