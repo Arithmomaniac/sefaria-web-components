@@ -468,6 +468,8 @@ pytest and the FastMCP in-memory client run Python integration tests.
 
 ### Why this repository uses Oxlint
 
+The repository moved away from ESLint because its required TypeScript integration was not compatible with the compiler upgrade: `typescript-eslint` 8.67.0 officially supports TypeScript versions below 6.1, not TypeScript 7. ESLint core alone does not provide the TypeScript parsing and rules this workspace used, so retaining the ESLint toolchain would have kept the workspace compiler on TypeScript 6.
+
 The workspace uses TypeScript 7.0.2 and native Oxlint rules. `pnpm lint` does not enable Oxlint's type-aware rules; `pnpm typecheck` remains the compiler-owned type gate.
 
 `pnpm check:api-docs` removes and freshly emits declaration files for handwritten package source and client scripts, then parses those declarations and requires JSDoc on exported declarations, exported interface properties, and public class properties. It ignores generated declarations and compiler-emitted private fields. This output check replaces the former `eslint-plugin-jsdoc` source check because Oxlint's JavaScript-plugin selector engine did not visit an exported class property during qualification.
