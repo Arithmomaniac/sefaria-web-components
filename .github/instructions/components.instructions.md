@@ -1,6 +1,6 @@
 ---
 description: "Rules for component factories, Lit elements, and browser demonstrations"
-applyTo: "packages/components/**,demos/component-lab/**,docs/specs/components.md"
+applyTo: "packages/components/**,demos/explorer/src/authored/**,docs/specs/components.md"
 ---
 
 # Component Instructions
@@ -27,4 +27,4 @@ applyTo: "packages/components/**,demos/component-lab/**,docs/specs/components.md
 - Use direction and attribution from payload data.
 - Use real interactive controls, accessible names, visible focus, and keyboard operation.
 - Use browser tests for structure, direction, focus, layout, event composition, token inheritance, and request absence.
-- Add a component-lab state for each view-model state and important interaction.
+- Add an authored explorer state for each view-model state and important interaction.

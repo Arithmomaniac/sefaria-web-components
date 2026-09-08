@@ -230,6 +230,60 @@ test("real factories keep ancestor text beside child text and child connections"
   demo.dispose();
 });
 
+test("cancels pending navigation without discarding committed panes", async () => {
+  const requests: string[] = [];
+  let targetAborted = false;
+  const client = createSefariaClient({
+    cache: false,
+    fetch: async (input) => {
+      const request = input instanceof Request ? input : new Request(input);
+      const requestPath = path(request);
+      requests.push(requestPath);
+      if (requestPath === "/api/v3/texts/Micah 6:8") {
+        return Response.json(sourcePayload("Micah 6:8", "Micah 6:8"));
+      }
+      if (requestPath === "/api/links/Micah 6:8") {
+        return Response.json(linksPayload("Micah 6:8", "Rashi on Micah 6:8:1"));
+      }
+      if (requestPath === "/api/v3/texts/Delayed source 1:1") {
+        return await new Promise<Response>((_resolve, reject) => {
+          request.signal.addEventListener(
+            "abort",
+            () => {
+              targetAborted = true;
+              reject(request.signal.reason);
+            },
+            { once: true },
+          );
+        });
+      }
+      throw new Error(`Unexpected request: ${requestPath}`);
+    },
+  });
+  const demo = startReaderWorkspace(document, client);
+
+  await demo.navigate("Micah 6:8", false);
+  const committedPanes = demo.view.panes;
+  const settledStatus = document.querySelector("#status")?.textContent;
+  demo.cancelPending();
+  expect(document.querySelector("#status")?.textContent).toBe(settledStatus);
+
+  const pending = demo.navigate("Delayed source 1:1", false);
+  await vi.waitFor(() =>
+    expect(requests).toContain("/api/v3/texts/Delayed source 1:1"),
+  );
+
+  demo.cancelPending();
+  await pending;
+
+  expect(targetAborted).toBe(true);
+  expect(demo.view.panes).toEqual(committedPanes);
+  expect(document.querySelector("#status")?.textContent).toBe(
+    "Reader loading was interrupted.",
+  );
+  demo.dispose();
+});
+
 test("selects an exact segment from a deployed-shape expanded section", async () => {
   const requests: string[] = [];
   const versions: string[] = [];

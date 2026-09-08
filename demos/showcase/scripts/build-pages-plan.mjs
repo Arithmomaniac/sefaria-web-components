@@ -1,10 +1,15 @@
 export const PAGE_DEMOS = [
-  ["component-lab", "@sefaria-demo/component-lab"],
-  ["ref-label", "@sefaria-demo/ref-label-live-demo"],
-  ["text-segment", "@sefaria-demo/text-segment-live-demo"],
-  ["bilingual-segment", "@sefaria-demo/bilingual-segment-live-demo"],
-  ["source-card", "@sefaria-demo/source-card-live-demo"],
-  ["connections", "@sefaria-demo/connections-panel-live-demo"],
+  ["explorer", "@sefaria-demo/explorer"],
+  ["reader-workspace", "@sefaria-demo/reader-workspace"],
+];
+
+export const LEGACY_DEMO_REDIRECTS = [
+  ["component-lab", "authored.html"],
+  ["ref-label", "ref-label.html"],
+  ["text-segment", "text-segment.html"],
+  ["bilingual-segment", "bilingual-segment.html"],
+  ["source-card", "source-card.html"],
+  ["connections", "connections.html"],
 ];
 
 export function createBuildCommands({ linkerUrl, skipTypecheck }) {

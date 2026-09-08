@@ -2,7 +2,7 @@
 
 # Review guide
 
-This guide defines review gates for the planned architecture.
+This guide defines review gates for the delivered architecture and for planned contracts that have not yet been implemented.
 
 ## Authority and status
 

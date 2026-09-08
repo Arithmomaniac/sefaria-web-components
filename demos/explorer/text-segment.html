@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      (() => {
+        const requested = new URLSearchParams(location.search).get(
+          "scoutTheme",
+        );
+        const theme =
+          requested ||
+          (matchMedia("(prefers-color-scheme: dark)").matches
+            ? "dark"
+            : "light");
+        document.documentElement.dataset.theme = theme;
+      })();
+    </script>
+    <title>Live text-segment demo</title>
+  </head>
+  <body>
+    <div id="live-demo-root"></div>
+    <script type="module" src="./src/text-segment/main.ts"></script>
+  </body>
+</html>

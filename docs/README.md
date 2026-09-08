@@ -6,6 +6,8 @@ Sefaria supplies texts and their metadata. This project supplies a small client,
 
 The public [interactive showcase](https://arithmomaniac.github.io/sefaria-web-components/) walks through the repository as a Reveal.js presentation and keeps the standalone browser demonstrations available at linked subpaths.
 
+Sefaria reviewers and incoming maintainers should begin with the [source handoff](handoff.md). Developers can run the consolidated component explorer with `pnpm dev`.
+
 ## Use the components
 
 1. [Render text](guides/render-text.md): run a demo, choose a component, and put a source card in a browser app.
@@ -41,6 +43,8 @@ Sefaria's [API introduction](https://developers.sefaria.org/reference/getting-st
 | Find the source, fixture, or historical decision behind a behavior | [Evidence](evidence.md) |
 | Review a change at the right depth | [Review](review.md) |
 | Use text transforms without components | [`@sefaria/text-transform`](../packages/text-transform/README.md) |
+| Use the validated transport package | [`@sefaria/client`](../packages/client/README.md) |
+| Choose component and Reader entry points | [`@sefaria/components`](../packages/components/README.md) |
 
 ## Detailed reference
 
@@ -53,4 +57,4 @@ Guides explain use. Specifications own intended behavior and acceptance rules. G
 | [Component specification](specs/components.md) | Requests, view models, factories, elements, connections, popup behavior, and composition |
 | [Integration specification](specs/integrations.md) | Current connections-reader, Linker, and MCP boundaries, including host acceptance |
 
-The [archive index](archive/README.md) preserves the pre-rewrite documents and demo captures as historical material. It is not a second set of current instructions.
+The [archive index](archive/README.md) points to the exact Git revision containing the pre-rewrite documents and demo captures. It is not a second checked-in set of current instructions.

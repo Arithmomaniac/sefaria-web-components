@@ -27,7 +27,7 @@ Open the local Vite URL printed in the terminal and select a preset. The live de
 | `pnpm dev:ref-label` | Canonical labels and links for segments, ranges, commentary, and unresolvable references |
 | `pnpm dev` | Authored view-model states, without API requests |
 
-[Development](../development.md) covers Corepack, full setup, and contributor commands. MCP and Linker scaffold commands are described there separately from these implemented text components.
+[Development](../development.md) covers Corepack, full setup, and contributor commands. MCP and Linker setup and qualification commands are described there separately from these browser components.
 
 ## Choose a component
 
@@ -58,10 +58,7 @@ card.viewModel = { state: "loading", message: "Loading passage..." };
 const client = createSefariaClient();
 
 try {
-  card.viewModel = await loadSourceCardViewModel(
-    { tref: "Genesis 1:1-3" },
-    client,
-  );
+  card.viewModel = await loadSourceCardViewModel({ tref: "Micah 6:8" }, client);
 } catch (error) {
   card.remove();
   hostError.textContent =
@@ -71,7 +68,7 @@ try {
 
 The catch displays a **host failure**, such as a network or contract-validation failure. It does not manufacture an empty or successful component result. Documented HTTP failures and projection failures are already represented by the factory's returned view model.
 
-`viewModel` is a JavaScript property, not an HTML attribute. Setting `<sefaria-source-card tref="Genesis 1:1">` will not fetch a passage. The [data-flow guide](data-flow.md) explains why the factory and element are separate.
+`viewModel` is a JavaScript property, not an HTML attribute. Setting `<sefaria-source-card tref="Micah 6:8">` will not fetch a passage. The [data-flow guide](data-flow.md) explains why the factory and element are separate.
 
 The package import registers the current elements. The `document.createElement` call is typed through those registrations; no cast to a component class or to an API payload is needed.
 

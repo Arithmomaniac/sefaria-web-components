@@ -4,7 +4,7 @@
 
 **Accepted direction:** reuse the source card and connections panel, retain immutable history in a headless reader session, coordinate the supported stateful flow through a DOM-free reader controller, and render it in a controlled surface with Back and breadcrumbs. Share the controller and visual contracts between the browser and MCP App while supplying environment-specific data sources.
 
-This is an illustrated explanation, not the normative API reference. **Current baseline** refers to repository commit `f0078bdeff56238dec3e257e3804c5f431efe257`, plus the integrated MCP reader on this branch as of September 7, 2026. **Observed** describes pinned upstream source. **Planned** identifies accepted work that has not landed on the baseline. The [component](../specs/components.md) and [integration](../specs/integrations.md) specifications remain authoritative.
+This is an illustrated explanation, not the normative API reference. **Current** means implemented in this source tree as of September 8, 2026. **Observed** describes pinned upstream source. **Planned** identifies accepted work that has not been implemented. The [component](../specs/components.md) and [integration](../specs/integrations.md) specifications remain authoritative.
 
 ## The questions this answers
 
@@ -13,9 +13,9 @@ This is an illustrated explanation, not the normative API reference. **Current b
 - What can the browser and MCP App share when requests happen differently?
 - What must Back restore, including on a narrow screen?
 
-## 1. What we have now
+## 1. Delivered reading surfaces
 
-The browser demo is already a small reader application. Its host coordinates two reusable elements; neither element requests data. Calling it "non-stateful" was misleading: it has current state, but does not retain a navigable history.
+The explorer's contextual-connections page is a small reader application. Its host coordinates two reusable elements; neither element requests data. It has current selection and paging state but does not retain a navigable source history.
 
 ![Current connections demo with a selected source segment and a separate connections pane.](../images/reader-navigation-current.png)
 
@@ -25,10 +25,10 @@ _Current UI, captured from the merged demo using committed text and links fixtur
 | --- | --- | --- |
 | Source card | Bounded text rendering, metadata-backed segment targets, controlled selection, focus/reveal behavior | Connections loading or reader history |
 | Connections panel | Category summaries, 20-entry pages, bounded previews, action events | Target navigation, requests, or history |
-| Browser demo host | Displayed section, active segment, captures, projection settings, cancellation, stale-result suppression | Back stack or breadcrumbs |
+| Explorer connections host | Displayed section, active segment, captures, projection settings, cancellation, stale-result suppression | Back stack or breadcrumbs |
 | Stateful MCP App | Host-delivered source or links result validation, one reader controller, host-proxied source/connections operations, local category/page controls, retained breadcrumbs, explicit chat export | Direct Sefaria requests, Python-held history, durable restoration |
 
-The [browser host](../../demos/connections-panel-live-demo/src/app.ts) opens a target, obtains its server-provided context when needed, selects the first qualified segment, and loads that segment's connections. It makes at most two text operations and one links operation for that flow. Selecting another displayed segment needs only a links operation. Category/page changes project the current capture with zero requests; preview acquisition is a separate explicit action. See the [current interaction contract](../specs/integrations.md#standalone-connections-reader-current).
+The [browser host](../../demos/explorer/src/connections/app.ts) opens a target, obtains its server-provided context when needed, selects the first qualified segment, and loads that segment's connections. It makes at most two text operations and one links operation for that flow. Selecting another displayed segment needs only a links operation. Category/page changes project the current capture with zero requests; preview acquisition is a separate explicit action. See the [current interaction contract](../specs/integrations.md#standalone-connections-reader-current).
 
 The current MCP experience now uses the same supported reader controller and controlled surface:
 
@@ -148,13 +148,13 @@ Use the actual embedding width, not an assumption that desktop means wide. MCP d
 
 Native mobile could reuse DOM-free navigation semantics, but the current Lit elements and HTML-bearing view models do not become native widgets automatically. This design promises neither a native renderer nor exact Sefaria-Mobile parity.
 
-## 6. Which abstraction is worth building?
+## 6. Which abstraction should a host use?
 
 | Option | Cost and benefit | Fit |
 | --- | --- | --- |
 | Duplicate the demo coordinator in each host | Fast initially; selection, errors, and Back can drift | Useful only while learning the MCP interaction boundary |
 | Shared session, host-specific UI | Reuses history without imposing visual structure; duplicates navigation presentation | A valid escape hatch |
-| Stateful controller plus controlled reader surface | Reuses history, execution semantics, and breadcrumb/pane UX; data sources remain host-specific | **Recommended target** |
+| Stateful controller plus controlled reader surface | Reuses history, execution semantics, and breadcrumb/pane UX; data sources remain host-specific | **Supported default** |
 | Autonomous reader element with its own transport | Easy-looking embed API; mixes data access, application policy, and rendering | Conflicts with current ownership rules |
 
 The shared reader surface earns its place by owning navigation presentation and responsive composition, not by being a convenient place to put requests. The existing demo was a useful first host, not a failed component design.

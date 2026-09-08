@@ -1,0 +1,79 @@
+:root {
+  color-scheme: light dark;
+  --page: light-dark(#f5f2ec, #201f1d);
+  --surface: light-dark(#fff, #302f2d);
+  --border: light-dark(#d7d0c5, #625d56);
+  --text: light-dark(#24211d, #f1ede6);
+  --muted: light-dark(#71695f, #c0b8ae);
+  --accent: light-dark(#a92850, #ff91ad);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  color: var(--text);
+  background: var(--page);
+  font-family: "Segoe UI", Aptos, sans-serif;
+}
+
+main {
+  width: min(76rem, 100%);
+  margin: auto;
+  padding: clamp(1.25rem, 4vw, 3rem);
+}
+
+header,
+section {
+  margin-block-end: 2rem;
+}
+
+h1,
+h2,
+p {
+  margin-block-start: 0;
+}
+
+header p,
+.explorer-grid span {
+  color: var(--muted);
+}
+
+.eyebrow {
+  margin-block-end: 0.4rem;
+  color: var(--accent);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.explorer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(18rem, 100%), 1fr));
+  gap: 1rem;
+}
+
+.explorer-grid a {
+  display: grid;
+  gap: 0.45rem;
+  min-height: 8rem;
+  border: 1px solid var(--border);
+  border-radius: 0.8rem;
+  padding: 1rem;
+  color: inherit;
+  background: var(--surface);
+  text-decoration: none;
+}
+
+.explorer-grid a:hover,
+.explorer-grid a:focus-visible {
+  border-color: var(--accent);
+}
+
+.explorer-grid a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}

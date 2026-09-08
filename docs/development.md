@@ -2,7 +2,7 @@
 
 # Development
 
-This contributor guide describes the current implementation on this branch as of September 7, 2026, based on `origin/main` commit `9a177e3b51cfe14de1540daef1fa74207b52fa48` plus the integrated MCP reader and its updated showcase presentation.
+This contributor guide describes the current source tree as of September 8, 2026. The repository's specifications define intended behavior; the implementation and tests establish what is currently delivered.
 
 The sections below separate delivered baseline behavior, changes from older plans, and work that remains intended. A runnable command is not proof that the corresponding integration is finished.
 
@@ -23,12 +23,7 @@ For reader-oriented explanations, use the friendly guides rather than the archiv
 | `packages/client` | Delivers eight named Core GET and POST SDK functions, committed corrected TypeScript contracts, reusable Core schemas, Zod validators, and a status-aware fetch client with a bounded default-on per-client response cache. The corrected Core OpenAPI document is temporary generation output. |
 | `packages/text-transform` | Delivers DOM-free sanitization, Hebrew vocalization modes, structured footnote extraction, and bounded connected-text previews. |
 | `packages/components` | Delivers the current component-specific view models, pure and async factory subpaths, request-free elements for the current text, bilingual, reference-label, selectable source-card, connections-panel, popup, and controlled reader surfaces, plus the DOM-free bounded reader session and stateful reader controller. |
-| `demos/component-lab` | Shows authored view models for current elements, including paired, single-pane, pending, unavailable, and truncated-history reader states. It is a development surface, not a compatibility oracle. |
-| `demos/ref-label-live-demo` | Provides an interactive HTML form and presets that call the deployed reference endpoint and render `<sefaria-ref-label>`. |
-| `demos/text-segment-live-demo` | Provides an interactive HTML form and presets that call the deployed Sefaria API and render `<sefaria-text-segment>`. |
-| `demos/bilingual-segment-live-demo` | Provides an interactive HTML form, presets, and display controls that make one deployed Sefaria API request and render `<sefaria-bilingual-segment>`. |
-| `demos/source-card-live-demo` | Makes one deployed v3 text request for segment, range, spanning, nested non-spanning, and one-sided presets, renders `<sefaria-source-card>`, and attributes each selected edition once at card level. |
-| `demos/connections-panel-live-demo` | Synchronizes a selectable source card and connections panel, opens a target in its server-provided parent section, selects its first segment, and pages a captured links response without child requests. |
+| `demos/explorer` | Provides one developer surface for request-free authored states and opt-in live pages for reference labels, text segments, bilingual segments, source cards, and contextual connections. Loading the landing page does not start every live request. |
 | `demos/reader-workspace` | Demonstrates a regular website host with viewport-height spatial panes over the lower-level reader session and shared browser data source, plus an interactive host that uses `loadReaderController` and `bindReaderController` with the supported `<sefaria-reader>` component. |
 | `demos/mcp` | Exposes live `get_text` and adaptive `get_links_between_texts` tools, packages a single-file App, validates corrected payloads and metadata, seeds one stateful reader with zero initial requests, continues through host-proxied same-App tool calls, retains local breadcrumbs, and provides an authenticated isolated VS Code hierarchy walkthrough with separate explicit chat export. |
 | `demos/showcase` | Presents the supported controller-backed Reader, a separate manually composed side-by-side source/connections workflow, the Linker, and captured integrated MCP Reader evidence in the Reveal.js GitHub Pages deck. |
@@ -93,7 +88,7 @@ pnpm build:pages
 pnpm preview:pages
 ```
 
-The generated `dist/pages` directory puts the deck at the site root, browser demonstrations under `demos/`, and the Linker artifact under `demos/linker/`. In GitHub Actions, the build derives the public Linker URL from `GITHUB_REPOSITORY`. For another public location, set `SEFARIA_PAGES_URL` to the HTTPS site root before `pnpm build:pages`.
+The generated `dist/pages` directory puts the deck at the site root, the consolidated developer explorer under `demos/explorer/`, the packaged and spatial Reader pages under `demos/reader-workspace/`, compatibility redirects at the former demo subpaths, and the Linker artifact under `demos/linker/`. In GitHub Actions, the build derives the public Linker URL from `GITHUB_REPOSITORY`. For another public location, set `SEFARIA_PAGES_URL` to the HTTPS site root before `pnpm build:pages`.
 
 `pnpm build:pages` typechecks each included demo before bundling it so the command remains safe to run independently. CI runs `pnpm build:pages:bundles` only after `pnpm check` has already completed the workspace typecheck; that command rebuilds the Pages bundles with their publication-specific base URLs without repeating TypeScript compilation.
 
@@ -107,14 +102,9 @@ Public screenshots live under `demos/showcase/public/media` with `manifest.json`
 | `packages/text-transform` | Pure sanitization, vocalization, and footnotes |
 | `packages/components` | Non-DOM component factories and request-free Lit elements |
 | `tests/compatibility` | Pinned compatibility evidence for retained pure behavior |
-| `demos/component-lab` | Browser development for view-model states and interactions |
-| `demos/ref-label-live-demo` | Interactive live API page for the reference-label component |
-| `demos/text-segment-live-demo` | Interactive live API page for the text-segment component |
-| `demos/bilingual-segment-live-demo` | Interactive live API page for the bilingual-segment component |
-| `demos/source-card-live-demo` | Interactive live API page for the source-card component |
+| `demos/explorer` | Request-free authored states and opt-in live diagnostics for component primitives and contextual connections |
 | `demos/mcp` | Corrected-payload MCP boundary, live FastMCP server, self-contained App, and isolated VS Code acceptance tooling |
 | `demos/linker` | Third-party citation detection, DOM linking, and popup integration |
-| `demos/connections-panel-live-demo` | Interactive contextual source-card and connections-panel host |
 | `demos/reader-workspace` | Interactive multi-pane website host and controlled `<sefaria-reader>` host over the DOM-free reader session |
 | `demos/showcase` | Reveal.js GitHub Pages showcase, React factory bindings, resizable preview viewports, and static Pages assembly |
 
@@ -281,13 +271,13 @@ Generated TypeScript files live under `packages/client/src/generated` and identi
 
 Do not edit generated declarations by hand.
 
-## Run the component lab
+## Run the component explorer
 
 ```powershell
 pnpm dev
 ```
 
-The current page shows authored view models for the current elements, including `<sefaria-text-segment>`, `<sefaria-bilingual-segment>`, and `<sefaria-ref-label>`. These examples exercise production elements without making requests; they are development states, not a complete interaction catalog.
+The landing page links to authored states and opt-in live diagnostics. Authored states exercise production elements without requests; live pages use ordinary HTML controls, the production client, component factories, and request-free elements. Opening the landing page does not start all live requests.
 
 ## Run the interactive text-segment page
 
