@@ -36,31 +36,69 @@ export const textSegmentElementDeclarationSource = [
 ].join("\n");
 
 export const textSegmentElementRenderSource = [
-  "  protected override render() {",
-  "    const viewModel = this.viewModel;",
-  "    if (!viewModel) {",
-  "      return nothing;",
-  "    }",
+  "  #renderData(viewModel: TextSegmentDataViewModel) {",
+  "    const hasFootnoteBodies = viewModel.notes.some(",
+  "      (note) => note.content !== null,",
+  "    );",
   "",
-  "    switch (viewModel.state) {",
-  '      case "loading":',
-  '      case "empty":',
-  '        return html`<p role="status" aria-live="polite">',
-  "          ${viewModel.message}",
-  "        </p>`;",
-  '      case "error":',
-  '        return html`<p role="alert">${viewModel.message}</p>`;',
-  '      case "data":',
-  "        return this.#renderData(viewModel);",
-  "    }",
+  "    return html`",
+  "      <article lang=${viewModel.actualLanguage} dir=${viewModel.direction}>",
+  '        <div class="body">',
+  "          ${viewModel.body.map((part) =>",
+  '            part.kind === "html"',
+  '              ? html`<span class="body-part">${unsafeHTML(part.html)}</span>`',
+  '              : html`<sup class="footnote-marker"',
+  "                  data-note-index=${part.noteIndex}",
+  "                  >${part.markerText}</sup",
+  "                >`,",
+  "          )}",
+  "        </div>",
+  "        ${",
+  "          hasFootnoteBodies",
+  '            ? html`<ol class="footnotes">',
+  "                ${viewModel.notes.map((note) =>",
+  "                  note.content === null",
+  "                    ? nothing",
+  "                    : html`<li data-note-index=${note.index}>",
+  '                        <span class="footnote-label">${note.markerText}</span>',
+  "                        ${unsafeHTML(note.content)}",
+  "                      </li>`,",
+  "                )}",
+  "              </ol>`",
+  "            : nothing",
+  "        }",
+  "      </article>",
+  "    `;",
   "  }",
 ].join("\n");
 
 export const textSegmentElementSource = `${textSegmentElementDeclarationSource}
 
-  // Layout styles and the typed viewModel declaration are omitted here.
-
-  ${textSegmentElementRenderSource}
+  #renderData(viewModel: TextSegmentDataViewModel) {
+    return html\`
+      <article lang=\${viewModel.actualLanguage} dir=\${viewModel.direction}>
+        <div class="body">
+          \${viewModel.body.map((part) =>
+            part.kind === "html"
+              ? html\`<span class="body-part">\${unsafeHTML(part.html)}</span>\`
+              : html\`<sup class="footnote-marker"
+                  data-note-index=\${part.noteIndex}
+                  >\${part.markerText}</sup
+                >\`,
+          )}
+        </div>
+        <!-- Conditional wrapper omitted. -->
+        \${viewModel.notes.map((note) =>
+          note.content === null
+            ? nothing
+            : html\`<li data-note-index=\${note.index}>
+                <span class="footnote-label">\${note.markerText}</span>
+                \${unsafeHTML(note.content)}
+              </li>\`,
+        )}
+      </article>
+    \`;
+  }
 }`;
 
 export const textExampleSource = `const result = useFactoryViewModel(

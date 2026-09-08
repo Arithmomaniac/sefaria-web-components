@@ -12,54 +12,42 @@ const showcase = import.meta.dirname;
 const repository = path.resolve(showcase, "..", "..");
 
 describe("showcase reader presentation", () => {
-  it("annotates one source-backed payload on the JSON problem slide", async () => {
-    const [index, fixture] = await Promise.all([
-      readFile(path.join(showcase, "index.html"), "utf8"),
-      readFile(
-        path.join(
-          repository,
-          "packages",
-          "client",
-          "test",
-          "fixtures",
-          "v3-connections-genesis-target-2026-09-06.json",
-        ),
-        "utf8",
-      ),
-    ]);
-    const payload = JSON.parse(fixture) as {
-      versions: Array<{
-        versionTitle: string;
-        isSource: boolean;
-        isPrimary: boolean;
-        text: string;
-      }>;
-    };
-    const english = payload.versions.find(
-      (version) =>
-        version.versionTitle === "THE JPS TANAKH: Gender-Sensitive Edition",
-    );
+  it("annotates four practical JSON-to-UI problems on one real response", async () => {
+    const index = await readFile(path.join(showcase, "index.html"), "utf8");
 
-    expect(english?.isSource).toBe(false);
-    expect(english?.isPrimary).toBe(false);
-    expect(english?.text).toContain('<sup class="footnote-marker">b</sup>');
-    expect(english?.text).toContain('<i class="footnote">');
-    expect(index).toContain('class="annotated-payload"');
-    expect(index).toContain('data-annotation="markup"');
-    expect(index).toContain('data-annotation="schema"');
-    expect(index).toContain('data-annotation="roles"');
+    expect(index).toContain("This is what Sefaria returns.");
+    expect(index).toContain("What stands between this response and usable UI?");
+    expect(index).toContain("Isaiah 1:17–2:1");
+    expect(index).toContain('"actualLanguage": "en"');
+    expect(index).toContain('"direction": "ltr"');
+    expect(index).toContain("poetry indentAll");
     expect(index).toContain("footnote-marker");
-    expect(index).toContain('"versionSource": null');
-    expect(index).toContain("Composed from two captured responses");
-    expect(index).toContain("nested arrays, or null");
-    expect(index).toContain("missing editions can return selector");
-    expect(index).toContain("responsive layout, keyboard and focus behavior");
-    expect(index).toContain("themes,");
-    expect(index).toContain("loading, and failures");
-    expect(index).not.toContain('class="problem-grid"');
+    expect(index.match(/<article class="problem-card /g)).toHaveLength(4);
+    expect(index).toContain("Validate changing shapes");
+    expect(index).toContain("Interpret reading roles");
+    expect(index).toContain("Prepare structured text");
+    expect(index).toContain("Build the reading experience");
+    expect(index.match(/class="payload-marker/g)).toHaveLength(3);
+    expect(index.match(/class="problem-card-marker/g)).toHaveLength(4);
+    expect(index).toContain('"text": [[');
+    expect(index).not.toContain("Not in the response");
+    expect(index).toContain(
+      "Another reference can return nested arrays, nulls, missing",
+    );
+    expect(index).toContain(
+      "Language, source, translation, direction, and attribution",
+    );
+    expect(index).toContain(
+      "Sanitize markup, preserve poetry, and pair footnote",
+    );
+    expect(index).toContain(
+      "Responsive layout, keyboard and focus behavior, loading,",
+    );
+    expect(index).not.toContain("versionSource");
+    expect(index).not.toContain("Composed from two captured responses");
   });
 
-  it("uses the approved narrative and places actual component source before the delivered path", async () => {
+  it("uses the approved narrative and ends the path inside the Web Component", async () => {
     const [index, element] = await Promise.all([
       readFile(path.join(showcase, "index.html"), "utf8"),
       readFile(
@@ -75,10 +63,14 @@ describe("showcase reader presentation", () => {
     ]);
 
     expect(index).toContain("<h2>A living library of Jewish texts</h2>");
-    expect(index).toMatch(
-      /<section id="component-source"[\s\S]*<section id="client"/,
+    expect(index.indexOf('id="element"')).toBeLessThan(
+      index.indexOf('id="component-source"'),
     );
-    expect(index).toContain("<h2>The component we are going to deliver</h2>");
+    expect(index.indexOf('id="component-source"')).toBeLessThan(
+      index.indexOf('id="all-together"'),
+    );
+    expect(index).toContain("<h2>Inside the Web Component</h2>");
+    expect(index).not.toContain('class="source-principles"');
     expect(index).toContain(
       "<h2>A Sefaria reading surface, wherever you read</h2>",
     );
@@ -99,7 +91,7 @@ describe("showcase reader presentation", () => {
   it("keeps fourteen stable, noted slides", async () => {
     const index = await readFile(path.join(showcase, "index.html"), "utf8");
     const ids = Array.from(
-      index.matchAll(/<section id="([^"]+)"/g),
+      index.matchAll(/<section\s+[^>]*id="([^"]+)"/g),
       (match) => match[1],
     );
 
@@ -108,10 +100,10 @@ describe("showcase reader presentation", () => {
       "what-is-sefaria",
       "ecosystem",
       "problem",
-      "component-source",
       "client",
       "view-model",
       "element",
+      "component-source",
       "all-together",
       "source-card",
       "interactions",
@@ -122,15 +114,41 @@ describe("showcase reader presentation", () => {
     expect(index.match(/<aside class="notes">/g)).toHaveLength(ids.length);
   });
 
-  it("presents the supported reader separately from manual component composition", async () => {
+  it("presents packaged composition separately from custom composition", async () => {
     const index = await readFile(path.join(showcase, "index.html"), "utf8");
 
     expect(index).toMatch(
-      /<section id="source-card">[\s\S]*data-demo="reader"[\s\S]*data-title="Supported reader"/,
+      /<section id="source-card">[\s\S]*data-demo="reader"[\s\S]*data-title="Prebuilt component composition"/,
     );
+    expect(index).toContain("<h2>We package composed components</h2>");
+    expect(index).toContain("Example: prebuilt Reader");
     expect(index).toMatch(
       /<section id="interactions">[\s\S]*data-demo="manual-reader"[\s\S]*data-title="Spatial source and connections workflow"/,
     );
+    expect(index).toContain("<h2>Compose the behavior your host needs</h2>");
+    expect(index).toContain("Example: custom Reader workflow");
+  });
+
+  it("uses one Sefaria reader capture and two readable ecosystem examples", async () => {
+    const index = await readFile(path.join(showcase, "index.html"), "utf8");
+
+    expect(index).toMatch(
+      /<section id="what-is-sefaria"[^>]*>[\s\S]*sefaria-reader-commentary\.png/,
+    );
+    expect(index).not.toContain("sefaria-library.png");
+    expect(index).toMatch(
+      /<section id="ecosystem">[\s\S]*class="[^"]*ecosystem-grid[^"]*"/,
+    );
+    expect(
+      index
+        .match(/<section id="ecosystem">[\s\S]*?<\/section>/)?.[0]
+        .match(/<figure>/g),
+    ).toHaveLength(2);
+    expect(index).toContain("talmud-page.png");
+    expect(index).toContain("tikkun.png");
+    expect(index).not.toContain("torah-research-board.png");
+    expect(index).not.toContain("bekiut.png");
+    expect(index).not.toContain("lishkod.png");
   });
 
   it("reuses the spatial reader workspace for the manual interaction slide", async () => {
@@ -197,14 +215,32 @@ describe("showcase reader presentation", () => {
   });
 
   it("uses integrated reader captures for the MCP gallery", async () => {
-    const main = await readFile(path.join(showcase, "src", "main.tsx"), "utf8");
+    const [index, main, capture] = await Promise.all([
+      readFile(path.join(showcase, "index.html"), "utf8"),
+      readFile(path.join(showcase, "src", "main.tsx"), "utf8"),
+      readFile(
+        path.join(
+          repository,
+          "demos",
+          "mcp",
+          "scripts",
+          "capture-vscode-host.ts",
+        ),
+        "utf8",
+      ),
+    ]);
 
     expect(main).toContain("./media/mcp-reader.png");
     expect(main).toContain("./media/mcp-reader-hierarchy.png");
     expect(main).toContain("./media/mcp-reader-chat-export.png");
     expect(main).not.toContain("./media/mcp-source-card.png");
-    expect(main).toContain("recorded in VS Code");
     expect(main).toContain("mouseWheel: false");
+    const prompt =
+      "Show me Micah 6:8 in Hebrew and English as an interactive Sefaria reader.";
+    expect(capture).toContain(
+      "`Show me ${CONNECTIONS_REFERENCE} in Hebrew and English as an interactive Sefaria reader.`",
+    );
+    expect(index.replace(/\s+/g, " ")).toContain(`Prompt: “${prompt}”`);
   });
 
   it("installs a deck-only minimum viewport guard", async () => {

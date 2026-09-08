@@ -1,6 +1,9 @@
 import type { Frame, Page } from "playwright";
 
-export async function frameReaderForCapture(frame: Frame): Promise<void> {
+export async function frameReaderForCapture(
+  frame: Frame,
+  topOffset = 32,
+): Promise<void> {
   await frame.evaluate(() => scrollTo({ top: 0, left: 0 }));
   const page = frame.page();
   let outer = frame;
@@ -21,9 +24,9 @@ export async function frameReaderForCapture(frame: Frame): Promise<void> {
     if (bounds === null)
       throw new Error("The Reader App frame is not visible.");
     const offset = bounds.y - listBounds.y;
-    if (offset >= 8 && offset <= 56) return;
+    if (offset >= topOffset - 24 && offset <= topOffset + 24) return;
     // Monaco virtualizes this list: DOM scrollIntoView cannot move its rows.
-    await page.mouse.wheel(0, offset - 32);
+    await page.mouse.wheel(0, offset - topOffset);
     await page.waitForTimeout(150);
   }
   throw new Error(
@@ -48,6 +51,7 @@ export async function captureVscodeViewport(page: Page): Promise<Buffer> {
 
 export async function prepareShowcaseLayout(page: Page): Promise<void> {
   await runCommand(page, "workbench.action.zoomReset", "View: Reset Zoom");
+  await runCommand(page, "workbench.action.zoomIn", "View: Zoom In");
   const workbench = page.locator(".monaco-workbench");
   if (
     !(await workbench.evaluate((element) =>
@@ -61,6 +65,7 @@ export async function prepareShowcaseLayout(page: Page): Promise<void> {
     );
     await page.locator(".monaco-workbench.fullscreen").waitFor();
   }
+
   const centered = await page.evaluate(() => {
     const chat = document.getElementById("workbench.parts.auxiliarybar");
     return (
@@ -79,6 +84,14 @@ export async function prepareShowcaseLayout(page: Page): Promise<void> {
     return (
       chat !== null && chat.getBoundingClientRect().width >= innerWidth * 0.9
     );
+  });
+}
+
+export async function prepareReaderForShowcaseCapture(
+  frame: Frame,
+): Promise<void> {
+  await frame.evaluate(() => {
+    document.documentElement.style.zoom = "0.84";
   });
 }
 

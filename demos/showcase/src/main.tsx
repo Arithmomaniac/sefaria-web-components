@@ -593,7 +593,8 @@ function initializeGallery(): GalleryController {
     {
       src: "./media/mcp-reader.png",
       alt: "Sefaria Reader rendered in VS Code Copilot Chat",
-      caption: "The same stateful Reader UI, recorded in VS Code",
+      caption:
+        "Prompt: “Show me Micah 6:8 in Hebrew and English as an interactive Sefaria reader.”",
     },
     {
       src: "./media/mcp-reader-hierarchy.png",

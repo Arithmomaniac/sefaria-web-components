@@ -50,7 +50,7 @@ export class SefariaReader extends SefariaElement {
         max-width: 100%;
         overflow: hidden;
         border: 1px solid var(--_sefaria-border);
-        border-radius: 1rem;
+        border-radius: var(--_sefaria-panel-radius);
         box-shadow: 0 0.75rem 2rem rgb(0 0 0 / 8%);
       }
 
