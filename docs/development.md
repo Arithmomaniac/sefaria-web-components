@@ -93,6 +93,8 @@ pnpm preview:pages
 
 The generated `dist/pages` directory puts the deck at the site root, browser demonstrations under `demos/`, and the Linker artifact under `demos/linker/`. In GitHub Actions, the build derives the public Linker URL from `GITHUB_REPOSITORY`. For another public location, set `SEFARIA_PAGES_URL` to the HTTPS site root before `pnpm build:pages`.
 
+`pnpm build:pages` typechecks each included demo before bundling it so the command remains safe to run independently. CI runs `pnpm build:pages:bundles` only after `pnpm check` has already completed the workspace typecheck; that command rebuilds the Pages bundles with their publication-specific base URLs without repeating TypeScript compilation.
+
 Public screenshots live under `demos/showcase/public/media` with `manifest.json` provenance. The MCP slide displays the recorded stateful Reader, retained hierarchy, and explicit chat export from named-host acceptance; GitHub Pages does not run the Python MCP server. Confirm quotation permission and every public asset before enabling the Pages deployment.
 
 ## Workspace
@@ -168,9 +170,9 @@ npx --yes pnpm@11.22.0 install:python
 pnpm check
 ```
 
-The current command checks stale OpenAPI output, then runs Prettier, ESLint, TypeScript checks, tests, the offline focused compatibility qualification, builds, Python checks, MCP staging, and wheel package-data checks. The qualification prints grouped pass, failure, unavailable-source, and intentional-difference results. It does not refresh network fixtures.
+The current command checks stale OpenAPI output, then runs Prettier, ESLint, Python static checks, TypeScript checks, tests, the offline focused compatibility qualification, builds, MCP staging, and Python tests. It prints the elapsed time and result of every completed stage, including the first failed stage, so a slow local run can be attributed without rerunning the complete gate. The qualification prints grouped pass, failure, unavailable-source, and intentional-difference results. It does not refresh network fixtures.
 
-The full check includes the Python fixture environment and MCP staging. Browser-only TypeScript demos do not require that Python setup.
+The full check requires the Python fixture environment and includes MCP staging. Python formatting, linting, and typechecking run before the TypeScript gate so inexpensive Python failures stop early; tests that inspect the staged App remain at the end. Browser-only TypeScript demos do not require that Python setup. TypeScript projects use ignored incremental build-information files, which reduce repeated local typecheck and build work without changing emitted artifacts.
 
 ## Current focused checks
 

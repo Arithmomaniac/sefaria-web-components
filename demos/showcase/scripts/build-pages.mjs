@@ -4,8 +4,11 @@ import process from "node:process";
 import { spawnSync } from "node:child_process";
 import { URL } from "node:url";
 
+import { createBuildCommands, PAGE_DEMOS } from "./build-pages-plan.mjs";
+
 const root = path.resolve(import.meta.dirname, "..", "..", "..");
 const pages = path.resolve(root, "dist", "pages");
+const skipTypecheck = process.argv.includes("--skip-typecheck");
 const repository = process.env.GITHUB_REPOSITORY?.split("/")[1];
 const owner = process.env.GITHUB_REPOSITORY?.split("/")[0];
 const publicBase =
@@ -17,15 +20,6 @@ const linkerUrl =
   publicBase === undefined
     ? "http://localhost:4173/sefaria-linker.js"
     : new URL("demos/linker/sefaria-linker.js", publicBase).href;
-
-const demos = [
-  ["component-lab", "@sefaria-demo/component-lab"],
-  ["ref-label", "@sefaria-demo/ref-label-live-demo"],
-  ["text-segment", "@sefaria-demo/text-segment-live-demo"],
-  ["bilingual-segment", "@sefaria-demo/bilingual-segment-live-demo"],
-  ["source-card", "@sefaria-demo/source-card-live-demo"],
-  ["connections", "@sefaria-demo/connections-panel-live-demo"],
-];
 
 function run(command, args, environment = {}) {
   const windows = process.platform === "win32";
@@ -48,18 +42,18 @@ function run(command, args, environment = {}) {
 await rm(pages, { recursive: true, force: true });
 await mkdir(path.join(pages, "demos"), { recursive: true });
 
-run("pnpm", ["--filter", "@sefaria-demo/showcase", "build"]);
-for (const [route, packageName] of demos) {
-  run("pnpm", ["--filter", packageName, "build", "--base=./"]);
+const buildCommands = createBuildCommands({ linkerUrl, skipTypecheck });
+for (const buildCommand of buildCommands) {
+  run("pnpm", buildCommand.args, buildCommand.environment);
+}
+
+for (const [route, packageName] of PAGE_DEMOS) {
   await cp(
     path.resolve(root, "demos", packageDirectory(packageName), "dist"),
     path.join(pages, "demos", route),
     { recursive: true },
   );
 }
-run("pnpm", ["--filter", "@sefaria-demo/linker", "build"], {
-  SEFARIA_LINKER_ARTIFACT_URL: linkerUrl,
-});
 
 await cp(path.resolve(root, "demos", "showcase", "dist"), pages, {
   recursive: true,
@@ -88,7 +82,7 @@ for (const required of [
   await access(path.join(pages, required));
 }
 
-for (const [route] of demos) {
+for (const [route] of PAGE_DEMOS) {
   const html = await readFile(
     path.join(pages, "demos", route, "index.html"),
     "utf8",

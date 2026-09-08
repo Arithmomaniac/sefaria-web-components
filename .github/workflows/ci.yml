@@ -28,7 +28,7 @@ jobs:
       - run: pnpm install:python
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm check
-      - run: pnpm build:pages
+      - run: pnpm build:pages:bundles
       - name: Upload GitHub Pages artifact
         if: github.ref == 'refs/heads/main'
         uses: actions/upload-pages-artifact@v5
