@@ -28,6 +28,7 @@ import "prismjs/components/prism-json.js";
 import "prismjs/components/prism-typescript.js";
 import "prismjs/components/prism-jsx.js";
 import "prismjs/components/prism-tsx.js";
+import "prismjs/components/prism-markup.js";
 
 import {
   manualReaderExampleSource,
@@ -37,18 +38,51 @@ import {
   textExampleSource,
 } from "./example-source.js";
 import { useElementProperty } from "./element-property.js";
-import {
-  createGalleryState,
-  installPresentationNavigation,
-  type GalleryController,
-} from "./presentation-navigation.js";
+import { installPresentationNavigation } from "./presentation-navigation.js";
 import { installViewportGuard } from "./viewport-guard.js";
 import "./styles.css";
 
 type ShowcaseTheme = "system" | "light" | "dark";
 type DemoKind = "text" | "reader" | "manual-reader" | "linker";
 type WorkbenchMode = "preview" | "code" | "split";
-type PipelineStage = "client" | "view-model" | "element";
+type PipelineStage = "client" | "view-model" | "element" | "component-source";
+type RenderPipelineStage = Exclude<PipelineStage, "component-source">;
+
+const pipelineStages = [
+  {
+    id: "client",
+    label: "Typed client",
+    title: "First, a typed client gives us trustworthy data",
+    description:
+      "Generated operations and runtime validation protect the transport boundary before Sefaria data reaches a component.",
+  },
+  {
+    id: "view-model",
+    label: "View-model factory",
+    title: "Then, a pure factory prepares one component’s data",
+    description:
+      "It resolves language, direction, sanitized body parts, footnotes, and component-specific states without creating a general domain model.",
+  },
+  {
+    id: "element",
+    label: "Host setup",
+    title: "The host registers, configures, and mounts the element",
+    description:
+      "The host owns loading. It gives the request-free element a prepared view model and decides where the element belongs.",
+  },
+  {
+    id: "component-source",
+    label: "Web Component",
+    title: "Finally, the Web Component renders accessible DOM",
+    description:
+      "The Lit element maps prepared data into language-aware, directional Shadow DOM. Adopters use this element; they do not reproduce its implementation.",
+  },
+] as const satisfies ReadonlyArray<{
+  readonly id: PipelineStage;
+  readonly label: string;
+  readonly title: string;
+  readonly description: string;
+}>;
 
 const client = createSefariaClient({ cache: false });
 const pipelineRequest: TextSegmentRequest = {
@@ -102,7 +136,7 @@ function formatJson(value: unknown): string {
     : `${json.slice(0, maximum)}\n\n… display shortened; the full value is used.`;
 }
 
-type CodeLanguage = "json" | "tsx" | "typescript";
+type CodeLanguage = "json" | "markup" | "tsx" | "typescript";
 
 function renderCodeToken(token: string | Prism.Token, key: string): ReactNode {
   if (typeof token === "string") return token;
@@ -156,7 +190,7 @@ function ComponentSource() {
     <div className="component-source-panel">
       <header>
         <p>packages/components/src/text-segment-element.ts</p>
-        <strong>Actual delivered Lit element</strong>
+        <strong>Selected delivered Lit implementation</strong>
       </header>
       <SyntaxCode source={textSegmentElementSource} language="typescript" />
     </div>
@@ -165,6 +199,7 @@ function ComponentSource() {
 
 function PipelineExperience() {
   const activeSlide = useActiveSlide();
+  const [stage, setStage] = useState<PipelineStage>("client");
   const [attempt, setAttempt] = useState(0);
   const [payload, setPayload] = useState<CoreV3TextsResponse>();
   const [viewModel, setViewModel] = useState<TextSegmentViewModel>({
@@ -176,12 +211,7 @@ function PipelineExperience() {
   const controller = useRef<AbortController | undefined>(undefined);
 
   useEffect(() => {
-    if (
-      started.current ||
-      !["client", "view-model", "element"].includes(activeSlide)
-    ) {
-      return;
-    }
+    if (started.current || activeSlide !== "pipeline") return;
 
     started.current = true;
     const requestController = new AbortController();
@@ -225,26 +255,59 @@ function PipelineExperience() {
     setAttempt((current) => current + 1);
   };
 
-  const slots = Array.from(
-    document.querySelectorAll<HTMLElement>("[data-pipeline-stage]"),
+  const slot = document.querySelector<HTMLElement>(
+    "[data-pipeline-experience]",
   );
-  return (
-    <>
-      {slots.map((slot) => {
-        const stage = slot.dataset.pipelineStage as PipelineStage;
-        return createPortal(
-          <PipelinePanel
-            key={stage}
-            stage={stage}
-            viewModel={viewModel}
-            {...(payload === undefined ? {} : { payload })}
-            {...(error === undefined ? {} : { error })}
-            onRetry={retry}
-          />,
-          slot,
-        );
-      })}
-    </>
+  if (slot === null) return null;
+  const stageIndex = pipelineStages.findIndex((item) => item.id === stage);
+  const stageDefinition = pipelineStages[stageIndex] ?? pipelineStages[0];
+  return createPortal(
+    <div className="pipeline-experience">
+      <header className="pipeline-series-header">
+        <p>
+          <strong>Four parts inside one delivered path</strong>
+          <span>Select a tab to inspect each responsibility.</span>
+        </p>
+        <nav role="tablist" aria-label="Component delivery path">
+          {pipelineStages.map((item, index) => (
+            <button
+              key={item.id}
+              type="button"
+              role="tab"
+              aria-selected={stage === item.id}
+              aria-current={stage === item.id ? "step" : undefined}
+              onClick={() => setStage(item.id)}
+            >
+              <strong>{index + 1}</strong>
+              <span>{item.label}</span>
+            </button>
+          ))}
+        </nav>
+      </header>
+      <div className="slide-grid">
+        <div className="slide-copy">
+          <p className="composition-example">
+            Part {stageIndex + 1}: {stageDefinition.label}
+          </p>
+          <h2>{stageDefinition.title}</h2>
+          <p className="lead">{stageDefinition.description}</p>
+        </div>
+        <div className="pipeline-slot">
+          {stage === "component-source" ? (
+            <ComponentSource />
+          ) : (
+            <PipelinePanel
+              stage={stage}
+              viewModel={viewModel}
+              {...(payload === undefined ? {} : { payload })}
+              {...(error === undefined ? {} : { error })}
+              onRetry={retry}
+            />
+          )}
+        </div>
+      </div>
+    </div>,
+    slot,
   );
 }
 
@@ -255,7 +318,7 @@ function PipelinePanel({
   error,
   onRetry,
 }: {
-  readonly stage: PipelineStage;
+  readonly stage: RenderPipelineStage;
   readonly payload?: CoreV3TextsResponse;
   readonly viewModel: TextSegmentViewModel;
   readonly error?: string;
@@ -269,7 +332,7 @@ function PipelinePanel({
       ? "Validated API response"
       : stage === "view-model"
         ? "Component view model"
-        : "Request-free rendering";
+        : "Complete host-side element setup";
 
   let output;
   if (error !== undefined) {
@@ -344,17 +407,41 @@ function PipelinePanel({
   );
 }
 
-function demoSource(kind: DemoKind): string {
-  if (kind === "reader") return readerExampleSource;
-  if (kind === "manual-reader") return manualReaderExampleSource;
+function demoCode(kind: DemoKind): {
+  readonly source: string;
+  readonly language: CodeLanguage;
+  readonly label: string;
+} {
+  if (kind === "reader") {
+    return {
+      source: readerExampleSource,
+      language: "typescript",
+      label: "TypeScript",
+    };
+  }
+  if (kind === "manual-reader") {
+    return {
+      source: manualReaderExampleSource,
+      language: "typescript",
+      label: "TypeScript",
+    };
+  }
   if (kind === "linker") {
-    return `<!-- Minimal embed; the preview also reports status and aborts scans. -->
+    return {
+      source: `<!-- Minimal embed; the preview also reports status and aborts scans. -->
 <script src="https://…/sefaria-linker.js"></script>
 <script>
   addEventListener("sefaria-linker-ready", () => SefariaLinker.link());
-</script>`;
+</script>`,
+      language: "markup",
+      label: "HTML",
+    };
   }
-  return textExampleSource;
+  return {
+    source: textExampleSource,
+    language: "typescript",
+    label: "TypeScript",
+  };
 }
 
 function demoUrl(kind: DemoKind): string {
@@ -456,6 +543,7 @@ function DemoWorkbench({
 
   const showPreview = mode !== "code";
   const showCode = mode !== "preview";
+  const code = demoCode(kind);
   return (
     <div className="workbench">
       <div className="workbench-bar">
@@ -475,7 +563,7 @@ function DemoWorkbench({
               {tab === "preview"
                 ? "Preview"
                 : tab === "code"
-                  ? "React / TSX"
+                  ? code.label
                   : "Split"}
             </button>
           ))}
@@ -534,7 +622,7 @@ function DemoWorkbench({
           </div>
         ) : null}
         {showCode ? (
-          <SyntaxCode source={demoSource(kind)} language="tsx" />
+          <SyntaxCode source={code.source} language={code.language} />
         ) : null}
       </div>
     </div>
@@ -568,80 +656,22 @@ function initializeTheme(): void {
   apply();
 }
 
-function initializeGallery(): GalleryController {
-  const image = document.querySelector<HTMLImageElement>(
-    "[data-gallery-image]",
-  );
-  const caption = document.querySelector<HTMLElement>("[data-gallery-caption]");
-  const position = document.querySelector<HTMLElement>(
-    "[data-gallery-position]",
-  );
-  const previous = document.querySelector<HTMLButtonElement>(
-    "[data-gallery-previous]",
-  );
-  const next = document.querySelector<HTMLButtonElement>("[data-gallery-next]");
-  if (
-    image === null ||
-    caption === null ||
-    position === null ||
-    previous === null ||
-    next === null
-  ) {
-    throw new Error("The MCP gallery is incomplete.");
-  }
-  const items = [
-    {
-      src: "./media/mcp-reader.png",
-      alt: "Sefaria Reader rendered in VS Code Copilot Chat",
-      caption:
-        "Prompt: “Show me Micah 6:8 in Hebrew and English as an interactive Sefaria reader.”",
-    },
-    {
-      src: "./media/mcp-reader-hierarchy.png",
-      alt: "Sefaria Reader showing three retained levels in VS Code Copilot Chat",
-      caption: "Same-App tools retain a three-level Reader history",
-    },
-    {
-      src: "./media/mcp-reader-chat-export.png",
-      alt: "Sefaria Reader exporting its deepest reference to Copilot Chat",
-      caption: "A retained reference can be exported explicitly to the host",
-    },
-  ];
-  const state = createGalleryState(items.length);
-  const render = () => {
-    const item = items[state.current];
-    if (item === undefined) return;
-    image.src = item.src;
-    image.alt = item.alt;
-    caption.textContent = item.caption;
-    position.textContent = `${state.current + 1} of ${items.length}`;
-    previous.disabled = state.current === 0;
-    next.disabled = state.current === items.length - 1;
-  };
-  previous.addEventListener("click", () => {
-    if (state.previous()) render();
+function initializeMcpVideo(): void {
+  const video = document.querySelector<HTMLVideoElement>("[data-mcp-video]");
+  if (video === null)
+    throw new Error("The MCP demonstration video is missing.");
+  window.addEventListener("showcase-slide", (event) => {
+    const { id } = (event as CustomEvent<{ readonly id: string }>).detail;
+    if (id !== "mcp") {
+      video.pause();
+      return;
+    }
+    video.currentTime = 0;
+    void video.play().catch((reason: unknown) => {
+      video.dataset.autoplayBlocked = "true";
+      console.warn("MCP video autoplay was blocked; use its controls.", reason);
+    });
   });
-  next.addEventListener("click", () => {
-    if (state.next()) render();
-  });
-  const gallery: GalleryController = {
-    get current() {
-      return state.current;
-    },
-    length: state.length,
-    enter(direction) {
-      state.enter(direction);
-    },
-    next() {
-      return state.next();
-    },
-    previous() {
-      return state.previous();
-    },
-    render,
-  };
-  render();
-  return gallery;
 }
 
 const deck = new Reveal({
@@ -658,10 +688,7 @@ const deck = new Reveal({
 
 initializeTheme();
 initializeWorkbenches();
-const gallery = initializeGallery();
-createRoot(document.querySelector("[data-component-source]")!).render(
-  <ComponentSource />,
-);
+initializeMcpVideo();
 createRoot(document.querySelector("#pipeline-root")!).render(
   <PipelineExperience />,
 );
@@ -679,7 +706,6 @@ const viewportGuard = installViewportGuard({
 void deck.initialize().then(() => {
   installPresentationNavigation({
     deck,
-    gallery,
     isBlocked: () => viewportGuard.blocked,
   });
   emitSlide(deck.getCurrentSlide()?.id ?? "title");

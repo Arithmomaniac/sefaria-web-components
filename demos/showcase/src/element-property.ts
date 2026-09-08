@@ -7,5 +7,5 @@ export function useElementProperty<
   useLayoutEffect(() => {
     const element = ref.current;
     if (element !== null) element[key] = value;
-  }, [key, ref, value]);
+  });
 }

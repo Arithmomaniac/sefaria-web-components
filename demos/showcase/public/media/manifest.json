@@ -47,6 +47,18 @@
       ]
     },
     {
+      "id": "mcp-reader-demo-video",
+      "filename": "mcp-reader-demo.mp4",
+      "status": "captured",
+      "source": "Authenticated isolated VS Code Copilot Chat profile",
+      "captionSuggestion": "A chronological 46.8-second walkthrough with visible click indicators, from the initiating prompt through Reader navigation and explicit chat export.",
+      "limitations": [
+        "Silent H.264 video captured at 1920 by 1200 pixels on 2026-09-08.",
+        "Recorded host demonstration; GitHub Pages does not run the MCP server.",
+        "This qualifies the demonstrated workflow in the named VS Code host, not every MCP Apps host."
+      ]
+    },
+    {
       "id": "mcp-reader",
       "filename": "mcp-reader.png",
       "status": "captured",

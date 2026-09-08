@@ -1,10 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import {
-  createGalleryState,
-  installPresentationNavigation,
-  type GalleryController,
-} from "./presentation-navigation.js";
+import { installPresentationNavigation } from "./presentation-navigation.js";
 
 interface SlideChangedEvent {
   readonly currentSlide?: HTMLElement;
@@ -15,7 +11,7 @@ function createHarness() {
   document.body.innerHTML = `
     <div class="slides">
       <section id="before"></section>
-      <section id="mcp"><div class="mcp-gallery"></div></section>
+      <section id="mcp"><video controls></video></section>
       <section id="after"></section>
     </div>
     <pre class="code-pane">Scrollable code</pre>
@@ -44,21 +40,9 @@ function createHarness() {
       listener = nextListener;
     },
   };
-  const state = createGalleryState(3);
-  const gallery: GalleryController = {
-    get current() {
-      return state.current;
-    },
-    length: state.length,
-    enter: state.enter,
-    next: state.next,
-    previous: state.previous,
-    render: vi.fn(),
-  };
   let time = 1_000;
   const destroy = installPresentationNavigation({
     deck,
-    gallery,
     isBlocked: () => false,
     now: () => time,
   });
@@ -72,7 +56,7 @@ function createHarness() {
     target.dispatchEvent(event);
     return event;
   };
-  return { deck, gallery, slides, wheel, destroy };
+  return { deck, slides, wheel, destroy };
 }
 
 afterEach(() => {
@@ -81,27 +65,18 @@ afterEach(() => {
 });
 
 describe("presentation wheel navigation", () => {
-  it("steps through the MCP gallery before leaving and reverses on re-entry", () => {
-    const { deck, gallery, slides, wheel, destroy } = createHarness();
+  it("moves directly between slides, including past the MCP video", () => {
+    const { deck, slides, wheel, destroy } = createHarness();
+    const video = slides[1]!.querySelector("video")!;
 
     wheel(slides[0]!, 100);
     expect(deck.next).toHaveBeenCalledTimes(1);
-    expect(gallery.current).toBe(0);
 
-    wheel(slides[1]!, 100);
-    wheel(slides[1]!, 100);
-    expect(gallery.current).toBe(2);
-    expect(deck.next).toHaveBeenCalledTimes(1);
-
-    wheel(slides[1]!, 100);
+    wheel(video, 100);
     expect(deck.next).toHaveBeenCalledTimes(2);
 
     wheel(slides[2]!, -100);
     expect(deck.prev).toHaveBeenCalledTimes(1);
-    expect(gallery.current).toBe(2);
-
-    wheel(slides[1]!, -100);
-    expect(gallery.current).toBe(1);
     destroy();
   });
 
