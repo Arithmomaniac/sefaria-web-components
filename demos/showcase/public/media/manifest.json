@@ -18,63 +18,6 @@
       ]
     },
     {
-      "id": "sefaria-library",
-      "filename": "sefaria-library.png",
-      "status": "captured",
-      "sourceUrl": "https://www.sefaria.org/texts",
-      "resolvedUrl": "https://www.sefaria.org/texts",
-      "publicPageTitle": "Sefaria: a Living Library of Jewish Texts Online",
-      "captionSuggestion": "Sefaria library discovery: browse Tanakh, Mishnah, Talmud, Midrash, Halakhah, Kabbalah, and more.",
-      "limitations": [
-        "The unauthenticated site interface was explicitly switched to English before capture.",
-        "The Library Assistant promotion and other transient notices were dismissed before capture.",
-        "This is an unauthenticated library view captured on 2026-09-07; live content and layout may change."
-      ]
-    },
-    {
-      "id": "sefaria-micah",
-      "filename": "sefaria-reader.png",
-      "status": "captured",
-      "sourceUrl": "https://www.sefaria.org/Micah.6.8?lang=bi&with=all&lang2=en",
-      "resolvedUrl": "https://www.sefaria.org/Micah.6.8?lang=bi&with=all&lang2=en",
-      "publicPageTitle": "Micah 6:8 | The Sefaria Library",
-      "captionSuggestion": "A bounded bilingual Sefaria reading surface for Micah 6:8, with Hebrew and English text plus connected sources.",
-      "limitations": [
-        "Uses Micah 6:8 rather than the broad Genesis 1:1 stress case.",
-        "The unauthenticated site interface was explicitly switched to English before capture.",
-        "The Library Assistant promotion and other transient notices were dismissed before capture.",
-        "The connections shown are the page's current public results and may change over time."
-      ]
-    },
-    {
-      "id": "torah-research-board",
-      "filename": "torah-research-board.png",
-      "status": "captured",
-      "sourceUrl": "https://torah-research.yaakovbeckerman.com",
-      "resolvedUrl": "https://torah-research.yaakovbeckerman.com/boards/05fc947f-db7c-49cd-8574-4017755124db",
-      "publicPageTitle": "Torah Research Board",
-      "directorySourceUrl": "https://developers.sefaria.org/docs/powered-by-sefaria",
-      "captionSuggestion": "Torah Research Board: an infinite-canvas workspace connecting Sefaria sources for study.",
-      "limitations": [
-        "The public landing page opened a pre-populated public board named Studying Tzedakah.",
-        "The board content and generated layout are live public data and may change."
-      ]
-    },
-    {
-      "id": "lishkod",
-      "filename": "lishkod.png",
-      "status": "captured",
-      "sourceUrl": "https://lishkod.app",
-      "resolvedUrl": "https://lishkod.app/",
-      "publicPageTitle": "\u05dc\u05e9\u05e7\u05d5\u05d3 \u2013 \u05dc\u05d9\u05de\u05d5\u05d3 \u05ea\u05d5\u05e8\u05d4 \u05d9\u05d5\u05de\u05d9 | \u05dc\u05e9\u05e7\u05d3 \u05e2\u05dc \u05d3\u05dc\u05ea\u05ea\u05d9 \u05d9\u05d5\u05dd \u05d9\u05d5\u05dd",
-      "directorySourceUrl": "https://developers.sefaria.org/docs/powered-by-sefaria",
-      "captionSuggestion": "Lishkod: a Hebrew-first daily Torah study dashboard with multiple learning tracks.",
-      "limitations": [
-        "The public app opened in its default dark theme and Hebrew interface.",
-        "The daily schedule is date-sensitive and may differ on later captures."
-      ]
-    },
-    {
       "id": "talmud-page",
       "filename": "talmud-page.png",
       "status": "captured",

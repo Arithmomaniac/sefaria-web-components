@@ -39,7 +39,7 @@ The package does not define a generalized normalized client result or shared dom
 
 A non-requesting composition or session subpath can combine existing component requests, view models, and host-admitted corrected payload captures. It does not invent an endpoint-backed request type or async factory. It remains deterministic, DOM-free, and independent of clients, caches, promises, abort controllers, and global state.
 
-Planned names follow this pattern:
+Current public names follow this pattern:
 
 | Component | Request | View model | Pure factory | Async factory |
 | --- | --- | --- | --- | --- |
@@ -48,7 +48,7 @@ Planned names follow this pattern:
 | Reference label | `RefLabelRequest` | `RefLabelViewModel` | `createRefLabelViewModel` | `loadRefLabelViewModel` |
 | Source card | `SourceCardRequest` | `SourceCardViewModel` | `createSourceCardViewModel` | `loadSourceCardViewModel` |
 | Popup | `PopupRequest` | `PopupViewModel` | `createPopupViewModel` | `loadPopupViewModel` |
-| Connections panel | `ConnectionsPanelRequest` | `ConnectionsPanelViewModel` | `createConnectionsPanelViewModel` | `loadConnectionsPanelViewModel` |
+| Connections panel | `ConnectionsRequest` | `ConnectionsViewModel` | `createConnectionsViewModel` | `loadConnectionsViewModel` |
 
 The listed component names are current.
 

@@ -1,0 +1,19 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "declaration": true,
+    "declarationMap": false,
+    "emitDeclarationOnly": true,
+    "incremental": false,
+    "rootDir": ".",
+    "outDir": ".toolchain/api-docs",
+    "types": ["node"]
+  },
+  "include": ["packages/*/src/**/*.ts", "packages/*/scripts/**/*.ts"],
+  "exclude": [
+    "**/*.browser.test.ts",
+    "**/*.test.ts",
+    "packages/*/src/generated/**"
+  ]
+}

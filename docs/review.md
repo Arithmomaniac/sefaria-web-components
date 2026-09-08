@@ -2,7 +2,7 @@
 
 # Review guide
 
-This guide defines review gates for the planned architecture.
+This guide defines review gates for the delivered architecture and for planned contracts that have not yet been implemented.
 
 ## Authority and status
 
@@ -296,6 +296,18 @@ Review the initial corrections for:
 - [ ] No document claims human review without actual review.
 - [ ] Markdown prose is not hard-wrapped.
 - [ ] Links target current documents.
+
+## TypeScript toolchain
+
+- [ ] `pnpm lint` uses only the explicitly configured native Oxlint rules; it does not inherit new default categories.
+- [ ] TypeScript typechecking remains a separate compiler command.
+- [ ] The workspace compiler resolves to TypeScript 7.0.2.
+- [ ] Only `packages/client` resolves TypeScript 6.0.3 for `@hey-api/openapi-ts`, and its build/typecheck scripts invoke the workspace-root compiler.
+- [ ] The API-documentation check removes prior output before declaration emission.
+- [ ] The API-documentation check includes handwritten package source and client scripts, excludes generated declarations, and fails on missing expected output.
+- [ ] Exported declarations, exported interface properties, and public class properties retain JSDoc in emitted declarations.
+- [ ] Compiler-emitted private fields do not require documentation.
+- [ ] The toolchain regression tests prove type-import, explicit-`any`, JavaScript undefined-name, duplicate-parameter, and legacy-octal failures.
 
 ## Final commands
 

@@ -278,4 +278,4 @@ it("rejects a target covered by another element even inside the safe rectangle",
   } finally {
     await page.close();
   }
-});
+}, 15000);

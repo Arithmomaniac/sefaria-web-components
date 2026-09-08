@@ -2,7 +2,7 @@
 
 # Development
 
-This contributor guide describes the current implementation on this branch as of September 7, 2026, based on `origin/main` commit `9a177e3b51cfe14de1540daef1fa74207b52fa48` plus the integrated MCP reader and its updated showcase presentation.
+This contributor guide describes the current source tree as of September 8, 2026. The repository's specifications define intended behavior; the implementation and tests establish what is currently delivered.
 
 The sections below separate delivered baseline behavior, changes from older plans, and work that remains intended. A runnable command is not proof that the corresponding integration is finished.
 
@@ -23,12 +23,7 @@ For reader-oriented explanations, use the friendly guides rather than the archiv
 | `packages/client` | Delivers eight named Core GET and POST SDK functions, committed corrected TypeScript contracts, reusable Core schemas, Zod validators, and a status-aware fetch client with a bounded default-on per-client response cache. The corrected Core OpenAPI document is temporary generation output. |
 | `packages/text-transform` | Delivers DOM-free sanitization, Hebrew vocalization modes, structured footnote extraction, and bounded connected-text previews. |
 | `packages/components` | Delivers the current component-specific view models, pure and async factory subpaths, request-free elements for the current text, bilingual, reference-label, selectable source-card, connections-panel, popup, and controlled reader surfaces, plus the DOM-free bounded reader session and stateful reader controller. |
-| `demos/component-lab` | Shows authored view models for current elements, including paired, single-pane, pending, unavailable, and truncated-history reader states. It is a development surface, not a compatibility oracle. |
-| `demos/ref-label-live-demo` | Provides an interactive HTML form and presets that call the deployed reference endpoint and render `<sefaria-ref-label>`. |
-| `demos/text-segment-live-demo` | Provides an interactive HTML form and presets that call the deployed Sefaria API and render `<sefaria-text-segment>`. |
-| `demos/bilingual-segment-live-demo` | Provides an interactive HTML form, presets, and display controls that make one deployed Sefaria API request and render `<sefaria-bilingual-segment>`. |
-| `demos/source-card-live-demo` | Makes one deployed v3 text request for segment, range, spanning, nested non-spanning, and one-sided presets, renders `<sefaria-source-card>`, and attributes each selected edition once at card level. |
-| `demos/connections-panel-live-demo` | Synchronizes a selectable source card and connections panel, opens a target in its server-provided parent section, selects its first segment, and pages a captured links response without child requests. |
+| `demos/explorer` | Provides one developer surface for request-free authored states and opt-in live pages for reference labels, text segments, bilingual segments, source cards, and contextual connections. Loading the landing page does not start every live request. |
 | `demos/reader-workspace` | Demonstrates a regular website host with viewport-height spatial panes over the lower-level reader session and shared browser data source, plus an interactive host that uses `loadReaderController` and `bindReaderController` with the supported `<sefaria-reader>` component. |
 | `demos/mcp` | Exposes live `get_text` and adaptive `get_links_between_texts` tools, packages a single-file App, validates corrected payloads and metadata, seeds one stateful reader with zero initial requests, continues through host-proxied same-App tool calls, retains local breadcrumbs, and provides an authenticated isolated VS Code hierarchy walkthrough with separate explicit chat export. |
 | `demos/showcase` | Presents the supported controller-backed Reader, a separate manually composed side-by-side source/connections workflow, the Linker, and captured integrated MCP Reader evidence in the Reveal.js GitHub Pages deck. |
@@ -63,7 +58,7 @@ The client, text-transform foundations, current components, controlled reader, c
 | Area                   | Technology                         |
 | ---------------------- | ---------------------------------- |
 | Workspace              | pnpm 11                            |
-| Language               | TypeScript 6                       |
+| Language               | TypeScript 7                       |
 | Components             | Lit 3                              |
 | Browser builds         | Vite 8                             |
 | TypeScript tests       | Vitest 4 and Playwright            |
@@ -93,7 +88,7 @@ pnpm build:pages
 pnpm preview:pages
 ```
 
-The generated `dist/pages` directory puts the deck at the site root, browser demonstrations under `demos/`, and the Linker artifact under `demos/linker/`. In GitHub Actions, the build derives the public Linker URL from `GITHUB_REPOSITORY`. For another public location, set `SEFARIA_PAGES_URL` to the HTTPS site root before `pnpm build:pages`.
+The generated `dist/pages` directory puts the deck at the site root, the consolidated developer explorer under `demos/explorer/`, the packaged and spatial Reader pages under `demos/reader-workspace/`, compatibility redirects at the former demo subpaths, and the Linker artifact under `demos/linker/`. In GitHub Actions, the build derives the public Linker URL from `GITHUB_REPOSITORY`. For another public location, set `SEFARIA_PAGES_URL` to the HTTPS site root before `pnpm build:pages`.
 
 `pnpm build:pages` typechecks each included demo before bundling it so the command remains safe to run independently. CI runs `pnpm build:pages:bundles` only after `pnpm check` has already completed the workspace typecheck; that command rebuilds the Pages bundles with their publication-specific base URLs without repeating TypeScript compilation.
 
@@ -107,14 +102,9 @@ Public screenshots live under `demos/showcase/public/media` with `manifest.json`
 | `packages/text-transform` | Pure sanitization, vocalization, and footnotes |
 | `packages/components` | Non-DOM component factories and request-free Lit elements |
 | `tests/compatibility` | Pinned compatibility evidence for retained pure behavior |
-| `demos/component-lab` | Browser development for view-model states and interactions |
-| `demos/ref-label-live-demo` | Interactive live API page for the reference-label component |
-| `demos/text-segment-live-demo` | Interactive live API page for the text-segment component |
-| `demos/bilingual-segment-live-demo` | Interactive live API page for the bilingual-segment component |
-| `demos/source-card-live-demo` | Interactive live API page for the source-card component |
+| `demos/explorer` | Request-free authored states and opt-in live diagnostics for component primitives and contextual connections |
 | `demos/mcp` | Corrected-payload MCP boundary, live FastMCP server, self-contained App, and isolated VS Code acceptance tooling |
 | `demos/linker` | Third-party citation detection, DOM linking, and popup integration |
-| `demos/connections-panel-live-demo` | Interactive contextual source-card and connections-panel host |
 | `demos/reader-workspace` | Interactive multi-pane website host and controlled `<sefaria-reader>` host over the DOM-free reader session |
 | `demos/showcase` | Reveal.js GitHub Pages showcase, React factory bindings, resizable preview viewports, and static Pages assembly |
 
@@ -124,7 +114,7 @@ Workspace dependencies use `workspace:*`. All workspace packages remain private 
 
 Running the browser demos requires:
 
-- Node.js 22 or later
+- Node.js 22.12 or later
 - pnpm 11.22.0
 
 Browser tests also require Chromium through Playwright.
@@ -172,7 +162,7 @@ npx --yes pnpm@11.22.0 install:python
 pnpm check
 ```
 
-The current command checks stale OpenAPI output, then runs Prettier, ESLint, Python static checks, TypeScript checks, tests, the offline focused compatibility qualification, builds, MCP staging, and Python tests. It prints the elapsed time and result of every completed stage, including the first failed stage, so a slow local run can be attributed without rerunning the complete gate. The qualification prints grouped pass, failure, unavailable-source, and intentional-difference results. It does not refresh network fixtures.
+The current command checks stale OpenAPI output, then runs Prettier, Oxlint, Python static checks, TypeScript checks, freshly emitted API-documentation checks, tests, the offline focused compatibility qualification, builds, MCP staging, and Python tests. It prints the elapsed time and result of every completed stage, including the first failed stage, so a slow local run can be attributed without rerunning the complete gate. The qualification prints grouped pass, failure, unavailable-source, and intentional-difference results. It does not refresh network fixtures.
 
 The full check requires the Python fixture environment and includes MCP staging. Python formatting, linting, and typechecking run before the TypeScript gate so inexpensive Python failures stop early; tests that inspect the staged App remain at the end. Browser-only TypeScript demos do not require that Python setup. TypeScript projects use ignored incremental build-information files, which reduce repeated local typecheck and build work without changing emitted artifacts.
 
@@ -281,13 +271,13 @@ Generated TypeScript files live under `packages/client/src/generated` and identi
 
 Do not edit generated declarations by hand.
 
-## Run the component lab
+## Run the component explorer
 
 ```powershell
 pnpm dev
 ```
 
-The current page shows authored view models for the current elements, including `<sefaria-text-segment>`, `<sefaria-bilingual-segment>`, and `<sefaria-ref-label>`. These examples exercise production elements without making requests; they are development states, not a complete interaction catalog.
+The landing page links to authored states and opt-in live diagnostics. Authored states exercise production elements without requests; live pages use ordinary HTML controls, the production client, component factories, and request-free elements. Opening the landing page does not start all live requests.
 
 ## Run the interactive text-segment page
 
@@ -476,6 +466,18 @@ Vitest runs TypeScript unit tests. Vitest Browser Mode and Playwright run Lit te
 
 pytest and the FastMCP in-memory client run Python integration tests.
 
-The workspace uses TypeScript 6.0.3. Upgrade TypeScript and `typescript-eslint` together because their supported ranges must overlap.
+### Why this repository uses Oxlint
+
+The repository moved away from ESLint because its required TypeScript integration was not compatible with the compiler upgrade: `typescript-eslint` 8.67.0 officially supports TypeScript versions below 6.1, not TypeScript 7. ESLint core alone does not provide the TypeScript parsing and rules this workspace used, so retaining the ESLint toolchain would have kept the workspace compiler on TypeScript 6.
+
+The workspace uses TypeScript 7.0.2 and native Oxlint rules. `pnpm lint` does not enable Oxlint's type-aware rules; `pnpm typecheck` remains the compiler-owned type gate.
+
+`pnpm check:api-docs` removes and freshly emits declaration files for handwritten package source and client scripts, then parses those declarations and requires JSDoc on exported declarations, exported interface properties, and public class properties. It ignores generated declarations and compiler-emitted private fields. This output check replaces the former `eslint-plugin-jsdoc` source check because Oxlint's JavaScript-plugin selector engine did not visit an exported class property during qualification.
+
+`@hey-api/openapi-ts` 0.99.0 still uses the TypeScript 6 compiler API. `packages/client` therefore pins TypeScript 6.0.3 for that generator only. Its `build` and `typecheck` scripts explicitly invoke the workspace-root TypeScript 7 compiler. Do not remove the local generator pin or the workspace-root compiler invocation independently; `tests/toolchain-versions.test.ts` enforces both sides of this boundary.
+
+This arrangement separates four responsibilities: Oxlint performs explicitly configured syntax and source-quality checks, the workspace TypeScript 7 compiler owns typechecking and package output, the API-documentation check owns JSDoc enforcement on freshly emitted public declarations, and the client-local TypeScript 6 compiler exists only inside the OpenAPI generator. It is a qualified compatibility arrangement, not a claim that Oxlint and declaration-output analysis are universally better than ESLint and source-AST plugins.
+
+Reconsider ESLint when its TypeScript integration officially supports the workspace TypeScript version and the required source-level JSDoc policy can run without an incompatible compiler or plugin boundary. Also reconsider the choice if Oxlint loses required rule parity, develops platform reliability problems, or makes the lint policy materially harder to maintain. Evaluate a return with the repository's executable counterexamples, full checks, cross-platform runs, and measured performance rather than ecosystem preference alone. Do not remove the declaration-output check until a replacement demonstrably covers its exported-declaration and public-property cases; the client-local TypeScript 6 generator boundary is an independent compatibility issue.
 
 The workspace does not use Nx or Turborepo. Add another task layer only after the pnpm scripts fail a measured need.
