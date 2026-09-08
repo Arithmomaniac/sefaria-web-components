@@ -4,6 +4,7 @@ import { afterAll, beforeAll, expect, it } from "vitest";
 import {
   captureVscodeViewport,
   frameReaderForCapture,
+  prepareReaderForShowcaseCapture,
   prepareShowcaseLayout,
 } from "./vscode-capture-layout.js";
 
@@ -36,11 +37,11 @@ it("reveals a tall nested App in a virtualized Chat list without hiding its head
     `);
     const frame = await page.locator("iframe").elementHandle();
     const app = await frame!.contentFrame();
-    await frameReaderForCapture(app!);
+    await frameReaderForCapture(app!, 180);
     const bounds = await page.locator("iframe").boundingBox();
-    expect(bounds!.y).toBeGreaterThanOrEqual(80);
-    expect(bounds!.y).toBeLessThanOrEqual(136);
-    await frameReaderForCapture(app!);
+    expect(bounds!.y).toBeGreaterThanOrEqual(228);
+    expect(bounds!.y).toBeLessThanOrEqual(276);
+    await frameReaderForCapture(app!, 180);
     expect((await page.locator("iframe").boundingBox())!.y).toBe(bounds!.y);
   } finally {
     await page.close();
@@ -79,6 +80,7 @@ it.each([false, true])(
       window.executed = [];
       const commands = {
         "workbench.action.zoomReset": "View: Reset Zoom",
+        "workbench.action.zoomIn": "View: Zoom In",
         "workbench.action.toggleFullScreen": "View: Toggle Full Screen",
         "workbench.action.maximizeAuxiliaryBar": "View: Maximize Secondary Side Bar"
       };
@@ -118,18 +120,38 @@ it.each([false, true])(
       await prepareShowcaseLayout(page);
       expect(await page.evaluate("window.executed")).toEqual([
         "workbench.action.zoomReset",
+        "workbench.action.zoomIn",
         ...(!fullscreen ? ["workbench.action.toggleFullScreen"] : []),
         "workbench.action.maximizeAuxiliaryBar",
       ]);
       await prepareShowcaseLayout(page);
       expect(await page.evaluate("window.executed")).toEqual([
         "workbench.action.zoomReset",
+        "workbench.action.zoomIn",
         ...(!fullscreen ? ["workbench.action.toggleFullScreen"] : []),
         "workbench.action.maximizeAuxiliaryBar",
         "workbench.action.zoomReset",
+        "workbench.action.zoomIn",
       ]);
     } finally {
       await page.close();
     }
   },
 );
+
+it("scales only the App document for showcase capture", async () => {
+  const page = await browser.newPage();
+  await page.setContent('<iframe srcdoc="<p>Reader</p>"></iframe>');
+  const handle = await page.locator("iframe").elementHandle();
+  const frame = await handle!.contentFrame();
+
+  await prepareReaderForShowcaseCapture(frame!);
+
+  expect(await frame!.evaluate(() => document.documentElement.style.zoom)).toBe(
+    "0.84",
+  );
+  expect(await page.evaluate(() => document.documentElement.style.zoom)).toBe(
+    "",
+  );
+  await page.close();
+});

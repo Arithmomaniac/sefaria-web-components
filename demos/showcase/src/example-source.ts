@@ -27,6 +27,80 @@ const payload = result.data;`,
 return <sefaria-text-segment ref={elementRef} />;`,
 } as const;
 
+export const textSegmentElementDeclarationSource = [
+  "export class SefariaTextSegment extends SefariaElement {",
+  "  /** Lit property metadata for the host-supplied view model. */",
+  "  static override properties = {",
+  "    viewModel: { attribute: false },",
+  "  };",
+].join("\n");
+
+export const textSegmentElementRenderSource = [
+  "  #renderData(viewModel: TextSegmentDataViewModel) {",
+  "    const hasFootnoteBodies = viewModel.notes.some(",
+  "      (note) => note.content !== null,",
+  "    );",
+  "",
+  "    return html`",
+  "      <article lang=${viewModel.actualLanguage} dir=${viewModel.direction}>",
+  '        <div class="body">',
+  "          ${viewModel.body.map((part) =>",
+  '            part.kind === "html"',
+  '              ? html`<span class="body-part">${unsafeHTML(part.html)}</span>`',
+  '              : html`<sup class="footnote-marker"',
+  "                  data-note-index=${part.noteIndex}",
+  "                  >${part.markerText}</sup",
+  "                >`,",
+  "          )}",
+  "        </div>",
+  "        ${",
+  "          hasFootnoteBodies",
+  '            ? html`<ol class="footnotes">',
+  "                ${viewModel.notes.map((note) =>",
+  "                  note.content === null",
+  "                    ? nothing",
+  "                    : html`<li data-note-index=${note.index}>",
+  '                        <span class="footnote-label">${note.markerText}</span>',
+  "                        ${unsafeHTML(note.content)}",
+  "                      </li>`,",
+  "                )}",
+  "              </ol>`",
+  "            : nothing",
+  "        }",
+  "      </article>",
+  "    `;",
+  "  }",
+].join("\n");
+
+export const textSegmentElementSource = `${textSegmentElementDeclarationSource}
+
+  #renderData(viewModel: TextSegmentDataViewModel) {
+    return html\`
+      <article lang=\${viewModel.actualLanguage} dir=\${viewModel.direction}>
+        <div class="body">
+          \${viewModel.body.map((part) =>
+            part.kind === "html"
+              ? html\`<span class="body-part">\${unsafeHTML(part.html)}</span>\`
+              : html\`<sup class="footnote-marker"
+                  data-note-index=\${part.noteIndex}
+                  >\${part.markerText}</sup
+                >\`,
+          )}
+        </div>
+        <!-- Conditional wrapper omitted. -->
+        \${viewModel.notes.map((note) =>
+          note.content === null
+            ? nothing
+            : html\`<li data-note-index=\${note.index}>
+                <span class="footnote-label">\${note.markerText}</span>
+                \${unsafeHTML(note.content)}
+              </li>\`,
+        )}
+      </article>
+    \`;
+  }
+}`;
+
 export const textExampleSource = `const result = useFactoryViewModel(
   request,
   { state: "loading", message: \`Loading \${request.tref}.\` },

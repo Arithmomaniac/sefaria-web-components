@@ -33,9 +33,16 @@ import {
   manualReaderExampleSource,
   pipelineExampleSource,
   readerExampleSource,
+  textSegmentElementSource,
   textExampleSource,
 } from "./example-source.js";
 import { useElementProperty } from "./element-property.js";
+import {
+  createGalleryState,
+  installPresentationNavigation,
+  type GalleryController,
+} from "./presentation-navigation.js";
+import { installViewportGuard } from "./viewport-guard.js";
 import "./styles.css";
 
 type ShowcaseTheme = "system" | "light" | "dark";
@@ -144,6 +151,18 @@ function SyntaxCode({
   );
 }
 
+function ComponentSource() {
+  return (
+    <div className="component-source-panel">
+      <header>
+        <p>packages/components/src/text-segment-element.ts</p>
+        <strong>Actual delivered Lit element</strong>
+      </header>
+      <SyntaxCode source={textSegmentElementSource} language="typescript" />
+    </div>
+  );
+}
+
 function PipelineExperience() {
   const activeSlide = useActiveSlide();
   const [attempt, setAttempt] = useState(0);
@@ -163,6 +182,7 @@ function PipelineExperience() {
     ) {
       return;
     }
+
     started.current = true;
     const requestController = new AbortController();
     controller.current = requestController;
@@ -548,7 +568,7 @@ function initializeTheme(): void {
   apply();
 }
 
-function initializeGallery(): void {
+function initializeGallery(): GalleryController {
   const image = document.querySelector<HTMLImageElement>(
     "[data-gallery-image]",
   );
@@ -556,45 +576,72 @@ function initializeGallery(): void {
   const position = document.querySelector<HTMLElement>(
     "[data-gallery-position]",
   );
-  if (image === null || caption === null || position === null) return;
+  const previous = document.querySelector<HTMLButtonElement>(
+    "[data-gallery-previous]",
+  );
+  const next = document.querySelector<HTMLButtonElement>("[data-gallery-next]");
+  if (
+    image === null ||
+    caption === null ||
+    position === null ||
+    previous === null ||
+    next === null
+  ) {
+    throw new Error("The MCP gallery is incomplete.");
+  }
   const items = [
     {
       src: "./media/mcp-reader.png",
       alt: "Sefaria Reader rendered in VS Code Copilot Chat",
-      caption: "Stateful Reader in Copilot Chat",
+      caption:
+        "Prompt: “Show me Micah 6:8 in Hebrew and English as an interactive Sefaria reader.”",
     },
     {
       src: "./media/mcp-reader-hierarchy.png",
       alt: "Sefaria Reader showing three retained levels in VS Code Copilot Chat",
-      caption: "Same-App navigation retains a three-level reader history",
+      caption: "Same-App tools retain a three-level Reader history",
     },
     {
       src: "./media/mcp-reader-chat-export.png",
       alt: "Sefaria Reader exporting its deepest reference to Copilot Chat",
-      caption: "Any retained reader level can be exported explicitly to chat",
+      caption: "A retained reference can be exported explicitly to the host",
     },
   ];
-  let current = 0;
+  const state = createGalleryState(items.length);
   const render = () => {
-    const item = items[current];
+    const item = items[state.current];
     if (item === undefined) return;
     image.src = item.src;
     image.alt = item.alt;
     caption.textContent = item.caption;
-    position.textContent = `${current + 1} of ${items.length}`;
+    position.textContent = `${state.current + 1} of ${items.length}`;
+    previous.disabled = state.current === 0;
+    next.disabled = state.current === items.length - 1;
   };
-  document
-    .querySelector("[data-gallery-previous]")
-    ?.addEventListener("click", () => {
-      current = (current - 1 + items.length) % items.length;
-      render();
-    });
-  document
-    .querySelector("[data-gallery-next]")
-    ?.addEventListener("click", () => {
-      current = (current + 1) % items.length;
-      render();
-    });
+  previous.addEventListener("click", () => {
+    if (state.previous()) render();
+  });
+  next.addEventListener("click", () => {
+    if (state.next()) render();
+  });
+  const gallery: GalleryController = {
+    get current() {
+      return state.current;
+    },
+    length: state.length,
+    enter(direction) {
+      state.enter(direction);
+    },
+    next() {
+      return state.next();
+    },
+    previous() {
+      return state.previous();
+    },
+    render,
+  };
+  render();
+  return gallery;
 }
 
 const deck = new Reveal({
@@ -604,18 +651,37 @@ const deck = new Reveal({
   slideNumber: true,
   center: false,
   disableLayout: true,
+  mouseWheel: false,
   transition: "fade",
   plugins: [Notes],
 });
 
 initializeTheme();
 initializeWorkbenches();
-initializeGallery();
+const gallery = initializeGallery();
+createRoot(document.querySelector("[data-component-source]")!).render(
+  <ComponentSource />,
+);
 createRoot(document.querySelector("#pipeline-root")!).render(
   <PipelineExperience />,
 );
 
+const viewportGuard = installViewportGuard({
+  root: document.querySelector(".reveal")!,
+  toolbar: document.querySelector(".deck-toolbar")!,
+  warning: document.querySelector("#viewport-warning")!,
+  current: document.querySelector("[data-current-viewport]")!,
+  onBlockedChange: (blocked) => {
+    deck.configure({ keyboard: !blocked, touch: !blocked });
+  },
+});
+
 void deck.initialize().then(() => {
+  installPresentationNavigation({
+    deck,
+    gallery,
+    isBlocked: () => viewportGuard.blocked,
+  });
   emitSlide(deck.getCurrentSlide()?.id ?? "title");
   deck.on("slidechanged", () => {
     emitSlide(deck.getCurrentSlide()?.id ?? "title");

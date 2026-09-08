@@ -27,39 +27,30 @@
           </aside>
         </section>
 
-        <section id="what-is-sefaria">
+        <section id="what-is-sefaria" class="sefaria-slide">
           <div class="slide-grid">
             <div class="slide-copy">
-              <h2>A library built for connection</h2>
+              <h2>A living library of Jewish texts</h2>
               <p class="lead">
-                Sefaria brings Jewish texts, translations, commentary, and their
-                relationships into one free digital library.
-              </p>
-              <p>
-                Sefaria brings primary sources, translations, commentary, and
-                attribution into one navigable corpus.
+                Sefaria brings primary sources, translations, commentary,
+                attribution, and textual relationships into one free, navigable
+                corpus.
               </p>
             </div>
-            <div class="visual-frame image-pair">
+            <div class="visual-frame sefaria-reader-hero">
               <figure>
                 <img
-                  src="./media/sefaria-library.png"
-                  alt="Sefaria library discovery page"
+                  src="./media/sefaria-reader-commentary.png"
+                  alt="Sefaria bilingual reader with the commentary list open for Micah 6:8"
                 />
-                <figcaption>Discover the library</figcaption>
-              </figure>
-              <figure>
-                <img
-                  src="./media/sefaria-reader.png"
-                  alt="Sefaria bilingual reader and connections"
-                />
-                <figcaption>Read texts in context</figcaption>
               </figure>
             </div>
           </div>
           <aside class="notes">
             Emphasize that Sefaria supplies the canonical library, metadata,
-            translations, and network of textual relationships.
+            translations, and network of textual relationships. The transient
+            Library Assistant promotion is intentionally hidden in this
+            presentation capture.
           </aside>
         </section>
 
@@ -76,20 +67,20 @@
                 text rendering.
               </p>
             </div>
-            <div class="visual-frame image-pair">
+            <div class="visual-frame ecosystem-grid">
               <figure>
                 <img
-                  src="./media/torah-research-board.png"
-                  alt="Torah Research Board powered by Sefaria"
+                  src="./media/talmud-page.png"
+                  alt="Talmud.page reading interface powered by Sefaria"
                 />
-                <figcaption>Torah Research Board</figcaption>
+                <figcaption>Talmud.page</figcaption>
               </figure>
               <figure>
                 <img
-                  src="./media/lishkod.png"
-                  alt="Lishkod learning application powered by Sefaria"
+                  src="./media/tikkun.png"
+                  alt="Tikkun.io Torah reading preparation interface powered by Sefaria"
                 />
-                <figcaption>Lishkod</figcaption>
+                <figcaption>Tikkun.io</figcaption>
               </figure>
             </div>
           </div>
@@ -104,36 +95,76 @@
           <div class="slide-grid">
             <div class="slide-copy">
               <h2>Getting JSON is the easy part</h2>
+              <p class="lead">This is what Sefaria returns.</p>
               <p class="lead">
-                Every new surface must preserve the text’s structure, meaning,
-                accessibility, and reading experience.
+                What stands between this response and usable UI?
               </p>
             </div>
-            <div class="problem-grid">
-              <article>
-                <strong>Contracts</strong>
-                <p>Incomplete API descriptions and data-dependent shapes.</p>
-              </article>
-              <article>
-                <strong>Text</strong>
-                <p>Markup, footnotes, vocalization, bidi, and attribution.</p>
-              </article>
-              <article>
-                <strong>Interface</strong>
-                <p>Responsive composition, keyboard use, and screen readers.</p>
-              </article>
-              <article>
-                <strong>Polish</strong>
-                <p>
-                  Light/dark themes, typography, focus, and host integration.
-                </p>
-              </article>
+            <div class="problem-workbench">
+              <pre
+                class="problem-payload"
+                aria-label="Excerpt from the Sefaria Isaiah 1:17-2:1 response"
+              ><code>{
+  <span class="payload-line payload-line-roles"><span class="payload-marker">2</span>"actualLanguage": "en",
+  "direction": "ltr",
+  "isSource": false,</span>
+  <span class="payload-line payload-line-shape"><span class="payload-marker">1</span>"text": [[</span>
+    <span class="payload-line payload-line-text"><span class="payload-marker">3</span>"&lt;span class=\"poetry indentAll\"&gt;Learn to do good.&lt;/span&gt;…
+     &lt;sup class=\"footnote-marker\"&gt;e&lt;/sup&gt;…",
+    "&lt;span class=\"poetry indentAll\"&gt;Come, let us…&lt;/span&gt;…"</span>
+  ], ["The word that Isaiah…prophesied…"]]
+}</code></pre>
+              <p class="payload-source">Isaiah 1:17–2:1 · response excerpt</p>
+              <div class="problem-grid">
+                <article class="problem-card problem-card-shape">
+                  <span class="problem-card-marker">1</span>
+                  <div>
+                    <strong>Validate changing shapes</strong>
+                    <p>
+                      Another reference can return nested arrays, nulls, missing
+                      editions, or selector warnings.
+                    </p>
+                  </div>
+                </article>
+                <article class="problem-card problem-card-roles">
+                  <span class="problem-card-marker">2</span>
+                  <div>
+                    <strong>Interpret reading roles</strong>
+                    <p>
+                      Language, source, translation, direction, and attribution
+                      are related—but not interchangeable.
+                    </p>
+                  </div>
+                </article>
+                <article class="problem-card problem-card-text">
+                  <span class="problem-card-marker">3</span>
+                  <div>
+                    <strong>Prepare structured text</strong>
+                    <p>
+                      Sanitize markup, preserve poetry, and pair footnote
+                      markers with their bodies.
+                    </p>
+                  </div>
+                </article>
+                <article class="problem-card problem-card-ui">
+                  <span class="problem-card-marker">4</span>
+                  <div>
+                    <strong>Build the reading experience</strong>
+                    <p>
+                      Responsive layout, keyboard and focus behavior, loading,
+                      and failures still belong to the interface.
+                    </p>
+                  </div>
+                </article>
+              </div>
             </div>
           </div>
           <aside class="notes">
-            Sefaria documents its text formatting. This project adds corrected
-            typed boundaries, deterministic projection, and reusable
-            request-free rendering.
+            The excerpt is shortened from the deployed Isaiah 1:17–2:1 v3
+            response captured on September 8, 2026. Crossing the chapter
+            boundary returns the English text as nested arrays while retaining
+            the version's language, direction, source role, poetry spans, and
+            footnote markup.
           </aside>
         </section>
 
@@ -141,7 +172,7 @@
           <header class="pipeline-series-header">
             <p>
               <strong>One delivered path</strong>
-              <span>Three explicit responsibility boundaries</span>
+              <span>From API response to browser DOM</span>
             </p>
             <nav aria-label="Component delivery path">
               <a href="#/client" aria-current="step">
@@ -150,7 +181,12 @@
               <a href="#/view-model">
                 <strong>2</strong><span>View model</span>
               </a>
-              <a href="#/element"> <strong>3</strong><span>Rendering</span> </a>
+              <a href="#/element">
+                <strong>3</strong><span>Use the element</span>
+              </a>
+              <a href="#/component-source">
+                <strong>4</strong><span>Render DOM</span>
+              </a>
             </nav>
           </header>
           <div class="slide-grid">
@@ -158,7 +194,8 @@
               <h2>Trust data at the boundary</h2>
               <p class="lead">
                 Inside one delivered component path, generated operations and
-                runtime validation protect the transport contract.
+                runtime validation protect the transport contract before data
+                reaches a component.
               </p>
             </div>
             <div class="pipeline-slot" data-pipeline-stage="client"></div>
@@ -173,7 +210,7 @@
           <header class="pipeline-series-header">
             <p>
               <strong>One delivered path</strong>
-              <span>Three explicit responsibility boundaries</span>
+              <span>From API response to browser DOM</span>
             </p>
             <nav aria-label="Component delivery path">
               <a href="#/client">
@@ -182,7 +219,12 @@
               <a href="#/view-model" aria-current="step">
                 <strong>2</strong><span>View model</span>
               </a>
-              <a href="#/element"> <strong>3</strong><span>Rendering</span> </a>
+              <a href="#/element">
+                <strong>3</strong><span>Use the element</span>
+              </a>
+              <a href="#/component-source">
+                <strong>4</strong><span>Render DOM</span>
+              </a>
             </nav>
           </header>
           <div class="slide-grid">
@@ -205,7 +247,7 @@
           <header class="pipeline-series-header">
             <p>
               <strong>One delivered path</strong>
-              <span>Three explicit responsibility boundaries</span>
+              <span>From API response to browser DOM</span>
             </p>
             <nav aria-label="Component delivery path">
               <a href="#/client">
@@ -215,33 +257,77 @@
                 <strong>2</strong><span>View model</span>
               </a>
               <a href="#/element" aria-current="step">
-                <strong>3</strong><span>Rendering</span>
+                <strong>3</strong><span>Use the element</span>
+              </a>
+              <a href="#/component-source">
+                <strong>4</strong><span>Render DOM</span>
               </a>
             </nav>
           </header>
           <div class="slide-grid">
             <div class="slide-copy">
-              <h2>Render without requesting</h2>
+              <h2>Use the custom element</h2>
               <p class="lead">
-                The path ends at a Web Component that receives the model,
-                renders it, and makes zero requests.
+                Higher-level markup assigns the prepared view model to
+                <code>&lt;sefaria-text-segment&gt;</code>.
               </p>
             </div>
             <div class="pipeline-slot" data-pipeline-stage="element"></div>
           </div>
           <aside class="notes">
-            The same model can be supplied by a browser client, stored data, or
-            an MCP tool result after validation.
+            This is the host-side use of the component. The next slide opens the
+            custom element and shows how Lit turns that model into DOM.
+          </aside>
+        </section>
+
+        <section
+          id="component-source"
+          class="pipeline-slide component-source-slide"
+        >
+          <header class="pipeline-series-header">
+            <p>
+              <strong>One delivered path</strong>
+              <span>From API response to browser DOM</span>
+            </p>
+            <nav aria-label="Component delivery path">
+              <a href="#/client">
+                <strong>1</strong><span>Validated data</span>
+              </a>
+              <a href="#/view-model">
+                <strong>2</strong><span>View model</span>
+              </a>
+              <a href="#/element">
+                <strong>3</strong><span>Use the element</span>
+              </a>
+              <a href="#/component-source" aria-current="step">
+                <strong>4</strong><span>Render DOM</span>
+              </a>
+            </nav>
+          </header>
+          <div class="slide-grid">
+            <div class="slide-copy">
+              <h2>Inside the Web Component</h2>
+              <p class="lead">
+                The Lit element maps prepared body parts, language, direction,
+                and footnotes into accessible Shadow DOM.
+              </p>
+            </div>
+            <div data-component-source></div>
+          </div>
+          <aside class="notes">
+            This is an exact excerpt from text-segment-element.ts. State
+            switching and styles are omitted. The unsafeHTML calls receive only
+            sanitized fragments prepared by the factory, never raw API text.
           </aside>
         </section>
 
         <section id="all-together">
           <div class="slide-grid">
             <div class="slide-copy">
-              <h2>Deliver one finished component experience</h2>
+              <h2>Use the component in a real interface</h2>
               <p class="lead">
-                The host wiring connects input, client, and factory while the
-                same request-free element stays mounted.
+                Change the reference, theme, font, and available width while the
+                same component stays mounted.
               </p>
               <p class="drag-hint">Drag the preview's right edge ↔</p>
             </div>
@@ -260,35 +346,35 @@
         <section id="source-card">
           <div class="slide-grid">
             <div class="slide-copy">
-              <h2>Stateful readers come ready-made</h2>
+              <p class="composition-example">Example: prebuilt Reader</p>
+              <h2>We package composed components</h2>
               <p class="lead">
-                Supply a starting reference and client. The controller retains
-                history, loads connections, and keeps the request-free Reader
-                current.
+                One higher-level element combines source text, connections,
+                navigation, and history from the same reusable pieces.
               </p>
             </div>
             <div
               class="demo-workbench"
               data-demo="reader"
-              data-title="Supported reader"
+              data-title="Prebuilt component composition"
             ></div>
           </div>
           <aside class="notes">
-            The supported factory returns after the initial source and
-            connections settle. The persistent Reader emits actions; the
-            controller owns continuing navigation and cancellation.
+            The Reader composes the same source-card and connections-panel
+            primitives. Its controller owns loading and navigation while the
+            element remains request-free.
           </aside>
         </section>
 
         <section id="interactions">
           <div class="slide-grid">
             <div class="slide-copy">
-              <h2>Compose the interaction you need</h2>
+              <p class="composition-example">Example: custom Reader workflow</p>
+              <h2>Compose the behavior your host needs</h2>
               <p class="lead">
-                Lower-level hosts can theme square, flush panels and repeat the
-                spatial cycle: select a source, open its connections, follow a
-                reference into contextual text, and continue from the newly
-                selected segment.
+                Use the same lower-level pieces when a prebuilt composition does
+                not provide the interaction you need—such as this growing,
+                square-edged spatial trail.
               </p>
             </div>
             <div
@@ -307,10 +393,11 @@
         <section id="linker">
           <div class="slide-grid">
             <div class="slide-copy">
-              <h2>Bring Sefaria to an ordinary article</h2>
+              <h2>A Sefaria reading surface, wherever you read</h2>
               <p class="lead">
-                The Linker detects citations and opens the same request-free
-                popup without taking over the host page.
+                The Linker turns citations in an ordinary article into a
+                contextual Sefaria surface, using the same request-free popup
+                without taking over the host page.
               </p>
             </div>
             <div
@@ -325,14 +412,14 @@
           </aside>
         </section>
 
-        <section id="mcp">
+        <section id="mcp" class="mcp-slide">
           <div class="slide-grid">
             <div class="slide-copy">
-              <h2>Bring the same Reader into Copilot Chat</h2>
+              <h2>The same Reader UI, delivered as an MCP App</h2>
               <p class="lead">
-                The first corrected payload seeds the Reader without another
-                request. Continuing navigation stays in the App through
-                host-proxied tools.
+                A natural-language request can deliver the same stateful UI
+                inside a compatible MCP host. Navigation stays in the App;
+                exporting to chat is explicit.
               </p>
             </div>
             <div class="mcp-gallery" aria-label="MCP App screenshots">
@@ -350,7 +437,8 @@
                   alt="Sefaria Reader rendered in VS Code Copilot Chat"
                 />
                 <figcaption data-gallery-caption>
-                  Stateful Reader in Copilot Chat
+                  Prompt: “Show me Micah 6:8 in Hebrew and English as an
+                  interactive Sefaria reader.”
                 </figcaption>
               </figure>
               <button type="button" data-gallery-next aria-label="Next image">
@@ -360,8 +448,10 @@
             </div>
           </div>
           <aside class="notes">
-            This slide shows captured named-host acceptance. GitHub Pages does
-            not run the Python MCP server.
+            MCP Apps are the general integration model. These images are
+            recorded acceptance evidence from VS Code with Copilot Chat, not a
+            claim that the UI is specific to Copilot or qualified in every MCP
+            host. GitHub Pages does not run the Python MCP server.
           </aside>
         </section>
 
@@ -398,6 +488,35 @@
           <option value="dark">Dark</option>
         </select>
       </label>
+    </div>
+    <div
+      id="viewport-warning"
+      class="viewport-warning"
+      role="alertdialog"
+      aria-modal="true"
+      aria-labelledby="viewport-warning-title"
+      tabindex="-1"
+      hidden
+    >
+      <div>
+        <p class="title-meta">Presentation viewport</p>
+        <h1 id="viewport-warning-title">
+          This presentation needs a larger window
+        </h1>
+        <p>
+          Enlarge this window, use full screen, or move to a bigger display.
+        </p>
+        <dl>
+          <div>
+            <dt>Required</dt>
+            <dd data-required-viewport>1440 × 900</dd>
+          </div>
+          <div>
+            <dt>Current</dt>
+            <dd data-current-viewport></dd>
+          </div>
+        </dl>
+      </div>
     </div>
     <div id="pipeline-root"></div>
     <script type="module" src="/src/main.tsx"></script>

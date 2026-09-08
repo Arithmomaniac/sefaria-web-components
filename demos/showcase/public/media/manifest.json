@@ -1,8 +1,22 @@
 {
-  "captureDate": "2026-09-07",
-  "captureMethod": "Public sites: Playwright with headless installed Chrome at 1600x900, browser chrome excluded. MCP gallery: authenticated isolated VS Code 1.136.1, native CDP surface at 1920x1200, readable configured zoom, full-width Chat, session history and sticky prompt hidden.",
+  "captureDate": "2026-09-08",
+  "captureMethod": "Public sites: Playwright with headless installed Chrome at 1200-1600x900, browser chrome excluded. MCP gallery: authenticated isolated VS Code 1.136.1, native CDP surface at 1920x1200, one host zoom step above reset, App document at 84% capture-only zoom, and full-width Chat.",
   "publicOnly": true,
   "entries": [
+    {
+      "id": "sefaria-micah-commentary",
+      "filename": "sefaria-reader-commentary.png",
+      "status": "captured",
+      "sourceUrl": "https://www.sefaria.org/Micah.6.8?lang=bi&with=Commentary%20ConnectionsList&lang2=en",
+      "resolvedUrl": "https://www.sefaria.org/Micah.6.8?lang=bi&with=Commentary%20ConnectionsList&lang2=en",
+      "publicPageTitle": "Micah 6:8 | The Sefaria Library",
+      "captionSuggestion": "Micah 6:8 in Sefaria's bilingual reader with its available commentary families open.",
+      "limitations": [
+        "Captured from the unauthenticated English interface on 2026-09-08.",
+        "Transient modal, cookie, and Library Assistant promotional overlays were removed before capture.",
+        "Commentary counts and descriptions are live public data and may change."
+      ]
+    },
     {
       "id": "sefaria-library",
       "filename": "sefaria-library.png",
@@ -61,6 +75,35 @@
       ]
     },
     {
+      "id": "talmud-page",
+      "filename": "talmud-page.png",
+      "status": "captured",
+      "sourceUrl": "https://talmud.page/Berakhot/2a",
+      "resolvedUrl": "https://talmud.page/Berakhot/2a",
+      "publicPageTitle": "Berakhot 2a",
+      "directorySourceUrl": "https://developers.sefaria.org/docs/powered-by-sefaria",
+      "captionSuggestion": "Talmud.page: bilingual Talmud with inline commentary choices.",
+      "limitations": [
+        "The public site's English display preference was selected before capture.",
+        "Berakhot 2a was loaded as a representative populated reading state.",
+        "The page content and available inline commentaries may change."
+      ]
+    },
+    {
+      "id": "tikkun",
+      "filename": "tikkun.png",
+      "status": "captured",
+      "sourceUrl": "https://tikkun.io/",
+      "resolvedUrl": "https://tikkun.io/",
+      "publicPageTitle": "tikkun.io",
+      "directorySourceUrl": "https://developers.sefaria.org/docs/powered-by-sefaria",
+      "captionSuggestion": "Tikkun.io: a focused surface for preparing Torah readings.",
+      "limitations": [
+        "Captured from the public default Genesis reading on 2026-09-08.",
+        "The visible text and selected reading may change."
+      ]
+    },
+    {
       "id": "mcp-reader",
       "filename": "mcp-reader.png",
       "status": "captured",
@@ -68,7 +111,7 @@
       "captionSuggestion": "The stateful Micah 6:8 Reader rendered as an MCP App in Copilot Chat.",
       "limitations": [
         "Recorded host demonstration; GitHub Pages does not run the MCP server.",
-        "Captured in VS Code light mode with full-width Chat, no history subpane, and the Reader header visible."
+        "Captured in VS Code light mode with the natural-language initiating prompt, tool call, and Reader visible together."
       ]
     },
     {
@@ -79,7 +122,7 @@
       "captionSuggestion": "The Reader after two same-App connection hops, with three retained breadcrumb levels.",
       "limitations": [
         "Recorded host demonstration; GitHub Pages does not run the MCP server.",
-        "Connection results reflect the live payload captured on 2026-09-07."
+        "Connection results reflect the live payload captured on 2026-09-08."
       ]
     },
     {

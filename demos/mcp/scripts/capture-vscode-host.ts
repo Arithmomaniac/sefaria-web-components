@@ -25,6 +25,7 @@ import {
 import {
   captureVscodeViewport,
   frameReaderForCapture,
+  prepareReaderForShowcaseCapture,
   prepareShowcaseLayout,
 } from "./vscode-capture-layout.js";
 
@@ -104,7 +105,7 @@ try {
   await submitPrompt(
     page,
     showcaseOnly
-      ? `Using Sefaria, show me ${CONNECTIONS_REFERENCE} in Hebrew and English as an interactive Reader. Show the App only; do not repeat or analyze the payload afterward.`
+      ? `Show me ${CONNECTIONS_REFERENCE} in Hebrew and English as an interactive Sefaria reader.`
       : `Use the sefaria-components-demo get_text tool to show ${CONNECTIONS_REFERENCE} in both languages.`,
   );
   const readerFrame = await waitForNewSourceCard(
@@ -805,7 +806,11 @@ async function captureStage(
   filePath: string,
 ): Promise<void> {
   const staged = path.join(captureDirectory, path.basename(filePath));
-  await frameReaderForCapture(frame);
+  if (showcaseOnly) await prepareReaderForShowcaseCapture(frame);
+  await frameReaderForCapture(
+    frame,
+    showcaseOnly && name === "reader-initial" ? 180 : 32,
+  );
   await writeFile(staged, await captureVscodeViewport(frame.page()));
   stagedCaptures.set(filePath, staged);
   artifacts[name] = portableArtifactPath(filePath);

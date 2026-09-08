@@ -349,6 +349,15 @@ test("keeps both panes visible at the showcase reader width", async () => {
   ).toBe("none");
 });
 
+test("uses the shared panel radius for the composed Reader surface", async () => {
+  const element = await mount();
+  expect(getComputedStyle(element).borderRadius).toBe("12px");
+
+  element.style.setProperty("--sefaria-panel-radius", "0px");
+  await element.updateComplete;
+  expect(getComputedStyle(element).borderRadius).toBe("0px");
+});
+
 test("moves focus only when semantic current entry changes", async () => {
   const element = await mount();
   const back = element.shadowRoot!.querySelector<HTMLButtonElement>(
