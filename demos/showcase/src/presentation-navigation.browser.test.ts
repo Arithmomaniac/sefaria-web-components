@@ -67,11 +67,12 @@ afterEach(() => {
 describe("presentation wheel navigation", () => {
   it("moves directly between slides, including past the MCP video", () => {
     const { deck, slides, wheel, destroy } = createHarness();
+    const video = slides[1]!.querySelector("video")!;
 
     wheel(slides[0]!, 100);
     expect(deck.next).toHaveBeenCalledTimes(1);
 
-    wheel(slides[1]!, 100);
+    wheel(video, 100);
     expect(deck.next).toHaveBeenCalledTimes(2);
 
     wheel(slides[2]!, -100);

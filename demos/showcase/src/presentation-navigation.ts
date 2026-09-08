@@ -31,7 +31,6 @@ const nativeWheelSelector = [
   "input",
   "select",
   "textarea",
-  "video",
   "[contenteditable='true']",
 ].join(",");
 

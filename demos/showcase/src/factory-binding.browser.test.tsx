@@ -89,6 +89,25 @@ test("assigns new factory results to one persistent Web Component", async () => 
   expect(factory).toHaveBeenCalledTimes(2);
 });
 
+test("assigns a stable view model when the element mounts on a later render", async () => {
+  function Harness({ show }: { readonly show: boolean }) {
+    const ref = useRef<SefariaTextSegment>(null);
+    useElementProperty(ref, "viewModel", first);
+    return show ? <sefaria-text-segment ref={ref} /> : null;
+  }
+
+  const container = document.createElement("div");
+  document.body.append(container);
+  root = createRoot(container);
+  await act(async () => root?.render(<Harness show={false} />));
+  await act(async () => root?.render(<Harness show />));
+
+  expect(
+    container.querySelector<SefariaTextSegment>("sefaria-text-segment")
+      ?.viewModel,
+  ).toEqual(first);
+});
+
 test("aborts the superseded request and ignores its late result", async () => {
   let resolveFirst!: (value: TextSegmentViewModel) => void;
   let resolveSecond!: (value: TextSegmentViewModel) => void;
