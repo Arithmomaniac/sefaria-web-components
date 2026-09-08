@@ -147,7 +147,8 @@ body {
 .visual-frame,
 .pipeline-slot,
 .demo-workbench,
-.mcp-gallery {
+.mcp-gallery,
+.mcp-video-frame {
   min-width: 0;
   min-height: 0;
   border: 1px solid var(--border);
@@ -155,6 +156,10 @@ body {
   background: var(--surface);
   box-shadow: var(--shadow);
   overflow: hidden;
+}
+
+.sefaria-destination {
+  margin-top: 1.2rem !important;
 }
 
 .component-source-slide [data-component-source] {
@@ -481,7 +486,7 @@ body {
 .problem-card p {
   margin: 0.25rem 0 0;
   color: var(--muted);
-  font-size: 11.5pt;
+  font-size: 14pt;
   line-height: 1.25;
 }
 
@@ -493,6 +498,26 @@ body {
   font-weight: 750;
   letter-spacing: 0.02em;
   text-transform: uppercase;
+}
+
+.evidence-label,
+.ownership-callout {
+  padding: 0.7rem 0.85rem;
+  border-radius: 0.45rem;
+  font-size: 12pt !important;
+  line-height: 1.3 !important;
+}
+
+.evidence-label {
+  border-left: 0.3rem solid var(--teal);
+  color: var(--muted) !important;
+  background: var(--teal-soft);
+}
+
+.ownership-callout {
+  border-left: 0.3rem solid var(--berry);
+  color: var(--ink) !important;
+  background: var(--berry-soft);
 }
 
 .mcp-slide .slide-grid {
@@ -508,12 +533,23 @@ body {
 }
 
 .pipeline-slide {
-  display: grid !important;
+  display: block !important;
+}
+
+.pipeline-slide > [data-pipeline-experience],
+.pipeline-experience {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+
+.pipeline-experience {
+  display: grid;
   grid-template-rows: auto minmax(0, 1fr);
   gap: 1rem;
 }
 
-.pipeline-slide .slide-grid {
+.pipeline-experience .slide-grid {
   height: auto;
   min-height: 0;
 }
@@ -549,7 +585,7 @@ body {
   gap: 0.5rem;
 }
 
-.pipeline-series-header nav a {
+.pipeline-series-header nav :is(a, button) {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   gap: 0.55rem;
@@ -560,9 +596,12 @@ body {
   border-radius: 0.35rem;
   color: var(--muted);
   text-decoration: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
 }
 
-.pipeline-series-header nav a strong {
+.pipeline-series-header nav :is(a, button) strong {
   display: grid;
   width: 1.75rem;
   height: 1.75rem;
@@ -572,7 +611,7 @@ body {
   font-size: 11pt;
 }
 
-.pipeline-series-header nav a span {
+.pipeline-series-header nav :is(a, button) span {
   overflow: hidden;
   font-size: 10.5pt;
   font-weight: 650;
@@ -591,8 +630,8 @@ body {
   background: white;
 }
 
-.pipeline-series-header nav a:hover,
-.pipeline-series-header nav a:focus-visible {
+.pipeline-series-header nav :is(a, button):hover,
+.pipeline-series-header nav :is(a, button):focus-visible {
   outline: 2px solid var(--blue);
   outline-offset: 2px;
 }
@@ -919,6 +958,25 @@ body {
   padding: 1rem;
 }
 
+.mcp-video-frame {
+  display: grid;
+  height: 100%;
+  grid-template-rows: minmax(0, 1fr);
+  margin: 0;
+  padding: 1rem;
+}
+
+.mcp-video-frame video {
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  max-height: 100%;
+  align-self: center;
+  aspect-ratio: 8 / 5;
+  border-radius: 0.35rem;
+  object-fit: contain;
+}
+
 .mcp-gallery figure {
   display: grid;
   height: 100%;
@@ -951,9 +1009,33 @@ body {
   line-height: 1.08;
 }
 
+.closing-slide .impact-heading {
+  max-width: 25ch;
+  margin-bottom: 0.65rem;
+  color: white;
+}
+
+.closing-content {
+  display: flex;
+  width: calc(72% - 2rem);
+  max-width: 60rem;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.closing-slide .impact-quote {
+  max-width: 58ch;
+  margin-bottom: 0.75rem;
+  font-family: var(--deck-serif);
+  font-size: clamp(18pt, 2.2vw, 27pt);
+  line-height: 1.28;
+}
+
 .quote-attribution {
+  max-width: 62ch;
   color: rgb(255 255 255 / 75%) !important;
   font-size: 14pt !important;
+  line-height: 1.35 !important;
 }
 
 .repo-link {
@@ -1068,12 +1150,39 @@ html[data-viewport-blocked] .deck-toolbar {
   background: var(--surface);
 }
 
+.text-demo-controls {
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+}
+
+.text-demo-controls fieldset {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+  gap: 0.7rem;
+  margin: 0;
+  padding: 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: 0.65rem;
+}
+
+.text-demo-controls legend {
+  padding: 0 0.35rem;
+  color: var(--berry-strong);
+  font-size: 9.5pt;
+  font-weight: 750;
+}
+
 .demo-controls label {
   display: grid;
   gap: 0.3rem;
   color: var(--muted);
   font-size: 10pt;
   font-weight: 650;
+}
+
+.demo-controls :disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 
 .demo-controls input,
@@ -1102,6 +1211,14 @@ html[data-viewport-blocked] .deck-toolbar {
   border: 1px solid var(--border);
   border-radius: 1rem;
   background: var(--surface);
+}
+
+.demo-surface-label {
+  margin: 0 0 0.6rem !important;
+  color: var(--muted) !important;
+  font-size: 9.5pt !important;
+  font-weight: 700;
+  letter-spacing: 0.02em;
 }
 
 .demo-error {
@@ -1156,10 +1273,17 @@ html[data-viewport-blocked] .deck-toolbar {
 }
 
 .reader-demo-page .demo-reader-result {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
   min-height: 0;
   padding: 0;
   overflow: hidden;
   border-radius: 0.75rem;
+}
+
+.reader-demo-page .demo-surface-label {
+  margin: 0 !important;
+  padding: 0.35rem 0.55rem;
 }
 
 .reader-demo-page .demo-reader-result > sefaria-reader {
@@ -1169,10 +1293,253 @@ html[data-viewport-blocked] .deck-toolbar {
   margin: 0;
 }
 
+@media (max-height: 700px) and (min-width: 781px) {
+  .reveal {
+    font-size: 16pt;
+  }
+
+  .reveal .slides section {
+    padding: 1.6rem 3rem;
+  }
+
+  .reveal .slides section:has(.demo-workbench) {
+    padding-inline-end: 1rem;
+  }
+
+  .reveal h1 {
+    font-size: clamp(40pt, 6vw, 58pt);
+  }
+
+  .reveal h2,
+  .component-source-slide h2,
+  .problem-slide h2,
+  .mcp-slide h2 {
+    margin-bottom: 0.35em;
+    font-size: clamp(25pt, 3.2vw, 34pt);
+  }
+
+  .reveal p {
+    font-size: 13.5pt;
+    line-height: 1.3;
+  }
+
+  .reveal .lead,
+  .mcp-slide .lead {
+    font-size: 15.5pt;
+    line-height: 1.28;
+  }
+
+  .slide-grid,
+  .component-source-slide .slide-grid,
+  .problem-slide .slide-grid,
+  .mcp-slide .slide-grid,
+  .sefaria-slide .slide-grid {
+    gap: 2rem;
+  }
+
+  .title-meta {
+    margin-bottom: 0.7rem;
+    font-size: 9pt !important;
+  }
+
+  .tagline {
+    font-size: 20pt !important;
+  }
+
+  .disclaimer {
+    margin-top: 1rem !important;
+    font-size: 10pt !important;
+  }
+
+  .composition-example {
+    margin-bottom: 0.35rem !important;
+    font-size: 10pt !important;
+  }
+
+  .evidence-label,
+  .ownership-callout {
+    padding: 0.5rem 0.65rem;
+    font-size: 9.5pt !important;
+  }
+
+  .sefaria-destination {
+    margin-top: 0.8rem !important;
+  }
+
+  .problem-workbench {
+    gap: 0.3rem;
+  }
+
+  .problem-payload {
+    padding: 0.5rem 0.7rem;
+    font-size: 7.8pt;
+    line-height: 1.18;
+  }
+
+  .payload-source {
+    font-size: 8pt !important;
+  }
+
+  .problem-grid {
+    gap: 0.4rem;
+    margin-top: 0.45rem;
+  }
+
+  .problem-card {
+    gap: 0.5rem;
+    padding: 0.65rem 0.7rem;
+  }
+
+  .problem-card-marker {
+    width: 1.55rem;
+    height: 1.55rem;
+    font-size: 9pt;
+  }
+
+  .problem-card strong {
+    font-size: 11.5pt;
+  }
+
+  .problem-card p {
+    margin-top: 0.15rem;
+    font-size: 14pt;
+    line-height: 1.22;
+  }
+
+  .pipeline-slide {
+    display: block !important;
+  }
+
+  .pipeline-experience {
+    gap: 0.55rem;
+  }
+
+  .pipeline-series-header {
+    gap: 2rem;
+    padding-bottom: 0.45rem;
+  }
+
+  .pipeline-series-header p strong {
+    font-size: 11pt;
+  }
+
+  .pipeline-series-header p span,
+  .pipeline-series-header nav :is(a, button) span {
+    font-size: 8.5pt;
+  }
+
+  .pipeline-series-header nav :is(a, button) {
+    gap: 0.35rem;
+    padding: 0.3rem 0.4rem;
+  }
+
+  .pipeline-series-header nav :is(a, button) strong {
+    width: 1.35rem;
+    height: 1.35rem;
+    font-size: 8.5pt;
+  }
+
+  .component-source-panel header {
+    padding: 0.4rem 0.6rem;
+  }
+
+  .component-source-panel header :is(p, strong) {
+    font-size: 8pt;
+  }
+
+  .component-source-panel .code-pane,
+  .code-pane {
+    padding: 0.65rem;
+    font-size: 8.5pt;
+    line-height: 1.38;
+  }
+
+  .workbench-bar {
+    gap: 0.5rem;
+    padding: 0.35rem 0.5rem;
+  }
+
+  .workbench button,
+  .mcp-gallery button {
+    padding: 0.25rem 0.45rem;
+    font-size: 8.5pt;
+  }
+
+  .pipeline-panel .workbench-bar p,
+  .image-pair figcaption,
+  .mcp-gallery figcaption,
+  .mcp-gallery [data-gallery-position] {
+    font-size: 8.5pt;
+  }
+
+  .pipeline-output > pre,
+  .pipeline-render {
+    padding: 0.7rem;
+  }
+
+  .pipeline-output > pre {
+    font-size: 8.5pt;
+    line-height: 1.35;
+  }
+
+  .mcp-gallery {
+    gap: 0.45rem;
+    padding: 0.65rem;
+  }
+
+  .mcp-video-frame {
+    padding: 0.65rem;
+  }
+
+  .closing-slide blockquote {
+    margin-bottom: 0.8rem;
+    font-size: clamp(31pt, 4.4vw, 43pt);
+  }
+
+  .closing-slide .impact-heading {
+    font-size: clamp(27pt, 3.5vw, 36pt);
+  }
+
+  .closing-slide .impact-quote {
+    margin-bottom: 0.55rem;
+    font-size: clamp(14pt, 1.7vw, 18pt);
+    line-height: 1.24;
+  }
+
+  .closing-content {
+    width: calc(72% - 1rem);
+  }
+
+  .quote-attribution {
+    font-size: 10.5pt !important;
+  }
+
+  .repo-link {
+    margin-top: 1rem;
+    padding: 0.55rem 0.75rem;
+    font-size: 12pt;
+  }
+
+  .drag-hint {
+    font-size: 10pt !important;
+  }
+
+  .deck-toolbar {
+    top: 0.35rem;
+    right: 0.45rem;
+    padding: 0.25rem 0.35rem;
+    font-size: 8.5pt;
+  }
+}
+
 @media (max-width: 780px) {
   .reveal .slides section {
     overflow: auto;
     padding: 4.5rem 1.2rem 2rem;
+  }
+
+  .text-demo-controls {
+    grid-template-columns: 1fr;
   }
 
   .slide-grid {
@@ -1186,23 +1553,19 @@ html[data-viewport-blocked] .deck-toolbar {
     justify-content: start;
   }
 
-  .pipeline-slide {
-    display: block !important;
-  }
-
   .pipeline-series-header {
     grid-template-columns: 1fr;
     gap: 0.75rem;
     margin-bottom: 1rem;
   }
 
-  .pipeline-series-header nav a {
+  .pipeline-series-header nav :is(a, button) {
     grid-template-columns: 1fr;
     justify-items: center;
     text-align: center;
   }
 
-  .pipeline-series-header nav a span {
+  .pipeline-series-header nav :is(a, button) span {
     white-space: normal;
   }
 

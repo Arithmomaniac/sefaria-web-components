@@ -1,6 +1,6 @@
 export const minimumDeckViewport = {
-  width: 1440,
-  height: 900,
+  width: 1280,
+  height: 650,
 } as const;
 
 interface ViewportSize {

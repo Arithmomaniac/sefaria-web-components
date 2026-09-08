@@ -1,5 +1,10 @@
 export const pipelineExampleSource = {
-  client: `const result = await getV3Texts({
+  client: `const request: TextSegmentRequest = {
+  tref: "Micah 6:8",
+  version: { language: "english" },
+};
+
+const result = await getV3Texts({
   client,
   path: { tref: request.tref },
   query: {
@@ -18,13 +23,18 @@ const payload = result.data;`,
   payload,
   request,
 );`,
-  element: `useElementProperty(
-  elementRef,
-  "viewModel",
-  viewModel,
-);
+  element: `import "@sefaria/components";
 
-return <sefaria-text-segment ref={elementRef} />;`,
+// The package import registers <sefaria-text-segment>.
+const element = document.createElement("sefaria-text-segment");
+
+// viewModel was produced by the factory in step 2.
+element.viewModel = viewModel;
+
+const mount = document.querySelector("#app");
+if (!mount) throw new Error("App mount is required.");
+
+mount.replaceChildren(element);`,
 } as const;
 
 export const textSegmentElementDeclarationSource = [
@@ -101,26 +111,31 @@ export const textSegmentElementSource = `${textSegmentElementDeclarationSource}
   }
 }`;
 
-export const textExampleSource = `const result = useFactoryViewModel(
-  request,
-  { state: "loading", message: \`Loading \${request.tref}.\` },
-  loadTextSegmentViewModel,
-  client,
-);
+export const textExampleSource = `import { createSefariaClient } from "@sefaria/client";
+import "@sefaria/components";
+import { loadTextSegmentViewModel } from "@sefaria/components/text-segment";
 
-useElementProperty(elementRef, "viewModel", result.viewModel);
+const client = createSefariaClient();
+const request = {
+  tref: "Micah 6:8",
+  version: { language: "english" },
+} as const;
 
-return <>
-  {result.error && <p role="alert">{result.error}</p>}
-  <section style={{
-    "--sample-font-english": englishFont,
-    "--sample-font-hebrew": hebrewFont,
-  }}>
-    <sefaria-text-segment ref={elementRef} />
-  </section>
-</>;`;
+const viewModel = await loadTextSegmentViewModel(request, client);
+const element = document.createElement("sefaria-text-segment");
+element.viewModel = viewModel;
 
-export const readerExampleSource = `const controller = await loadReaderController(
+const mount = document.querySelector("#app");
+if (!mount) throw new Error("App mount is required.");
+
+mount.replaceChildren(element);`;
+
+export const readerExampleSource = `const readerElement =
+  document.querySelector<SefariaReader>("sefaria-reader");
+
+if (!readerElement) throw new Error("Reader element is required.");
+
+const controller = await loadReaderController(
   { tref: "Micah 6:8" },
   client,
   { signal },
@@ -138,21 +153,36 @@ unsubscribe();
 unbind();
 controller.dispose();`;
 
-export const manualReaderExampleSource = `const readerSite =
-  document.querySelector<HTMLElement>("#reader-site");
+export const manualReaderExampleSource = `import "../../reader-workspace/src/style.css";
+import {
+  startReaderWorkspace,
+  type ReaderWorkspace,
+} from "../../reader-workspace/src/app.js";
 
-if (!readerSite) throw new Error("Reader site is required.");
+let workspace: ReaderWorkspace | undefined;
 
-readerSite.style.setProperty("--sefaria-panel-radius", "0");
-readerSite.style.setProperty("--sefaria-control-radius", "0");
+function start(): void {
+  workspace ??= startReaderWorkspace(document);
+  if (workspace.view.panes.length === 0) {
+    void workspace.navigate("Micah 6:8", false);
+  }
+}
 
-const workspace = startReaderWorkspace(document);
+addEventListener("message", (event: MessageEvent<unknown>) => {
+  if (event.origin !== location.origin) return;
+  const message = event.data as {
+    readonly type?: string;
+    readonly active?: boolean;
+  };
+  if (message.type !== "sefaria-showcase-active") return;
+  if (message.active === true) start();
+  else if (message.active === false) workspace?.cancelPending();
+});
 
-await workspace.navigate("Micah 6:8", false);
+addEventListener("pagehide", (event) => {
+  if (event.persisted) return;
+  workspace?.dispose();
+  workspace = undefined;
+});
 
-// The host owns ordered pane placement and descendant pruning.
-// Components remain request-free; the workspace coordinates factories.
-workspace.activatePane(workspace.view.panes.at(-1).id);
-
-// On teardown:
-workspace.dispose();`;
+start();`;
