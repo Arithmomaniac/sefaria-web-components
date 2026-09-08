@@ -54,6 +54,8 @@ export interface ReaderWorkspace {
   readonly activatePane: (paneId: string) => void;
   /** Closes a non-root pane and its spatial descendants. */
   readonly closePane: (paneId: string) => void;
+  /** Aborts active requests while retaining the last committed workspace. */
+  readonly cancelPending: () => void;
   /** Removes listeners and aborts active work. */
   readonly dispose: () => void;
 }
@@ -123,6 +125,18 @@ export function startReaderWorkspace(
       session = session.cancelOperation(pendingOperationId).session;
     }
     pendingOperationId = undefined;
+  };
+
+  const finishActive = (
+    completedController: AbortController,
+    completedGeneration: number,
+  ): void => {
+    if (
+      controller === completedController &&
+      generation === completedGeneration
+    ) {
+      controller = undefined;
+    }
   };
 
   const releasePanes = (panes: readonly WorkspacePane[]): void => {
@@ -507,6 +521,8 @@ export function startReaderWorkspace(
         status.textContent = `${targetRef} could not be opened.`;
         showError(error);
       }
+    } finally {
+      finishActive(currentController, currentGeneration);
     }
   };
 
@@ -599,6 +615,8 @@ export function startReaderWorkspace(
         showError(error);
         render();
       }
+    } finally {
+      finishActive(currentController, currentGeneration);
     }
   };
 
@@ -633,6 +651,8 @@ export function startReaderWorkspace(
       ) {
         showError(error);
       }
+    } finally {
+      finishActive(currentController, currentGeneration);
     }
   };
 
@@ -700,6 +720,14 @@ export function startReaderWorkspace(
     navigate,
     activatePane,
     closePane,
+    cancelPending: () => {
+      const hadPending =
+        controller !== undefined || pendingOperationId !== undefined;
+      cancelActive();
+      if (!hadPending) return;
+      render();
+      status.textContent = "Reader loading was interrupted.";
+    },
     dispose: () => {
       cancelActive();
       releasePanes(spatial?.panes ?? []);

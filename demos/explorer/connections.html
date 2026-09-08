@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Connections panel reader demo</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --page: light-dark(#f5f2ec, #201f1d);
+        --surface: light-dark(#fff, #302f2d);
+        --border: light-dark(#d7d0c5, #625d56);
+        --text: light-dark(#24211d, #f1ede6);
+        --muted: light-dark(#71695f, #c0b8ae);
+        --accent: light-dark(#a92850, #ff91ad);
+        --danger: light-dark(#b42318, #ff8b82);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--page);
+        color: var(--text);
+        font-family: "Segoe UI", sans-serif;
+      }
+      main {
+        width: min(96rem, 100%);
+        margin: auto;
+        padding: clamp(1rem, 3vw, 2.5rem);
+      }
+      header p,
+      #status,
+      #request-counts {
+        color: var(--muted);
+      }
+      form,
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.65rem;
+        align-items: end;
+        margin-block: 1rem;
+      }
+      label {
+        display: grid;
+        gap: 0.25rem;
+        font-size: 0.9rem;
+      }
+      input,
+      select,
+      button {
+        font: inherit;
+        min-height: 2.5rem;
+        padding: 0.45rem 0.65rem;
+        color: inherit;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 0.45rem;
+      }
+      button {
+        cursor: pointer;
+      }
+      button:focus-visible,
+      input:focus-visible,
+      select:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      .workspace {
+        display: grid;
+        grid-template-columns: minmax(0, 1.15fr) minmax(19rem, 0.85fr);
+        gap: 1rem;
+        align-items: start;
+      }
+      .pane {
+        min-width: 0;
+        padding: 1rem;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 0.8rem;
+      }
+      #host-error {
+        color: var(--danger);
+      }
+      sefaria-source-card,
+      sefaria-connections-panel {
+        --sefaria-surface: var(--surface);
+        --sefaria-fg: var(--text);
+        --sefaria-fg-muted: var(--muted);
+        --sefaria-border: var(--border);
+        --sefaria-accent: var(--accent);
+        --sefaria-link: var(--accent);
+      }
+      @media (max-width: 58rem) {
+        .workspace {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Contextual connections reader</h1>
+        <p>
+          The host synchronizes a request-free source card and connections
+          panel. Opening a connection loads its parent section and selects the
+          first target segment.
+        </p>
+      </header>
+      <form id="reader-form">
+        <label
+          >Reference <input name="tref" value="Genesis 1:2" required
+        /></label>
+        <button type="submit">Open in context</button>
+      </form>
+      <div class="controls" role="group" aria-label="Display controls">
+        <label
+          ><input id="show-previews" type="checkbox" checked /> Show
+          previews</label
+        >
+        <label
+          ><input id="metadata-only" type="checkbox" /> Request labels only on
+          next load</label
+        >
+        <label
+          >Text sides
+          <select id="content-language">
+            <option value="both">Both</option>
+            <option value="primary">Primary</option>
+            <option value="translation">Translation</option>
+          </select></label
+        >
+        <label
+          ><input id="show-address-labels" type="checkbox" checked /> Show
+          segment labels</label
+        >
+        <label
+          >Layout
+          <select id="layout">
+            <option value="auto">Auto</option>
+            <option value="stacked">Stacked</option>
+            <option value="side-by-side">Side by side</option>
+          </select></label
+        >
+        <label
+          >Side order
+          <select id="side-order">
+            <option value="primary-first">Primary first</option>
+            <option value="translation-first">Translation first</option>
+          </select></label
+        >
+      </div>
+      <p id="status" role="status">Waiting for the first request.</p>
+      <p id="request-counts"></p>
+      <p id="host-error" role="alert" hidden></p>
+      <div class="workspace">
+        <section class="pane">
+          <h2>Reader</h2>
+          <sefaria-source-card id="reader"></sefaria-source-card>
+        </section>
+        <section class="pane">
+          <sefaria-connections-panel
+            id="connections"
+          ></sefaria-connections-panel>
+        </section>
+      </div>
+    </main>
+    <script type="module" src="./src/connections/main.ts"></script>
+  </body>
+</html>
