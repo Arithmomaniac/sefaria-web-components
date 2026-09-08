@@ -14,6 +14,7 @@ export interface VscodeDemoProfile {
 
 interface VscodeLaunchOptions {
   readonly debuggingPort?: number;
+  readonly files?: readonly string[];
   readonly wait?: boolean;
 }
 
@@ -27,6 +28,9 @@ const settings = {
   },
   "chat.mcp.gallery.enabled": false,
   "chat.plugins.enabled": false,
+  "chat.promptFilesRecommendations": {
+    "sefaria-mcp-reader": true,
+  },
   "chat.stickyScroll.enabled": false,
   "chat.viewSessions.enabled": false,
   "extensions.autoCheckUpdates": false,
@@ -201,6 +205,7 @@ export function createVscodeLaunchArguments(
     `--extensions-dir=${profile.extensionsDirectory}`,
     `--shared-data-dir=${profile.sharedDataDirectory}`,
     workspace,
+    ...(options.files ?? []),
   );
   return arguments_;
 }

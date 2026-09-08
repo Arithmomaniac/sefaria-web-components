@@ -1,10 +1,87 @@
-import type { Frame, Page } from "playwright";
+import type { Frame, Locator, Page } from "playwright";
+
+const CLICK_CLEARANCE = 16;
+
+export async function revealLocatorForDemoClick(
+  target: Locator,
+  settleDelay = 150,
+): Promise<void> {
+  await target.waitFor({ state: "visible" });
+  const page = target.page();
+  const composer = page.locator(".interactive-input-part").last();
+  const chatList = page.locator(".interactive-list").last();
+
+  const isUnobstructed = async (): Promise<boolean> => {
+    const [targetBounds, composerBounds, listBounds] = await Promise.all([
+      target.boundingBox(),
+      composer.boundingBox(),
+      chatList.boundingBox(),
+    ]);
+    if (
+      targetBounds === null ||
+      composerBounds === null ||
+      listBounds === null
+    ) {
+      return false;
+    }
+    return (
+      targetBounds.y >= listBounds.y + CLICK_CLEARANCE &&
+      targetBounds.y + targetBounds.height <= composerBounds.y - CLICK_CLEARANCE
+    );
+  };
+
+  if (!(await isUnobstructed())) {
+    await target.scrollIntoViewIfNeeded();
+    await page.waitForTimeout(settleDelay);
+  }
+
+  for (
+    let attempt = 0;
+    attempt < 6 && !(await isUnobstructed());
+    attempt += 1
+  ) {
+    const [targetBounds, composerBounds, listBounds] = await Promise.all([
+      target.boundingBox(),
+      composer.boundingBox(),
+      chatList.boundingBox(),
+    ]);
+    if (
+      targetBounds !== null &&
+      composerBounds !== null &&
+      listBounds !== null
+    ) {
+      const safeTop = listBounds.y + CLICK_CLEARANCE;
+      const safeBottom = composerBounds.y - CLICK_CLEARANCE;
+      const targetCenter = targetBounds.y + targetBounds.height / 2;
+      const safeCenter = (safeTop + safeBottom) / 2;
+      await chatList.hover({
+        position: { x: 5, y: safeCenter - listBounds.y },
+      });
+      await page.mouse.wheel(0, targetCenter - safeCenter);
+      await page.waitForTimeout(settleDelay);
+    }
+  }
+
+  if (!(await isUnobstructed())) {
+    throw new Error(
+      "Could not reveal the demo click target above the Chat composer.",
+    );
+  }
+  await target.click({ trial: true, timeout: 3000 });
+  if (!(await isUnobstructed())) {
+    throw new Error("The demo click target moved behind the Chat composer.");
+  }
+}
 
 export async function frameReaderForCapture(
   frame: Frame,
   topOffset = 32,
+  resetFrameScroll = true,
+  settleDelay = 150,
 ): Promise<void> {
-  await frame.evaluate(() => scrollTo({ top: 0, left: 0 }));
+  if (resetFrameScroll) {
+    await frame.evaluate(() => scrollTo({ top: 0, left: 0 }));
+  }
   const page = frame.page();
   let outer = frame;
   while (
@@ -27,7 +104,7 @@ export async function frameReaderForCapture(
     if (offset >= topOffset - 24 && offset <= topOffset + 24) return;
     // Monaco virtualizes this list: DOM scrollIntoView cannot move its rows.
     await page.mouse.wheel(0, offset - topOffset);
-    await page.waitForTimeout(150);
+    await page.waitForTimeout(settleDelay);
   }
   throw new Error(
     "Could not frame the Reader header inside the host Chat list.",

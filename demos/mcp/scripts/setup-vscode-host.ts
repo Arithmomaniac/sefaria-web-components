@@ -37,4 +37,4 @@ Copilot home: ${profile.copilotHomeDirectory}
 Shared data: ${profile.sharedDataDirectory}
 Process home: ${profile.homeDirectory}
 
-Sign in to GitHub Copilot once, confirm the sefaria-components-demo server when prompted, and then close this VS Code window. Future capture and demo commands reuse this authenticated profile.`);
+If prompted, sign in to GitHub Copilot and confirm the sefaria-components-demo server, then close this VS Code window. Future capture and demo commands reuse this isolated profile.`);

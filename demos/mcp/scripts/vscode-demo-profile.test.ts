@@ -99,6 +99,9 @@ describe("VS Code MCP demo profile", () => {
       "chat.mcp.apps.enabled": true,
       "chat.mcp.gallery.enabled": false,
       "chat.plugins.enabled": false,
+      "chat.promptFilesRecommendations": {
+        "sefaria-mcp-reader": true,
+      },
       "chat.stickyScroll.enabled": false,
       "chat.viewSessions.enabled": false,
       "extensions.autoUpdate": "off",
@@ -135,6 +138,7 @@ describe("VS Code MCP demo profile", () => {
   it("launches with the isolated user data, extensions, and workspace", () => {
     const root = path.resolve("demo-profile");
     const workspace = path.resolve("workspace");
+    const prompt = path.resolve(".github/prompts/sefaria-mcp-reader.prompt.md");
     const profile = resolveVscodeDemoProfile({
       VSCODE_MCP_PROFILE_ROOT: root,
     });
@@ -142,6 +146,7 @@ describe("VS Code MCP demo profile", () => {
     expect(
       createVscodeLaunchArguments(profile, workspace, {
         debuggingPort: 9333,
+        files: [prompt],
         wait: true,
       }),
     ).toEqual([
@@ -155,6 +160,7 @@ describe("VS Code MCP demo profile", () => {
       `--extensions-dir=${profile.extensionsDirectory}`,
       `--shared-data-dir=${profile.sharedDataDirectory}`,
       workspace,
+      prompt,
     ]);
 
     expect(
