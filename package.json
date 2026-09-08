@@ -5,7 +5,7 @@
   "type": "module",
   "packageManager": "pnpm@11.22.0",
   "engines": {
-    "node": ">=22"
+    "node": ">=22.12.0"
   },
   "scripts": {
     "build": "pnpm -r --if-present build",
@@ -13,6 +13,7 @@
     "build:pages:bundles": "node demos/showcase/scripts/build-pages.mjs --skip-typecheck",
     "build:mcp": "pnpm --filter @sefaria-demo/mcp-app build && pnpm stage:mcp",
     "check": "node scripts/check.mjs",
+    "check:api-docs": "node scripts/check-api-docs.mjs",
     "check:python": "pnpm install:python && pnpm --filter @sefaria-demo/mcp-app build && pnpm check:python:static && pnpm check:python:staged",
     "check:python:staged": "pnpm stage:mcp && uv run --no-sync --directory demos/mcp/fixture-server pytest",
     "check:python:static": "uv run --no-sync --directory demos/mcp/fixture-server ruff format --check . && uv run --no-sync --directory demos/mcp/fixture-server ruff check . && uv run --no-sync --directory demos/mcp/fixture-server mypy src tests",
@@ -32,7 +33,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "install:python": "uv venv --allow-existing --directory demos/mcp/fixture-server && uv pip sync --directory demos/mcp/fixture-server requirements.lock",
-    "lint": "eslint .",
+    "lint": "oxlint --config .oxlintrc.json .",
     "openapi:check": "pnpm --filter @sefaria/client openapi:check",
     "openapi:generate": "pnpm --filter @sefaria/client openapi:generate",
     "openapi:refresh": "pnpm --filter @sefaria/client openapi:refresh",
@@ -45,16 +46,14 @@
     "typecheck": "pnpm -r --if-present typecheck && tsc -p demos/tsconfig.json"
   },
   "devDependencies": {
-    "@eslint/js": "^10.0.1",
     "@types/node": "^26.2.0",
     "@vitest/browser-playwright": "^4.1.10",
-    "eslint": "^10.0.1",
-    "eslint-plugin-jsdoc": "62.9.0",
+    "oxc-parser": "0.147.0",
+    "oxlint": "1.80.0",
     "playwright": "^1.62.1",
     "prettier": "^3.9.6",
     "tsx": "^4.23.12",
-    "typescript": "^6.0.3",
-    "typescript-eslint": "^8.67.0",
+    "typescript": "7.0.2",
     "vite": "^8.2.1",
     "vite-plugin-singlefile": "^2.3.3",
     "vitest": "^4.1.10",

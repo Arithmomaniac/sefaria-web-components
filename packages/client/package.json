@@ -13,12 +13,12 @@
     "./validators": "./src/generated/response-validators.gen.ts"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "pnpm --workspace-root exec tsc -p packages/client/tsconfig.build.json",
     "fixture:capture-candidate": "tsx scripts/refresh-fixtures.ts",
     "openapi:check": "tsx scripts/generate-openapi.ts --check",
     "openapi:generate": "tsx scripts/generate-openapi.ts",
     "openapi:refresh": "tsx scripts/refresh-openapi.ts",
-    "typecheck": "tsc -p tsconfig.json"
+    "typecheck": "pnpm --workspace-root exec tsc -p packages/client/tsconfig.json"
   },
   "dependencies": {
     "@hey-api/client-fetch": "0.13.1",
@@ -27,6 +27,7 @@
   },
   "devDependencies": {
     "@hey-api/openapi-ts": "0.99.0",
-    "openapi-format": "1.33.6"
+    "openapi-format": "1.33.6",
+    "typescript": "6.0.3"
   }
 }
