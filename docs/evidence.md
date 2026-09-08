@@ -43,6 +43,10 @@ Evidence has these classes:
 - **Inferred:** Public consumer behavior supplied the likely rule.
 - **Proposed:** This project defines the behavior.
 
+## Repository contract-document corrections
+
+**Observed September 8, 2026:** the component specification's connections row used `ConnectionsPanelRequest`, `ConnectionsPanelViewModel`, `createConnectionsPanelViewModel`, and `loadConnectionsPanelViewModel`, while the implemented and exported declarations in `packages/components/src/connections-panel.ts` use `ConnectionsRequest`, `ConnectionsViewModel`, `createConnectionsViewModel`, and `loadConnectionsViewModel`. The specification table was corrected to the existing public declarations; production exports were not renamed to match the stale documentation.
+
 The specifications own proposed behavior. This document records observed and inferred evidence.
 
 The Sefaria web and mobile repositories are the primary evidence for current rendering behavior. Live Sefaria surfaces supplement those repositories.
@@ -180,7 +184,7 @@ The current qualification is a small, pinned, offline suite. It is not an exhaus
 
 The current text-segment tests reuse evidence that already supports the behavior under test rather than collecting another API capture. The composed v3 smoke fixture supplies a validated single-segment payload with mixed Hebrew and English text, retained vocalization, and a static footnote. `packages/client/test/fixtures/v3-text-spanning-2026-08-29.json` supplies a validated deployed array-valued response that proves the segment factory reports wrong granularity instead of silently choosing the first child.
 
-Missing-version warnings, exact-version selection, ambiguous matches, `null`, blank content, invalid selectors, network rejection, and abort rejection are authored unit cases. They test the component contract directly and are not presented as deployed corpus evidence. The component-lab states are also authored view models for visual development; they are not API captures or independent behavior oracles.
+Missing-version warnings, exact-version selection, ambiguous matches, `null`, blank content, invalid selectors, network rejection, and abort rejection are authored unit cases. They test the component contract directly and are not presented as deployed corpus evidence. The explorer's authored states are also view models for visual development; they are not API captures or independent behavior oracles.
 
 ### Executable PASEQ references
 

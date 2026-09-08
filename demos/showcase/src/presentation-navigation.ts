@@ -50,7 +50,6 @@ const nativeWheelSelector = [
   ".code-pane",
   ".pipeline-output",
   ".pipeline-render",
-  ".manual-reader-column",
   "input",
   "select",
   "textarea",

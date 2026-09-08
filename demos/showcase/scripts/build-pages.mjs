@@ -1,10 +1,14 @@
-import { access, cp, mkdir, readFile, rm } from "node:fs/promises";
+import { access, cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 import { spawnSync } from "node:child_process";
 import { URL } from "node:url";
 
-import { createBuildCommands, PAGE_DEMOS } from "./build-pages-plan.mjs";
+import {
+  createBuildCommands,
+  LEGACY_DEMO_REDIRECTS,
+  PAGE_DEMOS,
+} from "./build-pages-plan.mjs";
 
 const root = path.resolve(import.meta.dirname, "..", "..", "..");
 const pages = path.resolve(root, "dist", "pages");
@@ -55,6 +59,15 @@ for (const [route, packageName] of PAGE_DEMOS) {
   );
 }
 
+for (const [route, explorerPage] of LEGACY_DEMO_REDIRECTS) {
+  const destination = path.join(pages, "demos", route);
+  await mkdir(destination, { recursive: true });
+  await writeFile(
+    path.join(destination, "index.html"),
+    legacyRedirectHtml(explorerPage),
+  );
+}
+
 await cp(path.resolve(root, "demos", "showcase", "dist"), pages, {
   recursive: true,
 });
@@ -69,26 +82,38 @@ for (const required of [
   "preview.html",
   "workspace-preview.html",
   "linker-preview.html",
-  "media/sefaria-library.png",
-  "media/sefaria-reader.png",
-  "media/torah-research-board.png",
-  "media/lishkod.png",
+  "media/sefaria-reader-commentary.png",
+  "media/talmud-page.png",
+  "media/tikkun.png",
   "media/mcp-reader.png",
   "media/mcp-reader-hierarchy.png",
   "media/mcp-reader-chat-export.png",
   "demos/linker/sefaria-linker.js",
+  "demos/explorer/index.html",
+  "demos/explorer/authored.html",
+  "demos/reader-workspace/index.html",
+  "demos/reader-workspace/controlled.html",
   "demos/connections/index.html",
 ]) {
   await access(path.join(pages, required));
 }
 
-for (const [route] of PAGE_DEMOS) {
-  const html = await readFile(
-    path.join(pages, "demos", route, "index.html"),
-    "utf8",
-  );
-  if (/(?:src|href)="\/assets\//.test(html)) {
-    throw new Error(`${route} still contains an origin-root asset URL.`);
+for (const relativePath of [
+  ...PAGE_DEMOS.map(([route]) => `demos/${route}/index.html`),
+  ...LEGACY_DEMO_REDIRECTS.map(
+    ([legacyRoute]) => `demos/${legacyRoute}/index.html`,
+  ),
+  "demos/explorer/authored.html",
+  "demos/explorer/ref-label.html",
+  "demos/explorer/text-segment.html",
+  "demos/explorer/bilingual-segment.html",
+  "demos/explorer/source-card.html",
+  "demos/explorer/connections.html",
+  "demos/reader-workspace/controlled.html",
+]) {
+  const html = await readFile(path.join(pages, relativePath), "utf8");
+  if (/(?:src|href)="\/(?!\/)/.test(html)) {
+    throw new Error(`${relativePath} still contains an origin-root URL.`);
   }
 }
 
@@ -108,14 +133,30 @@ if (publicBase !== undefined && bookmarklet.includes("localhost")) {
 function packageDirectory(packageName) {
   return (
     {
-      "@sefaria-demo/component-lab": "component-lab",
-      "@sefaria-demo/ref-label-live-demo": "ref-label-live-demo",
-      "@sefaria-demo/text-segment-live-demo": "text-segment-live-demo",
-      "@sefaria-demo/bilingual-segment-live-demo":
-        "bilingual-segment-live-demo",
-      "@sefaria-demo/source-card-live-demo": "source-card-live-demo",
-      "@sefaria-demo/connections-panel-live-demo":
-        "connections-panel-live-demo",
+      "@sefaria-demo/explorer": "explorer",
+      "@sefaria-demo/reader-workspace": "reader-workspace",
     }[packageName] ?? packageName
   );
+}
+
+function legacyRedirectHtml(explorerPage) {
+  const target = JSON.stringify(`../explorer/${explorerPage}`);
+  return `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Opening the Sefaria component explorer</title>
+    <script>
+      const target = new URL(${target}, window.location.href);
+      target.search = window.location.search;
+      target.hash = window.location.hash;
+      window.location.replace(target);
+    </script>
+  </head>
+  <body>
+    <p>This demo moved to the <a href="${`../explorer/${explorerPage}`}">Sefaria component explorer</a>.</p>
+  </body>
+</html>
+`;
 }

@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Sefaria component explorer</title>
+    <link rel="stylesheet" href="./src/explorer.css" />
+  </head>
+  <body>
+    <main>
+      <header>
+        <p class="eyebrow">Developer explorer</p>
+        <h1>Sefaria Web Components</h1>
+        <p>
+          Inspect request-free authored states, call the live Sefaria API
+          through component factories, or continue to the packaged and custom
+          Reader examples.
+        </p>
+      </header>
+      <section aria-labelledby="primitives">
+        <h2 id="primitives">Reusable primitives</h2>
+        <div class="explorer-grid">
+          <a href="./authored.html">
+            <strong>Authored component states</strong>
+            <span
+              >Loading, partial, empty, error, and interaction states without
+              requests.</span
+            >
+          </a>
+          <a href="./ref-label.html">
+            <strong>Reference label</strong>
+            <span>Canonical labels and optional links.</span>
+          </a>
+          <a href="./text-segment.html">
+            <strong>Text segment</strong>
+            <span>One selected version, direction, markup, and footnotes.</span>
+          </a>
+          <a href="./bilingual-segment.html">
+            <strong>Bilingual segment</strong>
+            <span>Primary and translation roles with responsive layout.</span>
+          </a>
+          <a href="./source-card.html">
+            <strong>Source card</strong>
+            <span>A bounded passage, selection, and edition attribution.</span>
+          </a>
+          <a href="./connections.html">
+            <strong>Contextual connections</strong>
+            <span
+              >Source selection, captured links, categories, paging, and
+              previews.</span
+            >
+          </a>
+        </div>
+      </section>
+      <section aria-labelledby="compositions">
+        <h2 id="compositions">Packaged and custom composition</h2>
+        <div class="explorer-grid">
+          <a href="../reader-workspace/controlled.html">
+            <strong>Prebuilt Reader</strong>
+            <span>The supported controller-backed Reader composition.</span>
+          </a>
+          <a href="../reader-workspace/">
+            <strong>Custom spatial Reader</strong>
+            <span
+              >Host-owned pane placement over the same lower-level pieces.</span
+            >
+          </a>
+          <a href="../linker/">
+            <strong>Linker</strong>
+            <span>Embed a Sefaria reading surface in an ordinary article.</span>
+          </a>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
