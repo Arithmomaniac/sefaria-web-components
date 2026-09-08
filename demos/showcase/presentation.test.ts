@@ -28,7 +28,7 @@ describe("showcase reader presentation", () => {
     expect(index).not.toContain("Composed from two captured responses");
   });
 
-  it("uses the approved narrative and ends the path inside the Web Component", async () => {
+  it("uses one four-part technical walkthrough ending inside the Web Component", async () => {
     const [index, element] = await Promise.all([
       readFile(path.join(showcase, "index.html"), "utf8"),
       readFile(
@@ -43,12 +43,12 @@ describe("showcase reader presentation", () => {
       ),
     ]);
 
-    expect(index.indexOf('id="element"')).toBeLessThan(
-      index.indexOf('id="component-source"'),
-    );
-    expect(index.indexOf('id="component-source"')).toBeLessThan(
-      index.indexOf('id="all-together"'),
-    );
+    expect(index).toContain('id="pipeline"');
+    expect(index).toContain("data-pipeline-experience");
+    expect(index).not.toContain('id="client"');
+    expect(index).not.toContain('id="view-model"');
+    expect(index).not.toContain('id="element"');
+    expect(index).not.toContain('id="component-source"');
     expect(index).not.toContain('class="source-principles"');
     expect(index).not.toContain("Bring the same Reader into Copilot Chat");
 
@@ -68,15 +68,77 @@ describe("showcase reader presentation", () => {
       (match) => match[1],
     );
 
-    expect(ids.indexOf("problem")).toBeLessThan(ids.indexOf("client"));
-    expect(ids.indexOf("client")).toBeLessThan(ids.indexOf("view-model"));
-    expect(ids.indexOf("view-model")).toBeLessThan(ids.indexOf("element"));
-    expect(ids.indexOf("source-card")).toBeLessThan(
-      ids.indexOf("interactions"),
+    expect(ids.indexOf("problem")).toBeLessThan(ids.indexOf("all-together"));
+    expect(ids.indexOf("all-together")).toBeLessThan(
+      ids.indexOf("source-card"),
     );
+    expect(ids.indexOf("source-card")).toBeLessThan(ids.indexOf("mcp"));
+    expect(ids.indexOf("mcp")).toBeLessThan(ids.indexOf("pipeline"));
+    expect(ids.indexOf("pipeline")).toBeLessThan(ids.indexOf("interactions"));
     expect(ids.indexOf("interactions")).toBeLessThan(ids.indexOf("linker"));
-    expect(ids.indexOf("linker")).toBeLessThan(ids.indexOf("mcp"));
+    expect(ids.indexOf("linker")).toBeLessThan(ids.indexOf("close"));
     expect(index.match(/<aside class="notes">/g)).toHaveLength(ids.length);
+  });
+
+  it("states the user, beneficiary, and request ownership boundaries", async () => {
+    const index = await readFile(path.join(showcase, "index.html"), "utf8");
+    const normalized = index.replace(/\s+/g, " ");
+
+    expect(normalized).toContain(
+      "Developers use the toolkit. People reading and studying Jewish texts benefit",
+    );
+    expect(normalized).toContain(
+      "The supplied controller owns loading and navigation",
+    );
+    expect(normalized).toContain("the element renders the current view model");
+    expect(normalized).toContain(
+      "recorded acceptance video from VS Code with Copilot Chat",
+    );
+    expect(normalized).toContain(
+      "Existing Sefaria-powered applications—not adopters of this toolkit",
+    );
+    expect(normalized).toContain(
+      "Sefaria already has a Linker; this rewrite is not a new product feature",
+    );
+    expect(normalized).toContain(
+      "developing and customizing interactive interfaces for educational, personal, and AI applications",
+    );
+  });
+
+  it("shows complete relationships in the displayed integration samples", async () => {
+    const [source, main, preview] = await Promise.all([
+      readFile(path.join(showcase, "src", "example-source.ts"), "utf8"),
+      readFile(path.join(showcase, "src", "main.tsx"), "utf8"),
+      readFile(path.join(showcase, "src", "preview.tsx"), "utf8"),
+    ]);
+
+    expect(source).toContain('tref: "Micah 6:8"');
+    expect(source).toContain('import "@sefaria/components"');
+    expect(source).toContain(
+      'const element = document.createElement("sefaria-text-segment")',
+    );
+    expect(source).toContain("element.viewModel = viewModel");
+    expect(source).toContain('document.querySelector("#app")');
+    expect(source).toContain("mount.replaceChildren(element)");
+    expect(source).toContain("loadReaderController");
+    expect(source).toContain("bindReaderController");
+    expect(source).toContain("controller.dispose()");
+    expect(main).toContain('label: "TypeScript"');
+    expect(main).toContain('label: "HTML"');
+    expect(main).toContain('label: "Typed client"');
+    expect(main).toContain('label: "View-model factory"');
+    expect(main).toContain('label: "Host setup"');
+    expect(main).toContain('label: "Web Component"');
+    expect(main).toContain("Four parts inside one delivered path");
+    expect(source).toContain("await loadTextSegmentViewModel");
+    expect(source).toContain('message.type !== "sefaria-showcase-active"');
+    expect(source).toContain("workspace?.cancelPending()");
+    expect(preview).toContain("Load new data");
+    expect(preview).toContain("Presentation only · no new request");
+    expect(preview).toContain("Load through supplied controller");
+    expect(preview).toContain(
+      "Library component: <code>&lt;sefaria-reader&gt;</code>",
+    );
   });
 
   it("presents packaged composition separately from custom composition", async () => {
@@ -137,8 +199,8 @@ describe("showcase reader presentation", () => {
     expect(preview).toContain("location.replace(target)");
   });
 
-  it("uses integrated reader captures for the MCP gallery", async () => {
-    const [index, main, capture] = await Promise.all([
+  it("uses the chronological integrated Reader video for the MCP demonstration", async () => {
+    const [index, main, capture, video] = await Promise.all([
       readFile(path.join(showcase, "index.html"), "utf8"),
       readFile(path.join(showcase, "src", "main.tsx"), "utf8"),
       readFile(
@@ -151,19 +213,23 @@ describe("showcase reader presentation", () => {
         ),
         "utf8",
       ),
+      readFile(path.join(showcase, "public", "media", "mcp-reader-demo.mp4")),
     ]);
 
-    expect(main).toContain("./media/mcp-reader.png");
-    expect(main).toContain("./media/mcp-reader-hierarchy.png");
-    expect(main).toContain("./media/mcp-reader-chat-export.png");
-    expect(main).not.toContain("./media/mcp-source-card.png");
+    expect(index).toContain("<video");
+    expect(index).toContain("./media/mcp-reader-demo.mp4");
+    expect(index).toContain('poster="./media/mcp-reader.png"');
+    expect(index).not.toContain("data-gallery-image");
+    expect(main).toContain("initializeMcpVideo");
+    expect(main).not.toContain("initializeGallery");
     expect(main).toContain("mouseWheel: false");
-    const prompt =
-      "Show me Micah 6:8 in Hebrew and English as an interactive Sefaria reader.";
+    expect(video.byteLength).toBeGreaterThan(1_000_000);
     expect(capture).toContain(
       "`Show me ${CONNECTIONS_REFERENCE} in Hebrew and English as an interactive Sefaria reader.`",
     );
-    expect(index.replace(/\s+/g, " ")).toContain(`Prompt: “${prompt}”`);
+    expect(index.replace(/\s+/g, " ")).toContain(
+      "recorded acceptance video from VS Code with Copilot Chat",
+    );
   });
 
   it("installs a deck-only minimum viewport guard", async () => {
@@ -175,9 +241,10 @@ describe("showcase reader presentation", () => {
     expect(index).toContain('id="viewport-warning"');
     expect(index).toContain("data-required-viewport");
     expect(index).toContain("data-current-viewport");
+    expect(index).toContain("1280 × 650");
     expect(guard).toContain("minimumDeckViewport");
-    expect(guard).toContain("width: 1440");
-    expect(guard).toContain("height: 900");
+    expect(guard).toContain("width: 1280");
+    expect(guard).toContain("height: 650");
   });
 
   it("allows the MCP reader to use a wide side-by-side surface", async () => {

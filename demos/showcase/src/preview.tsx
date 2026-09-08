@@ -64,39 +64,59 @@ function TextDemo() {
 
   return (
     <main className="demo-page">
-      <form className="demo-controls" onSubmit={submit}>
-        <label>
-          Reference
-          <input
-            value={draft}
-            onChange={(event) => setDraft(event.target.value)}
-          />
-        </label>
-        <label>
-          Language family
-          <select
-            value={language}
-            onChange={(event) => setLanguage(event.target.value)}
-          >
-            <option value="english">English</option>
-            <option value="hebrew">Hebrew</option>
-          </select>
-        </label>
-        <label>
-          English font
-          <input
-            value={englishFont}
-            onChange={(event) => setEnglishFont(event.target.value)}
-          />
-        </label>
-        <label>
-          Hebrew font
-          <input
-            value={hebrewFont}
-            onChange={(event) => setHebrewFont(event.target.value)}
-          />
-        </label>
-        <button type="submit">Load</button>
+      <form
+        className="demo-controls text-demo-controls"
+        aria-label="Host application controls"
+        onSubmit={submit}
+      >
+        <fieldset>
+          <legend>Load new data</legend>
+          <label>
+            Reference
+            <input
+              value={draft}
+              onChange={(event) => setDraft(event.target.value)}
+            />
+          </label>
+          <label>
+            Language family
+            <select
+              value={language}
+              onChange={(event) => setLanguage(event.target.value)}
+            >
+              <option value="english">English</option>
+              <option value="hebrew">Hebrew</option>
+            </select>
+          </label>
+          <button type="submit">Load through host</button>
+        </fieldset>
+        <fieldset>
+          <legend>Presentation only · no new request</legend>
+          <label>
+            English font
+            <select
+              value={englishFont}
+              disabled={request.version.language !== "english"}
+              onChange={(event) => setEnglishFont(event.target.value)}
+            >
+              <option value="Georgia">Georgia</option>
+              <option value="Arial">Arial</option>
+              <option value="Segoe UI">Segoe UI</option>
+            </select>
+          </label>
+          <label>
+            Hebrew font
+            <select
+              value={hebrewFont}
+              disabled={request.version.language !== "hebrew"}
+              onChange={(event) => setHebrewFont(event.target.value)}
+            >
+              <option value="Noto Serif Hebrew">Noto Serif Hebrew</option>
+              <option value="Arial">Arial</option>
+              <option value="Times New Roman">Times New Roman</option>
+            </select>
+          </label>
+        </fieldset>
       </form>
       {result.error === undefined ? null : (
         <p className="demo-error" role="alert">
@@ -112,6 +132,9 @@ function TextDemo() {
           } as never
         }
       >
+        <p className="demo-surface-label">
+          Library component: <code>&lt;sefaria-text-segment&gt;</code>
+        </p>
         <sefaria-text-segment ref={elementRef} />
       </section>
     </main>
@@ -248,6 +271,7 @@ function ReaderDemo() {
     <main className="demo-page reader-demo-page">
       <form
         className="demo-controls"
+        aria-label="Host application controls"
         onSubmit={(event) => {
           event.preventDefault();
           void navigate(draft);
@@ -260,7 +284,7 @@ function ReaderDemo() {
             onChange={(event) => setDraft(event.target.value)}
           />
         </label>
-        <button type="submit">Open reader</button>
+        <button type="submit">Load through supplied controller</button>
       </form>
       <div className="demo-feedback">
         <p className="demo-status" role="status">
@@ -273,6 +297,9 @@ function ReaderDemo() {
         )}
       </div>
       <section className="demo-result demo-reader-result">
+        <p className="demo-surface-label">
+          Library component: <code>&lt;sefaria-reader&gt;</code>
+        </p>
         <sefaria-reader ref={elementRef} />
       </section>
     </main>

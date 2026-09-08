@@ -6,6 +6,10 @@ import {
 } from "./viewport-guard.js";
 
 describe("viewport guard", () => {
+  it("supports a small laptop browser viewport", () => {
+    expect(minimumDeckViewport).toEqual({ width: 1280, height: 650 });
+  });
+
   it("requires both minimum dimensions", () => {
     expect(isDeckViewportSupported(minimumDeckViewport)).toBe(true);
     expect(

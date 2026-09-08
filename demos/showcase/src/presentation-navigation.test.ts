@@ -1,30 +1,11 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  createGalleryState,
   normalizeWheelDelta,
   shouldPreserveWheel,
 } from "./presentation-navigation.js";
 
 describe("presentation navigation", () => {
-  it("moves through a finite gallery without wrapping", () => {
-    const gallery = createGalleryState(3);
-
-    expect(gallery.current).toBe(0);
-    expect(gallery.previous()).toBe(false);
-    expect(gallery.next()).toBe(true);
-    expect(gallery.current).toBe(1);
-    expect(gallery.next()).toBe(true);
-    expect(gallery.current).toBe(2);
-    expect(gallery.next()).toBe(false);
-    expect(gallery.previous()).toBe(true);
-    expect(gallery.current).toBe(1);
-    gallery.enter("forward");
-    expect(gallery.current).toBe(0);
-    gallery.enter("backward");
-    expect(gallery.current).toBe(2);
-  });
-
   it("normalizes wheel units and ignores horizontal gestures", () => {
     expect(normalizeWheelDelta({ deltaX: 0, deltaY: 80, deltaMode: 0 })).toBe(
       80,
