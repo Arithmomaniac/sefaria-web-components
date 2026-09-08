@@ -6,7 +6,13 @@ import {
   frameReaderForCapture,
   prepareReaderForShowcaseCapture,
   prepareShowcaseLayout,
+  revealLocatorForDemoClick,
 } from "./vscode-capture-layout.js";
+import {
+  installDemoCursor,
+  moveDemoCursor,
+  pulseDemoCursor,
+} from "./vscode-demo-cursor.js";
 
 let browser: Browser;
 beforeAll(async () => {
@@ -154,4 +160,122 @@ it("scales only the App document for showcase capture", async () => {
     "",
   );
   await page.close();
+});
+
+it("moves and pulses the synthetic demo cursor over a target", async () => {
+  const page = await browser.newPage();
+  await page.setContent(
+    '<main style="height:1200px"></main><button style="position:fixed;left:100px;top:80px;width:120px;height:40px">Open</button>',
+  );
+  const button = page.getByRole("button", { name: "Open" });
+
+  await installDemoCursor(page);
+  await moveDemoCursor(button, 0);
+  await pulseDemoCursor(page);
+
+  const cursor = page.locator("#sefaria-demo-cursor");
+  expect(
+    await cursor.evaluate((element) => ({
+      transform: (element as HTMLElement).style.transform,
+      clicking: element.classList.contains("clicking"),
+      opacity: (element as HTMLElement).style.opacity,
+    })),
+  ).toEqual({
+    transform: "translate(160px, 100px)",
+    clicking: true,
+    opacity: "0",
+  });
+  const bounds = await cursor.boundingBox();
+  expect(bounds).not.toBeNull();
+  expect(bounds!.x + bounds!.width / 2).toBe(160);
+  expect(bounds!.y + bounds!.height / 2).toBe(100);
+  await page.close();
+});
+
+it("scrolls a demo click target above the fixed Chat composer", async () => {
+  const page = await browser.newPage({ viewport: { width: 800, height: 600 } });
+  await page.setContent(`
+    <div class="interactive-list" style="position:fixed;inset:0;overflow:auto">
+      <div style="height:900px">
+        <button style="position:absolute;top:700px">Covered target</button>
+      </div>
+    </div>
+    <div class="interactive-input-part" style="position:fixed;left:0;right:0;bottom:0;height:140px;background:white"></div>
+  `);
+  const button = page.getByRole("button", { name: "Covered target" });
+
+  await revealLocatorForDemoClick(button, 0);
+
+  const [buttonBounds, composerBounds] = await Promise.all([
+    button.boundingBox(),
+    page.locator(".interactive-input-part").boundingBox(),
+  ]);
+  expect(buttonBounds).not.toBeNull();
+  expect(composerBounds).not.toBeNull();
+  expect(buttonBounds!.y + buttonBounds!.height).toBeLessThan(
+    composerBounds!.y,
+  );
+  await page.close();
+});
+
+it("reveals a distant shadow-DOM button inside nested frames before a real click", async () => {
+  const page = await browser.newPage({ viewport: { width: 800, height: 600 } });
+  try {
+    await page.setContent(`
+      <style>body { margin: 0 }</style>
+      <div class="interactive-list" style="height:460px;overflow:auto">
+        <iframe style="width:760px;height:600px;border:0"></iframe>
+      </div>
+      <div class="interactive-input-part" style="position:fixed;inset:460px 0 0;background:white"></div>
+    `);
+    const outer = await (await page
+      .locator("iframe")
+      .elementHandle())!.contentFrame();
+    await outer!.setContent(
+      '<iframe style="width:100%;height:600px;border:0"></iframe>',
+    );
+    const inner = await (await outer!
+      .locator("iframe")
+      .elementHandle())!.contentFrame();
+    await inner!.setContent("<demo-panel></demo-panel>");
+    await inner!.locator("demo-panel").evaluate((element) => {
+      const root = element.attachShadow({ mode: "open" });
+      root.innerHTML =
+        '<div style="height:16000px"></div><button>More</button><div style="height:600px"></div>';
+      root.querySelector("button")!.addEventListener("click", () => {
+        element.setAttribute("data-clicked", "true");
+      });
+    });
+    const button = inner!.getByRole("button", { name: "More", exact: true });
+    expect((await button.boundingBox())!.y).toBeGreaterThan(16000);
+
+    await revealLocatorForDemoClick(button);
+    const bounds = (await button.boundingBox())!;
+    expect(bounds.y).toBeGreaterThanOrEqual(16);
+    expect(bounds.y + bounds.height).toBeLessThanOrEqual(444);
+    await button.click({ timeout: 1000 });
+    expect(
+      await inner!.locator("demo-panel").getAttribute("data-clicked"),
+    ).toBe("true");
+  } finally {
+    await page.close();
+  }
+});
+
+it("rejects a target covered by another element even inside the safe rectangle", async () => {
+  const page = await browser.newPage({ viewport: { width: 800, height: 600 } });
+  try {
+    await page.setContent(`
+      <div class="interactive-list" style="position:fixed;inset:0 0 140px">
+        <button style="position:absolute;left:100px;top:100px">Covered</button>
+        <div style="position:absolute;inset:0;background:white"></div>
+      </div>
+      <div class="interactive-input-part" style="position:fixed;inset:460px 0 0"></div>
+    `);
+    await expect(
+      revealLocatorForDemoClick(page.getByRole("button", { name: "Covered" })),
+    ).rejects.toThrow();
+  } finally {
+    await page.close();
+  }
 });

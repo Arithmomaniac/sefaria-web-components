@@ -1,18 +1,10 @@
 import { copyFile, mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { execFile, spawn } from "node:child_process";
-import net from "node:net";
 import os from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 
-import {
-  chromium,
-  type Browser,
-  type BrowserContext,
-  type Frame,
-  type Locator,
-  type Page,
-} from "playwright";
+import { type Browser, type Frame, type Locator, type Page } from "playwright";
 
 import {
   clearVscodeDemoRuntimeState,
@@ -23,11 +15,26 @@ import {
   resolveVscodeExecutable,
 } from "./vscode-demo-profile.js";
 import {
+  connectToVscode,
+  findVscodeWorkbench,
+  openVscodeChat,
+  reserveVscodeDebuggingPort,
+  selectExclusiveVscodeChatToolGroup,
+} from "./vscode-host-automation.js";
+import {
   captureVscodeViewport,
   frameReaderForCapture,
   prepareReaderForShowcaseCapture,
   prepareShowcaseLayout,
+  revealLocatorForDemoClick,
 } from "./vscode-capture-layout.js";
+import {
+  installDemoCursor,
+  moveDemoCursor,
+  positionDemoCursor,
+  pulseDemoCursor,
+} from "./vscode-demo-cursor.js";
+import { VscodeVideoRecorder } from "./vscode-video-recorder.js";
 
 const workspace = path.resolve(import.meta.dirname, "../../..");
 const executablePath = resolveVscodeExecutable();
@@ -39,15 +46,18 @@ const failureOutput = path.join(
   os.tmpdir(),
   "sefaria-mcp-app-vscode-failure.png",
 );
+const videoOutput =
+  process.env.VSCODE_MCP_VIDEO === undefined
+    ? undefined
+    : path.resolve(workspace, process.env.VSCODE_MCP_VIDEO);
 const keepOpen = process.argv.includes("--keep-open");
 const showcaseOnly = process.env.VSCODE_MCP_SHOWCASE === "1";
 const execFileAsync = promisify(execFile);
 const CONNECTIONS_REFERENCE = "Micah 6:8";
+const ACTION_PAUSE_MS = 650;
+const VIDEO_STAGE_PAUSE_MS = 750;
 const artifacts: Record<string, string> = {};
 const stagedCaptures = new Map<string, string>();
-const captureDirectory = await mkdtemp(
-  path.join(os.tmpdir(), "sefaria-capture-"),
-);
 const completedStages: string[] = [];
 const deliveryModes: Record<
   string,
@@ -66,12 +76,23 @@ if (showcaseOnly && process.env.VSCODE_MCP_SCREENSHOT === undefined) {
     "VSCODE_MCP_SHOWCASE requires VSCODE_MCP_SCREENSHOT so it cannot replace the full acceptance artifacts.",
   );
 }
+if (
+  videoOutput !== undefined &&
+  process.env.VSCODE_MCP_SCREENSHOT === undefined
+) {
+  throw new Error(
+    "VSCODE_MCP_VIDEO requires VSCODE_MCP_SCREENSHOT so recording cannot replace the documentation captures by default.",
+  );
+}
 
+const captureDirectory = await mkdtemp(
+  path.join(os.tmpdir(), "sefaria-capture-"),
+);
 await prepareVscodeDemoProfile(profile, workspace);
 await clearVscodeDemoRuntimeState(profile);
 await mkdir(path.dirname(output), { recursive: true });
 
-const debuggingPort = await reservePort();
+const debuggingPort = await reserveVscodeDebuggingPort();
 const code = await launchCodeMinimized(
   executablePath,
   createVscodeLaunchArguments(profile, workspace, {
@@ -82,22 +103,28 @@ const code = await launchCodeMinimized(
 );
 let browser: Browser | undefined;
 let page: Page | undefined;
+let videoRecorder: VscodeVideoRecorder | undefined;
 let captured = false;
 
 try {
-  browser = await connectToCode(debuggingPort);
+  browser = await connectToVscode(debuggingPort);
   const context = browser.contexts()[0];
   if (context === undefined) {
     throw new Error("VS Code exposed no Playwright browser context.");
   }
-  page = await findWorkbenchPage(context);
+  page = await findVscodeWorkbench(context);
   await page.waitForTimeout(10_000);
-  await openChat(page);
+  await openVscodeChat(page);
   await clickIfVisible(page, /Maximize Secondary Side Bar/i);
   await page.keyboard.press("Escape");
-  await selectExclusiveChatToolGroup(page, "sefaria-components-demo");
-  if (showcaseOnly) {
+  await selectExclusiveVscodeChatToolGroup(page, "sefaria-components-demo");
+  if (showcaseOnly || videoOutput !== undefined) {
     await prepareShowcaseLayout(page);
+  }
+  if (videoOutput !== undefined) {
+    await installDemoCursor(page);
+    await positionDemoCursor(chatInput(page));
+    videoRecorder = await VscodeVideoRecorder.start(page, videoOutput);
   }
   const seenAppFrames = new Set<Frame>();
 
@@ -122,6 +149,13 @@ try {
       snapshot.previewsIncluded &&
       snapshot.categories.length > 0,
   );
+  if (videoRecorder !== undefined) {
+    await revealLocatorForDemoClick(
+      readerFrame.getByRole("button", {
+        name: `Send ${CONNECTIONS_REFERENCE} to chat`,
+      }),
+    );
+  }
   await captureStage(readerFrame, "reader-initial", output);
 
   await showConnectionsPane(readerFrame);
@@ -166,13 +200,6 @@ try {
     readerFrame,
     "connections-category",
     stageOutput("category"),
-  );
-  await activateButton(
-    readerFrame.getByRole("button", { name: /^Commentary \(/ }),
-  );
-  panel = await waitForPanel(
-    readerFrame,
-    (snapshot) => snapshot.category === "Commentary" && snapshot.page === 0,
   );
   completedStages.push(currentStage);
 
@@ -224,8 +251,7 @@ try {
       name: `Open ${selectedReference} in context`,
     })
     .first();
-  await openButton.focus();
-  await openButton.press("Enter");
+  await activateButton(openButton);
   await waitForSourceCard(readerFrame, selectedReference!);
   await waitForPanel(
     readerFrame,
@@ -351,6 +377,13 @@ try {
   );
   completedStages.push(currentStage);
 
+  if (videoRecorder !== undefined) {
+    await page.waitForTimeout(800);
+    await videoRecorder.stop();
+    videoRecorder = undefined;
+    console.log(`Recorded VS Code MCP App walkthrough: ${videoOutput}`);
+  }
+
   for (const [destination, staged] of stagedCaptures) {
     await copyFile(staged, destination);
   }
@@ -403,6 +436,7 @@ try {
   console.error(`Unpublished capture diagnostics: ${captureDirectory}`);
   throw error;
 } finally {
+  await videoRecorder?.discard().catch(() => undefined);
   if (!keepOpen || !captured) {
     try {
       await browser?.close();
@@ -412,80 +446,15 @@ try {
   }
 }
 
-async function openChat(page: Page): Promise<void> {
-  const input = chatInput(page);
-  for (let attempt = 0; attempt < 3; attempt += 1) {
-    await page.keyboard.press("Control+Alt+I");
-    try {
-      await input.waitFor({ state: "visible", timeout: 30_000 });
-      return;
-    } catch (error) {
-      if (!(error instanceof Error) || error.name !== "TimeoutError")
-        throw error;
-      await page.waitForTimeout(5_000);
-    }
-  }
-  throw new Error("VS Code Copilot Chat did not open within 100 seconds.");
-}
-
 async function submitPrompt(page: Page, prompt: string): Promise<void> {
   const input = chatInput(page);
   await input.waitFor({ state: "visible", timeout: 30_000 });
   await page.keyboard.press("Escape");
   await input.click({ force: true });
   await page.keyboard.insertText(prompt);
+  await pauseBetweenActions(page);
   await clickChatSubmit(page);
-}
-
-async function selectExclusiveChatToolGroup(
-  page: Page,
-  serverName: string,
-): Promise<void> {
-  const button = page
-    .locator(
-      '[aria-label*="Configure Tools"], [title*="Configure Tools"], [aria-label*="Tools"]',
-    )
-    .last();
-  await button.waitFor({ state: "visible", timeout: 30_000 });
-  await button.click();
-  const picker = page.locator(".quick-input-widget").last();
-  await picker.waitFor({ state: "visible", timeout: 10_000 });
-  const builtInRow = picker
-    .locator(".monaco-list-row")
-    .filter({ hasText: /^Built-In/ })
-    .first();
-  await builtInRow.waitFor({ state: "visible", timeout: 10_000 });
-  await setToolGroupSelected(builtInRow, false, "Built-In");
-  const serverRow = picker
-    .locator(".monaco-list-row")
-    .filter({ hasText: serverName })
-    .last();
-  await serverRow.waitFor({ state: "visible", timeout: 10_000 });
-  await setToolGroupSelected(serverRow, true, serverName);
-  await picker
-    .getByText("1 Selected", { exact: true })
-    .waitFor({ state: "visible", timeout: 10_000 });
-  await picker.getByRole("button", { name: "OK" }).click();
-}
-
-async function setToolGroupSelected(
-  row: Locator,
-  selected: boolean,
-  label: string,
-): Promise<void> {
-  const checkbox = row
-    .locator('[role="checkbox"], .monaco-custom-toggle')
-    .first();
-  const expected = String(selected);
-  if ((await checkbox.getAttribute("aria-checked")) !== expected) {
-    await checkbox.click();
-    await checkbox.waitFor({ state: "visible" });
-    if ((await checkbox.getAttribute("aria-checked")) !== expected) {
-      throw new Error(
-        `The ${label} tool group could not be ${selected ? "enabled" : "disabled"}.`,
-      );
-    }
-  }
+  await pauseBetweenActions(page);
 }
 
 function chatInput(page: Page): Locator {
@@ -512,7 +481,9 @@ async function clearComposer(page: Page): Promise<void> {
   const input = chatInput(page);
   await input.click();
   await page.keyboard.press("Control+A");
+  await pauseBetweenActions(page);
   await page.keyboard.press("Backspace");
+  await pauseBetweenActions(page);
 }
 
 async function clickChatSubmit(page: Page): Promise<void> {
@@ -522,7 +493,13 @@ async function clickChatSubmit(page: Page): Promise<void> {
     )
     .last();
   await send.waitFor({ state: "visible", timeout: 5_000 });
+  if (videoRecorder !== undefined) {
+    await moveDemoCursor(send);
+  }
   await send.click();
+  if (videoRecorder !== undefined) {
+    await pulseDemoCursor(page);
+  }
 }
 
 async function clickIfVisible(page: Page, name: RegExp): Promise<void> {
@@ -540,7 +517,15 @@ async function clickTextIfVisible(page: Page, text: RegExp): Promise<void> {
 }
 
 async function activateButton(button: Locator): Promise<void> {
-  await button.evaluate((element) => (element as HTMLButtonElement).click());
+  await revealLocatorForDemoClick(button);
+  if (videoRecorder !== undefined) {
+    await moveDemoCursor(button);
+  }
+  await button.click();
+  if (videoRecorder !== undefined) {
+    await pulseDemoCursor(button.page());
+  }
+  await pauseBetweenActions(button.page());
 }
 
 async function showConnectionsPane(frame: Frame): Promise<void> {
@@ -807,13 +792,22 @@ async function captureStage(
 ): Promise<void> {
   const staged = path.join(captureDirectory, path.basename(filePath));
   if (showcaseOnly) await prepareReaderForShowcaseCapture(frame);
-  await frameReaderForCapture(
-    frame,
-    showcaseOnly && name === "reader-initial" ? 180 : 32,
-  );
+  if (videoRecorder === undefined) {
+    await frameReaderForCapture(
+      frame,
+      showcaseOnly && name === "reader-initial" ? 180 : 32,
+    );
+  }
   await writeFile(staged, await captureVscodeViewport(frame.page()));
   stagedCaptures.set(filePath, staged);
   artifacts[name] = portableArtifactPath(filePath);
+  if (videoRecorder !== undefined) {
+    await frame.page().waitForTimeout(VIDEO_STAGE_PAUSE_MS);
+  }
+}
+
+async function pauseBetweenActions(page: Page): Promise<void> {
+  await page.waitForTimeout(ACTION_PAUSE_MS);
 }
 
 function portableArtifactPath(filePath: string): string {
@@ -961,60 +955,4 @@ async function processExists(pid: number): Promise<boolean> {
   } catch {
     return false;
   }
-}
-
-async function reservePort(): Promise<number> {
-  for (let port = 9_229; port <= 9_329; port += 1) {
-    const server = net.createServer();
-    const available = await new Promise<boolean>((resolve) => {
-      server.once("error", () => resolve(false));
-      server.listen(port, "127.0.0.1", () => resolve(true));
-    });
-    if (!available) {
-      continue;
-    }
-    await new Promise<void>((resolve, reject) => {
-      server.close((error) =>
-        error === undefined ? resolve() : reject(error),
-      );
-    });
-    return port;
-  }
-  throw new Error("Could not reserve a VS Code debugging port from 9229-9329.");
-}
-
-async function connectToCode(port: number) {
-  const endpoint = `http://127.0.0.1:${port}`;
-  const deadline = Date.now() + 60_000;
-  let lastError: unknown;
-  while (Date.now() < deadline) {
-    try {
-      return await chromium.connectOverCDP(endpoint);
-    } catch (error) {
-      lastError = error;
-      await new Promise((resolve) => setTimeout(resolve, 500));
-    }
-  }
-  throw new Error(`Could not connect Playwright to VS Code at ${endpoint}.`, {
-    cause: lastError,
-  });
-}
-
-async function findWorkbenchPage(context: BrowserContext): Promise<Page> {
-  const deadline = Date.now() + 60_000;
-  while (Date.now() < deadline) {
-    const page = context
-      .pages()
-      .find((candidate) => candidate.url().includes("workbench/workbench"));
-    if (page !== undefined) {
-      return page;
-    }
-    await new Promise((resolve) => setTimeout(resolve, 500));
-  }
-  throw new Error(
-    `Could not find the VS Code workbench page. Pages: ${context
-      .pages()
-      .map((page) => page.url())
-      .join(", ")}`,
-  );
 }
