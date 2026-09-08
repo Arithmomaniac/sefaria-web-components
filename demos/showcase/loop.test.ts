@@ -90,4 +90,13 @@ describe("rotating booth deck", () => {
     expect(qr).toContain("<svg");
     await access(path.join(showcase, "public", "media", "showcase-qr.png"));
   });
+
+  it("fully disables autoplay in paused operator mode", async () => {
+    const runtime = await readFile(
+      path.join(showcase, "src", "loop.ts"),
+      "utf8",
+    );
+
+    expect(runtime).toContain("autoSlide: paused ? false : 10_000");
+  });
 });

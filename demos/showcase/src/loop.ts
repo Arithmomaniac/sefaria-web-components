@@ -15,7 +15,7 @@ const deck = new Reveal({
   disableLayout: true,
   hash: false,
   loop: true,
-  autoSlide: paused ? 0 : 10_000,
+  autoSlide: paused ? false : 10_000,
   autoSlideStoppable: false,
   transition: "fade",
   backgroundTransition: "fade",
