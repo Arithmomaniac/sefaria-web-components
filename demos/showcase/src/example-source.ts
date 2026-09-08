@@ -27,6 +27,42 @@ const payload = result.data;`,
 return <sefaria-text-segment ref={elementRef} />;`,
 } as const;
 
+export const textSegmentElementDeclarationSource = [
+  "export class SefariaTextSegment extends SefariaElement {",
+  "  /** Lit property metadata for the host-supplied view model. */",
+  "  static override properties = {",
+  "    viewModel: { attribute: false },",
+  "  };",
+].join("\n");
+
+export const textSegmentElementRenderSource = [
+  "  protected override render() {",
+  "    const viewModel = this.viewModel;",
+  "    if (!viewModel) {",
+  "      return nothing;",
+  "    }",
+  "",
+  "    switch (viewModel.state) {",
+  '      case "loading":',
+  '      case "empty":',
+  '        return html`<p role="status" aria-live="polite">',
+  "          ${viewModel.message}",
+  "        </p>`;",
+  '      case "error":',
+  '        return html`<p role="alert">${viewModel.message}</p>`;',
+  '      case "data":',
+  "        return this.#renderData(viewModel);",
+  "    }",
+  "  }",
+].join("\n");
+
+export const textSegmentElementSource = `${textSegmentElementDeclarationSource}
+
+  // Layout styles and the typed viewModel declaration are omitted here.
+
+  ${textSegmentElementRenderSource}
+}`;
+
 export const textExampleSource = `const result = useFactoryViewModel(
   request,
   { state: "loading", message: \`Loading \${request.tref}.\` },

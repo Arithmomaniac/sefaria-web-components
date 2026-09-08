@@ -30,14 +30,11 @@
         <section id="what-is-sefaria">
           <div class="slide-grid">
             <div class="slide-copy">
-              <h2>A library built for connection</h2>
+              <h2>A living library of Jewish texts</h2>
               <p class="lead">
-                Sefaria brings Jewish texts, translations, commentary, and their
-                relationships into one free digital library.
-              </p>
-              <p>
-                Sefaria brings primary sources, translations, commentary, and
-                attribution into one navigable corpus.
+                Sefaria brings primary sources, translations, commentary,
+                attribution, and textual relationships into one free, navigable
+                corpus.
               </p>
             </div>
             <div class="visual-frame image-pair">
@@ -105,35 +102,110 @@
             <div class="slide-copy">
               <h2>Getting JSON is the easy part</h2>
               <p class="lead">
-                Every new surface must preserve the text’s structure, meaning,
-                accessibility, and reading experience.
+                One small payload already carries transport corrections,
+                selection semantics, and rendering work.
               </p>
-            </div>
-            <div class="problem-grid">
-              <article>
-                <strong>Contracts</strong>
-                <p>Incomplete API descriptions and data-dependent shapes.</p>
-              </article>
-              <article>
-                <strong>Text</strong>
-                <p>Markup, footnotes, vocalization, bidi, and attribution.</p>
-              </article>
-              <article>
-                <strong>Interface</strong>
-                <p>Responsive composition, keyboard use, and screen readers.</p>
-              </article>
-              <article>
-                <strong>Polish</strong>
+              <div class="problem-context">
                 <p>
-                  Light/dark themes, typography, focus, and host integration.
+                  <strong>Across references:</strong> text can be a string,
+                  nested arrays, or null; missing editions can return selector
+                  warnings.
                 </p>
-              </article>
+                <p>
+                  <strong>After validation:</strong> every host still owns
+                  responsive layout, keyboard and focus behavior, themes,
+                  loading, and failures.
+                </p>
+              </div>
+            </div>
+            <div class="annotated-payload">
+              <header>
+                <p class="payload-kicker">Representative payload excerpt</p>
+                <p class="payload-provenance">
+                  Composed from two captured responses; highlighted values are
+                  source-backed.
+                </p>
+              </header>
+              <pre
+                aria-label="Annotated Sefaria JSON payload"
+              ><code><span class="payload-line">{</span>
+<span class="payload-line">  "version": {</span>
+<span class="payload-line payload-role" data-annotation="roles">    "actualLanguage": "en",<span class="payload-marker" aria-hidden="true">1</span></span>
+<span class="payload-line payload-role" data-annotation="roles">    "isSource": false,</span>
+<span class="payload-line payload-role" data-annotation="roles">    "isPrimary": false,</span>
+<span class="payload-line payload-schema" data-annotation="schema">    "versionSource": null,<span class="payload-marker" aria-hidden="true">2</span></span>
+<span class="payload-line payload-markup" data-annotation="markup">    "text": "a wind from&lt;sup class=\"footnote-marker\"&gt;b&lt;/sup&gt;<span class="payload-marker" aria-hidden="true">3</span></span>
+<span class="payload-line payload-markup" data-annotation="markup">      &lt;i class=\"footnote\"&gt;…the spirit of.&lt;/i&gt; God…"</span>
+<span class="payload-line">  }</span>
+<span class="payload-line">}</span></code></pre>
+              <div class="payload-annotations">
+                <article class="payload-annotation payload-role">
+                  <p>
+                    <span aria-hidden="true">1</span
+                    ><strong>Role ≠ language</strong>
+                  </p>
+                  <p>
+                    Language, source, and primary are separate selection facts.
+                  </p>
+                </article>
+                <article class="payload-annotation payload-schema">
+                  <p>
+                    <span aria-hidden="true">2</span
+                    ><strong>The contract needed correction</strong>
+                  </p>
+                  <p>
+                    The pinned SDK schema said string; deployed version metadata
+                    can be null.
+                  </p>
+                </article>
+                <article class="payload-annotation payload-markup">
+                  <p>
+                    <span aria-hidden="true">3</span
+                    ><strong>Text contains structure</strong>
+                  </p>
+                  <p>
+                    Footnote markers and bodies must be paired, sanitized, and
+                    rendered accessibly.
+                  </p>
+                </article>
+              </div>
             </div>
           </div>
           <aside class="notes">
-            Sefaria documents its text formatting. This project adds corrected
-            typed boundaries, deterministic projection, and reusable
-            request-free rendering.
+            Sefaria documents its text formatting. Collaboration helped sharpen
+            the project boundary: build portable browser components rather than
+            recreate the whole Sefaria product. This compact teaching excerpt is
+            explicitly composed from two captured responses: the role fields and
+            footnote-bearing text come from the pinned v3 Genesis 1:2 fixture;
+            versionSource null comes from the captured versions response. The
+            guarded OpenAPI overlay proves that the pinned contract declared
+            versionSource as a non-null string before the local correction.
+            These are repository research findings, not a claim that Sefaria
+            reviewed every field.
+          </aside>
+        </section>
+
+        <section id="component-source" class="component-source-slide">
+          <div class="slide-grid">
+            <div class="slide-copy">
+              <h2>The component we are going to deliver</h2>
+              <p class="lead">
+                A real Lit Web Component receives one prepared view model,
+                renders every state, and owns no request code.
+              </p>
+              <div class="source-principles">
+                <p><strong>Input:</strong> component-specific view model</p>
+                <p><strong>Output:</strong> accessible Shadow DOM</p>
+                <p><strong>Requests:</strong> zero</p>
+              </div>
+            </div>
+            <div data-component-source></div>
+          </div>
+          <aside class="notes">
+            This is a compact, exact excerpt from the delivered
+            text-segment-element.ts implementation. Styles and the private
+            data-state renderer are omitted for readability. Sanitized HTML
+            reaches the element only through the prepared view model.
           </aside>
         </section>
 
@@ -158,7 +230,8 @@
               <h2>Trust data at the boundary</h2>
               <p class="lead">
                 Inside one delivered component path, generated operations and
-                runtime validation protect the transport contract.
+                runtime validation protect the transport contract before data
+                reaches the component we just saw.
               </p>
             </div>
             <div class="pipeline-slot" data-pipeline-stage="client"></div>
@@ -307,10 +380,11 @@
         <section id="linker">
           <div class="slide-grid">
             <div class="slide-copy">
-              <h2>Bring Sefaria to an ordinary article</h2>
+              <h2>A Sefaria reading surface, wherever you read</h2>
               <p class="lead">
-                The Linker detects citations and opens the same request-free
-                popup without taking over the host page.
+                The Linker turns citations in an ordinary article into a
+                contextual Sefaria surface, using the same request-free popup
+                without taking over the host page.
               </p>
             </div>
             <div
@@ -328,11 +402,11 @@
         <section id="mcp">
           <div class="slide-grid">
             <div class="slide-copy">
-              <h2>Bring the same Reader into Copilot Chat</h2>
+              <h2>The same Reader UI, delivered as an MCP App</h2>
               <p class="lead">
-                The first corrected payload seeds the Reader without another
-                request. Continuing navigation stays in the App through
-                host-proxied tools.
+                A tool result can deliver the same stateful Reader inside a
+                compatible host. Navigation stays in the App through
+                host-proxied tools; chat export remains an explicit action.
               </p>
             </div>
             <div class="mcp-gallery" aria-label="MCP App screenshots">
@@ -350,7 +424,7 @@
                   alt="Sefaria Reader rendered in VS Code Copilot Chat"
                 />
                 <figcaption data-gallery-caption>
-                  Stateful Reader in Copilot Chat
+                  The same stateful Reader UI, recorded in VS Code
                 </figcaption>
               </figure>
               <button type="button" data-gallery-next aria-label="Next image">
@@ -360,8 +434,10 @@
             </div>
           </div>
           <aside class="notes">
-            This slide shows captured named-host acceptance. GitHub Pages does
-            not run the Python MCP server.
+            MCP Apps are the general integration model. These images are
+            recorded acceptance evidence from VS Code with Copilot Chat, not a
+            claim that the UI is specific to Copilot or qualified in every MCP
+            host. GitHub Pages does not run the Python MCP server.
           </aside>
         </section>
 
@@ -398,6 +474,35 @@
           <option value="dark">Dark</option>
         </select>
       </label>
+    </div>
+    <div
+      id="viewport-warning"
+      class="viewport-warning"
+      role="alertdialog"
+      aria-modal="true"
+      aria-labelledby="viewport-warning-title"
+      tabindex="-1"
+      hidden
+    >
+      <div>
+        <p class="title-meta">Presentation viewport</p>
+        <h1 id="viewport-warning-title">
+          This presentation needs a larger window
+        </h1>
+        <p>
+          Enlarge this window, use full screen, or move to a bigger display.
+        </p>
+        <dl>
+          <div>
+            <dt>Required</dt>
+            <dd data-required-viewport>1440 × 900</dd>
+          </div>
+          <div>
+            <dt>Current</dt>
+            <dd data-current-viewport></dd>
+          </div>
+        </dl>
+      </div>
     </div>
     <div id="pipeline-root"></div>
     <script type="module" src="/src/main.tsx"></script>
