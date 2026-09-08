@@ -1,4 +1,5 @@
 import { spawn } from "node:child_process";
+import { realpathSync } from "node:fs";
 import { performance } from "node:perf_hooks";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
@@ -78,9 +79,17 @@ function writeLine(message) {
   process.stdout.write(`${message}\n`);
 }
 
-if (
-  process.argv[1] !== undefined &&
-  import.meta.url === pathToFileURL(process.argv[1]).href
+export function isMainModule(
+  moduleUrl,
+  entryPath,
+  resolveRealPath = realpathSync,
 ) {
+  return (
+    entryPath !== undefined &&
+    moduleUrl === pathToFileURL(resolveRealPath(entryPath)).href
+  );
+}
+
+if (isMainModule(import.meta.url, process.argv[1])) {
   process.exitCode = await runCheck();
 }
