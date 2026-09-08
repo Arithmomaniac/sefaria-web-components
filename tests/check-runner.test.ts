@@ -16,6 +16,18 @@ describe("repository check runner", () => {
     expect(names.at(-1)).toBe("Python staged tests");
   });
 
+  it("checks emitted API documentation after TypeScript validation", () => {
+    const names = CHECK_STAGES.map((stage) => stage.name);
+
+    expect(names).toContain("Oxlint");
+    expect(names.indexOf("API documentation")).toBeGreaterThan(
+      names.indexOf("TypeScript typecheck"),
+    );
+    expect(names.indexOf("API documentation")).toBeLessThan(
+      names.indexOf("TypeScript and browser tests"),
+    );
+  });
+
   it("stops after the first failed stage and reports completed timings", async () => {
     const run = vi.fn().mockResolvedValueOnce(0).mockResolvedValueOnce(7);
     const log = vi.fn();

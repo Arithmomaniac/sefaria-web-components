@@ -7,9 +7,10 @@ import { pathToFileURL } from "node:url";
 export const CHECK_STAGES = [
   { name: "OpenAPI contracts", args: ["openapi:check"] },
   { name: "Formatting", args: ["format:check"] },
-  { name: "ESLint", args: ["lint"] },
+  { name: "Oxlint", args: ["lint"] },
   { name: "Python static checks", args: ["check:python:static"] },
   { name: "TypeScript typecheck", args: ["typecheck"] },
+  { name: "API documentation", args: ["check:api-docs"] },
   { name: "TypeScript and browser tests", args: ["test"] },
   { name: "Compatibility qualification", args: ["compatibility:qualify"] },
   { name: "Workspace builds", args: ["build"] },

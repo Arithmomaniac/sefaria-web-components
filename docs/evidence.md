@@ -55,6 +55,18 @@ Consumer projects show integration needs and independent use. They do not define
 
 On August 30, 2026, Sefaria's remote `master` was `91ca8c1a32a6f883261862933ecb394dc1025c1e`. The files used for the text-markup and transform analysis had not changed since the pinned `1f7d0844ca6a9eddc8e48168962aacb09de75bd6` revision.
 
+## TypeScript 7 toolchain qualification
+
+**Observed on September 8, 2026:** the clean `9a3789dc6655a508bde1eafb731fcac0a262fc13` baseline passed the complete repository and Pages-bundle checks with TypeScript 6.0.3 and ESLint 10.9.0. Its ESLint stage took 35.5 seconds on the qualification Windows machine.
+
+Oxlint 1.80.0 reproduced the tested native recommended-rule behavior, `consistent-type-imports`, explicit-`any`, JavaScript undefined-name, duplicate-parameter, and legacy-octal failures. Five independent native-only Windows runs over the complete candidate tree completed successfully in 0.58 to 0.84 seconds. These measurements describe one machine and source snapshot; they are not a cross-platform performance guarantee.
+
+Running `eslint-plugin-jsdoc` 62.9.0 through Oxlint's JavaScript-plugin compatibility layer reproduced seven of eight customized declaration diagnostics. It did not visit an undocumented property of an exported class, including after equivalent selector rewrites. The implemented fallback therefore removes the JavaScript plugin and parses fresh TypeScript 7 declaration output. The qualification output contained 44 declaration files and 196,672 bytes, including client scripts and each package source tree.
+
+TypeScript 7.0.2 completed the workspace typecheck, all workspace builds, and the focused compatibility qualification. A clean dependency resolution showed that `@hey-api/openapi-ts` 0.99.0 crashes when it resolves TypeScript 7 directly because `ts.SyntaxKind` is unavailable. The client package now pins TypeScript 6.0.3 for that generator dependency, while its build and typecheck scripts explicitly invoke the workspace-root TypeScript 7 compiler. The offline OpenAPI check passes across that isolated boundary. This evidence supports the repository toolchain migration; it does not change any Sefaria product contract or establish compatibility for other TypeScript tools.
+
+An ephemeral Debian Linux environment with Node 22.23.2 and pnpm 11.22.0 completed a frozen-lockfile installation, native Oxlint, offline OpenAPI generation, the TypeScript 7 workspace typecheck, declaration-documentation validation, the 17 focused migration regression tests, and every workspace build. The lockfile initially retained private package-proxy tarball URLs after clean resolution; removing those redundant URLs preserved integrity-based resolution and passed the repository supply-chain verifier on both Windows and Linux. Full Linux Chromium and Python acceptance remain delegated to the ordinary CI workflow rather than this toolchain-specific qualification.
+
 ## Historical decision provenance
 
 This section records the strongest session-history decisions that explain the current contract boundaries. It does not define product behavior; the current specifications and design document do that.

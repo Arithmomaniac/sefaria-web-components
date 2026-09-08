@@ -58,7 +58,7 @@ The client, text-transform foundations, current components, controlled reader, c
 | Area                   | Technology                         |
 | ---------------------- | ---------------------------------- |
 | Workspace              | pnpm 11                            |
-| Language               | TypeScript 6                       |
+| Language               | TypeScript 7                       |
 | Components             | Lit 3                              |
 | Browser builds         | Vite 8                             |
 | TypeScript tests       | Vitest 4 and Playwright            |
@@ -114,7 +114,7 @@ Workspace dependencies use `workspace:*`. All workspace packages remain private 
 
 Running the browser demos requires:
 
-- Node.js 22 or later
+- Node.js 22.12 or later
 - pnpm 11.22.0
 
 Browser tests also require Chromium through Playwright.
@@ -162,7 +162,7 @@ npx --yes pnpm@11.22.0 install:python
 pnpm check
 ```
 
-The current command checks stale OpenAPI output, then runs Prettier, ESLint, Python static checks, TypeScript checks, tests, the offline focused compatibility qualification, builds, MCP staging, and Python tests. It prints the elapsed time and result of every completed stage, including the first failed stage, so a slow local run can be attributed without rerunning the complete gate. The qualification prints grouped pass, failure, unavailable-source, and intentional-difference results. It does not refresh network fixtures.
+The current command checks stale OpenAPI output, then runs Prettier, Oxlint, Python static checks, TypeScript checks, freshly emitted API-documentation checks, tests, the offline focused compatibility qualification, builds, MCP staging, and Python tests. It prints the elapsed time and result of every completed stage, including the first failed stage, so a slow local run can be attributed without rerunning the complete gate. The qualification prints grouped pass, failure, unavailable-source, and intentional-difference results. It does not refresh network fixtures.
 
 The full check requires the Python fixture environment and includes MCP staging. Python formatting, linting, and typechecking run before the TypeScript gate so inexpensive Python failures stop early; tests that inspect the staged App remain at the end. Browser-only TypeScript demos do not require that Python setup. TypeScript projects use ignored incremental build-information files, which reduce repeated local typecheck and build work without changing emitted artifacts.
 
@@ -466,6 +466,18 @@ Vitest runs TypeScript unit tests. Vitest Browser Mode and Playwright run Lit te
 
 pytest and the FastMCP in-memory client run Python integration tests.
 
-The workspace uses TypeScript 6.0.3. Upgrade TypeScript and `typescript-eslint` together because their supported ranges must overlap.
+### Why this repository uses Oxlint
+
+The repository moved away from ESLint because its required TypeScript integration was not compatible with the compiler upgrade: `typescript-eslint` 8.67.0 officially supports TypeScript versions below 6.1, not TypeScript 7. ESLint core alone does not provide the TypeScript parsing and rules this workspace used, so retaining the ESLint toolchain would have kept the workspace compiler on TypeScript 6.
+
+The workspace uses TypeScript 7.0.2 and native Oxlint rules. `pnpm lint` does not enable Oxlint's type-aware rules; `pnpm typecheck` remains the compiler-owned type gate.
+
+`pnpm check:api-docs` removes and freshly emits declaration files for handwritten package source and client scripts, then parses those declarations and requires JSDoc on exported declarations, exported interface properties, and public class properties. It ignores generated declarations and compiler-emitted private fields. This output check replaces the former `eslint-plugin-jsdoc` source check because Oxlint's JavaScript-plugin selector engine did not visit an exported class property during qualification.
+
+`@hey-api/openapi-ts` 0.99.0 still uses the TypeScript 6 compiler API. `packages/client` therefore pins TypeScript 6.0.3 for that generator only. Its `build` and `typecheck` scripts explicitly invoke the workspace-root TypeScript 7 compiler. Do not remove the local generator pin or the workspace-root compiler invocation independently; `tests/toolchain-versions.test.ts` enforces both sides of this boundary.
+
+This arrangement separates four responsibilities: Oxlint performs explicitly configured syntax and source-quality checks, the workspace TypeScript 7 compiler owns typechecking and package output, the API-documentation check owns JSDoc enforcement on freshly emitted public declarations, and the client-local TypeScript 6 compiler exists only inside the OpenAPI generator. It is a qualified compatibility arrangement, not a claim that Oxlint and declaration-output analysis are universally better than ESLint and source-AST plugins.
+
+Reconsider ESLint when its TypeScript integration officially supports the workspace TypeScript version and the required source-level JSDoc policy can run without an incompatible compiler or plugin boundary. Also reconsider the choice if Oxlint loses required rule parity, develops platform reliability problems, or makes the lint policy materially harder to maintain. Evaluate a return with the repository's executable counterexamples, full checks, cross-platform runs, and measured performance rather than ecosystem preference alone. Do not remove the declaration-output check until a replacement demonstrably covers its exported-declaration and public-property cases; the client-local TypeScript 6 generator boundary is an independent compatibility issue.
 
 The workspace does not use Nx or Turborepo. Add another task layer only after the pnpm scripts fail a measured need.

@@ -10,7 +10,7 @@ These examples target the current private workspace packages. There is no publis
 
 ## Try the existing demos
 
-Install the workspace's JavaScript dependencies with Node.js 22 or later and pnpm 11.22.0:
+Install the workspace's JavaScript dependencies with Node.js 22.12 or later and pnpm 11.22.0:
 
 ```powershell
 pnpm install

@@ -25,7 +25,7 @@ The [documentation home](docs/README.md) also leads to specifications, upstream 
 
 ## Explore the components
 
-With Node.js 22 or later and pnpm 11.22.0 installed, run these commands from the repository root:
+With Node.js 22.12 or later and pnpm 11.22.0 installed, run these commands from the repository root:
 
 ```powershell
 pnpm install
