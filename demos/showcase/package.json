@@ -14,13 +14,18 @@
   "scripts": {
     "build": "tsc -p tsconfig.json && vite build",
     "dev": "vite",
+    "generate:qr": "node scripts/generate-qr.mjs",
     "preview": "vite preview",
-    "typecheck": "tsc -p tsconfig.json"
+    "typecheck": "tsc -p tsconfig.json",
+    "verify:qr": "node scripts/verify-qr.mjs"
   },
   "devDependencies": {
     "@types/prismjs": "1.26.5",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.5",
-    "@types/reveal.js": "^5.2.2"
+    "@types/reveal.js": "^5.2.2",
+    "jsqr": "1.4.0",
+    "pngjs": "7.0.0",
+    "qrcode": "1.5.4"
   }
 }
