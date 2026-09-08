@@ -1,6 +1,6 @@
 {
   "captureDate": "2026-09-08",
-  "captureMethod": "Public sites: Playwright with headless installed Chrome at 1200-1600x900, browser chrome excluded. MCP gallery: authenticated isolated VS Code 1.136.1, native CDP surface at 1920x1200, one host zoom step above reset, App document at 84% capture-only zoom, and full-width Chat.",
+  "captureMethod": "Public sites: Playwright with headless installed Chrome, browser chrome excluded. MCP video: authenticated isolated VS Code 1.136.1, native CDP surface at 1920x1200, one host zoom step above reset, App document at 84% capture-only zoom, and full-width Chat.",
   "publicOnly": true,
   "entries": [
     {
@@ -44,6 +44,39 @@
       "limitations": [
         "Captured from the public default Genesis reading on 2026-09-08.",
         "The visible text and selected reading may change."
+      ]
+    },
+    {
+      "id": "loop-reader",
+      "filename": "loop-reader.png",
+      "status": "captured",
+      "source": "Local ordinary-browser Reader preview",
+      "captionSuggestion": "Micah 6:8 in Hebrew and English with Commentary selected and a commentary preview visible.",
+      "limitations": [
+        "Captured from the regular showcase Reader on 2026-09-08, not from MCP.",
+        "The selected Commentary results reflect the live payload available at capture time."
+      ]
+    },
+    {
+      "id": "loop-linker",
+      "filename": "loop-linker.png",
+      "status": "captured",
+      "source": "Packaged local Pages Linker demonstration",
+      "captionSuggestion": "The Micah 6:8 Linker popup open inside an ordinary article.",
+      "limitations": [
+        "Captured from the packaged Pages artifact on 2026-09-08.",
+        "The screenshot demonstrates the local rewrite of a familiar Sefaria feature, not a new Linker product."
+      ]
+    },
+    {
+      "id": "loop-mcp",
+      "filename": "loop-mcp.png",
+      "status": "derived",
+      "source": "Cropped from mcp-reader.png",
+      "captionSuggestion": "The Reader returned by the Sefaria MCP tool inside VS Code Copilot Chat.",
+      "limitations": [
+        "The crop removes unused host margins and the composer while retaining the prompt, tool call, and Reader context.",
+        "Derived from the named VS Code MCP acceptance capture on 2026-09-08."
       ]
     },
     {

@@ -79,6 +79,7 @@ await cp(
 
 for (const required of [
   "index.html",
+  "loop.html",
   "preview.html",
   "workspace-preview.html",
   "linker-preview.html",
@@ -88,6 +89,12 @@ for (const required of [
   "media/mcp-reader.png",
   "media/mcp-reader-hierarchy.png",
   "media/mcp-reader-chat-export.png",
+  "media/mcp-reader-demo.mp4",
+  "media/showcase-qr.svg",
+  "media/showcase-qr.png",
+  "media/loop-reader.png",
+  "media/loop-linker.png",
+  "media/loop-mcp.png",
   "demos/linker/sefaria-linker.js",
   "demos/explorer/index.html",
   "demos/explorer/authored.html",

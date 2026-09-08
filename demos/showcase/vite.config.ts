@@ -6,6 +6,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         index: "index.html",
+        loop: "loop.html",
         preview: "preview.html",
         workspace: "workspace-preview.html",
       },
