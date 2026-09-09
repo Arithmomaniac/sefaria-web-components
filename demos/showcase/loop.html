@@ -18,7 +18,7 @@
             <p class="loop-kicker">Microsoft Global Hackathon 2026</p>
             <h1>Sefaria Web Components</h1>
             <p class="loop-title-tagline">
-              Reusable reading tools for websites and AI conversations.
+              A frontend toolkit for developers building with Sefaria.
             </p>
             <div class="loop-byline">
               <strong>Avi Levin</strong>
@@ -34,11 +34,11 @@
         <section id="loop-sefaria" data-autoslide="20000">
           <div class="loop-copy">
             <p class="loop-kicker">A destination—and a foundation</p>
-            <h2>One library.<br />A primary home.<br />Many extensions.</h2>
+            <h2>A digital Jewish library.<br />A shared foundation.</h2>
             <p>
-              Sefaria.org is a rich reading destination. Its open library and
-              API also let other developers build on the same texts and
-              connections.
+              Sefaria brings texts, translations, and connections together. Its
+              website serves learners directly; its open data powers other
+              developers’ applications.
             </p>
           </div>
           <div class="sefaria-ecosystem-visuals">
@@ -57,14 +57,17 @@
                 <img src="./media/talmud-page.png" alt="" />
                 <figcaption>
                   <strong>Talmud.page</strong>
-                  <span>A focused interface powered by Sefaria</span>
+                  <span
+                    >Sefaria-powered ecosystem example, not a toolkit
+                    adopter</span
+                  >
                 </figcaption>
               </figure>
               <figure>
                 <img src="./media/tikkun.png" alt="" />
                 <figcaption>
                   <strong>Tikkun.io</strong>
-                  <span>Another independent Sefaria-powered experience</span>
+                  <span>Independent Sefaria-powered reading preparation</span>
                 </figcaption>
               </figure>
             </div>
@@ -73,35 +76,36 @@
 
         <section id="loop-problem" data-autoslide="20000">
           <div class="loop-copy">
-            <p class="loop-kicker">The repeated integration gap</p>
-            <h2>The text is available.<br />The reader is not.</h2>
-            <p>
-              Getting data is the first step. Every developer still has to
-              rebuild the bridge from a response to a trustworthy interface.
-            </p>
+            <p class="loop-kicker">Why now</p>
+            <h2>Coding agents enable more<br />niche Torah learning apps.</h2>
+            <p>One well-documented data API. Repeated frontend integration.</p>
           </div>
-          <div class="problem-bridge">
-            <article class="bridge-endpoint">
-              <strong>Sefaria data</strong>
-              <span>Open, structured, connected</span>
-            </article>
-            <div class="bridge-work">
-              <article>
-                <strong>1</strong><span>Validate changing shapes</span>
-              </article>
-              <article>
-                <strong>2</strong><span>Interpret reading roles</span>
-              </article>
-              <article>
-                <strong>3</strong><span>Prepare structured text</span>
-              </article>
-              <article>
-                <strong>4</strong><span>Build accessible UI</span>
-              </article>
+          <div
+            class="problem-bridge"
+            role="img"
+            aria-label="New projects share Sefaria's documented API, but still need reusable text preparation, bilingual rendering, footnotes, and navigation."
+          >
+            <div class="bridge-projects">
+              <p class="diagram-label">New projects</p>
+              <p>Learning apps</p>
+              <p>Study tools</p>
+              <p>AI interfaces</p>
             </div>
-            <article class="bridge-endpoint bridge-result">
-              <strong>A useful application</strong>
-              <span>Readable, responsive, interactive</span>
+            <div class="bridge-connector" aria-hidden="true"></div>
+            <article class="bridge-endpoint bridge-api">
+              <strong>Sefaria’s data API</strong>
+              <span>One shared foundation</span>
+            </article>
+            <div class="bridge-connector bridge-break" aria-hidden="true"></div>
+            <article class="bridge-gap">
+              <p class="diagram-label">The frontend gap</p>
+              <ul>
+                <li>Text preparation</li>
+                <li>Bilingual rendering</li>
+                <li>Footnotes + markup</li>
+                <li>Connected navigation</li>
+              </ul>
+              <p>Still rebuilt for each app</p>
             </article>
           </div>
         </section>
@@ -109,10 +113,10 @@
         <section id="loop-component" data-autoslide="20000">
           <div class="loop-copy">
             <p class="loop-kicker">The reusable toolkit</p>
-            <h2>Use the complete path—or start at the layer you need.</h2>
+            <h2>One toolkit.<br />Compose the parts.</h2>
             <p>
-              The toolkit packages repeated integration work while keeping data,
-              rendering, and host behavior separate.
+              Use the complete Reader, or compose your own interface. Data
+              access, text handling, and rendering stay reusable.
             </p>
           </div>
           <div class="toolkit-stack">
@@ -126,20 +130,19 @@
             <article>
               <span>2</span>
               <div>
-                <strong>View-model factories</strong>
-                <p>Prepare exactly the data each component needs.</p>
+                <strong>Component factories</strong>
+                <p>Prepare text and component-specific view models.</p>
               </div>
             </article>
             <article>
               <span>3</span>
               <div>
-                <strong>Request-free components</strong>
-                <p>Render accessible, responsive reading interfaces.</p>
+                <strong>Web Components</strong>
+                <p>Render supplied view models and emit interaction events.</p>
               </div>
             </article>
             <p class="toolkit-default">
-              Most developers use the assembled path. Advanced integrations can
-              compose the layers differently.
+              Hosts and controllers load data. Elements render and emit events.
             </p>
           </div>
         </section>
@@ -147,19 +150,19 @@
         <section id="loop-reader" data-autoslide="25000">
           <div class="loop-copy">
             <p class="loop-kicker">Actual Sefaria Web Components Reader</p>
-            <h2>Read the text and its commentary together.</h2>
+            <h2>Text.<br />Translation.<br />Connections.</h2>
             <p>
-              The ordinary browser Reader keeps Hebrew and English beside a
-              selected commentary category and its results.
+              The prebuilt Reader pairs bilingual text with related sources.
+              Start with a reference; use the supplied controller for
+              navigation.
             </p>
           </div>
           <figure class="context-screenshot">
             <img src="./media/loop-reader.png" alt="" />
             <figcaption>
-              <strong>Micah 6:8 with Commentary selected</strong>
+              <strong>The toolkit’s Reader in an ordinary browser</strong>
               <span>
-                Hebrew and English remain visible while the connections panel
-                shows sixteen commentary results and the first preview.
+                Micah 6:8 in Hebrew and English, with related commentary.
               </span>
             </figcaption>
           </figure>
@@ -168,11 +171,11 @@
         <section id="loop-toolkit" data-autoslide="20000">
           <div class="loop-copy">
             <p class="loop-kicker">Actual packaged Linker integration</p>
-            <h2>A linked source inside an ordinary article.</h2>
+            <h2>Bring the source into the article.</h2>
             <p>
-              Sefaria already has a Linker. Rebuilding the familiar experience
-              demonstrates the same shared client, factories, and popup in a
-              different host.
+              A familiar Sefaria Linker experience, rebuilt with the same
+              client, factories, and popup component. Another host—not another
+              UI stack.
             </p>
           </div>
           <figure class="context-screenshot">
@@ -190,10 +193,10 @@
         <section id="loop-mcp" data-autoslide="15000">
           <div class="loop-copy">
             <p class="loop-kicker">The same Reader inside AI chat</p>
-            <h2>Different data route.<br />The same interactive UI.</h2>
+            <h2>Explore the text.<br />Continue the conversation.</h2>
             <p>
-              A compatible MCP host can deliver the Reader inside a conversation
-              instead of only returning text.
+              Same Reader, different host integration. Navigate connected texts
+              in an MCP App, then bring a source back into the main chat.
             </p>
             <a
               class="loop-cta"
@@ -207,12 +210,12 @@
             </a>
           </div>
           <figure class="context-screenshot mcp-context-screenshot">
-            <img src="./media/loop-mcp.png" alt="" />
+            <img src="./media/mcp-reader-chat-export.png" alt="" />
             <figcaption>
               <strong>Recorded in VS Code Copilot Chat</strong>
               <span>
-                The MCP tool returns the same interactive Reader inside the
-                conversation.
+                The Reader and selected source reference, ready in the chat
+                composer.
               </span>
             </figcaption>
           </figure>
@@ -220,11 +223,20 @@
 
         <section id="loop-impact" data-autoslide="20000">
           <div class="loop-impact-copy">
-            <p class="loop-kicker">Digital Torah in the age of AI</p>
-            <h2>Open data.<br />Reusable interactive interfaces.</h2>
+            <p class="loop-kicker">
+              Built by developers, shared with communities
+            </p>
+            <h2>Personal learning.<br />Shared foundations.</h2>
             <p>
-              An accessible system for developing and customizing educational,
-              personal, and AI applications.
+              Build learning experiences for your own communities and users.
+            </p>
+            <p class="loop-adoption">
+              Sefaria is ready to adopt these web components as a standard for
+              its open-source developer community.
+            </p>
+            <p class="loop-future">
+              A shared UI language could make maintenance and open-source
+              contribution easier.
             </p>
             <p class="loop-attribution">
               Sefaria Web Components · Avi Levin · Microsoft Global Hackathon
@@ -239,7 +251,7 @@
               src="./media/showcase-qr.svg"
               alt="QR code for the public showcase"
             />
-            <strong>Explore the project</strong>
+            <strong>Explore the code and demos</strong>
             <span>arithmomaniac.github.io/sefaria-web-components</span>
           </a>
         </section>

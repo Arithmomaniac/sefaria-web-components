@@ -49,12 +49,50 @@ describe("rotating booth deck", () => {
     expect(html).toContain('class="sefaria-ecosystem-visuals"');
     expect(html).toContain("./media/loop-reader.png");
     expect(html).toContain("./media/loop-linker.png");
-    expect(html).toContain("./media/loop-mcp.png");
+    expect(html).toContain("./media/mcp-reader-chat-export.png");
     expect(html.match(/class="context-screenshot/g)).toHaveLength(3);
     expect(html).not.toContain("mcp-reader-demo.mp4");
     expect(html).not.toContain("<iframe");
     expect(html).not.toContain("https://www.sefaria.org");
     expect(html).not.toContain("data-demo=");
+  });
+
+  it("explains the developer gap and reusable integration boundaries", async () => {
+    const html = await readFile(path.join(showcase, "loop.html"), "utf8");
+    const normalized = html.replace(/\s+/g, " ");
+    const problem = html.match(
+      /<section id="loop-problem"[\s\S]*?<\/section>/,
+    )?.[0];
+
+    expect(normalized).toContain(
+      "A frontend toolkit for developers building with Sefaria.",
+    );
+    expect(normalized).toContain("Coding agents enable more");
+    expect(normalized).toContain("well-documented data API");
+    expect(problem).toMatch(
+      /class="bridge-projects"[\s\S]*?class="bridge-endpoint bridge-api"[\s\S]*?class="bridge-connector bridge-break"[\s\S]*?class="bridge-gap"/,
+    );
+    expect(normalized).toContain("Component factories");
+    expect(normalized).toContain("component-specific view models");
+    expect(normalized).toContain(
+      "Hosts and controllers load data. Elements render and emit events.",
+    );
+    expect(normalized).toContain("complete Reader");
+    expect(normalized).toContain("compose your own interface");
+  });
+
+  it("connects chat follow-up to component adoption without claiming rollout", async () => {
+    const html = await readFile(path.join(showcase, "loop.html"), "utf8");
+    const normalized = html.replace(/\s+/g, " ");
+
+    expect(normalized).toContain("Continue the conversation.");
+    expect(normalized).toContain("bring a source back into the main chat");
+    expect(normalized).toContain(
+      "Sefaria is ready to adopt these web components as a standard for its open-source developer community.",
+    );
+    expect(normalized).toContain(
+      "A shared UI language could make maintenance and open-source contribution easier.",
+    );
   });
 
   it("is emitted by Vite and required by the Pages artifact", async () => {

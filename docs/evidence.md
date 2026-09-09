@@ -21,6 +21,12 @@ Further research starts from Sefaria's [current documentation index](https://dev
 
 Current explanatory documentation does not replace the pinned source, upstream tests, deployed fixtures, or guarded overlay required for a transport correction. Historical observations below remain dated evidence; they are not claims about what today's documentation omits.
 
+## Developer-community presentation feedback
+
+**Observed September 8, 2026 in Sefaria Developer Outreach correspondence supplied by the project author:** Sefaria reported more developers creating niche learning projects as coding agents improve, and stated readiness to adopt the web components as a standard to share with its open-source developer community. The same correspondence explicitly did not promise MCP adoption. Readiness is not a completed rollout or a measured adopter count.
+
+The feedback described personalized learning experiences shared with communities as an intended social benefit. A further message relayed the possibility that shared components and conventions could become a common UI language, ease maintenance, and eventually support more external open-source contribution. These are downstream possibilities, not delivered platform capabilities or changes to Sefaria's contribution policies. The booth-loop copy paraphrases this author-supplied correspondence; private contact details and message screenshots are not published.
+
 ## Source baseline
 
 The research used:
