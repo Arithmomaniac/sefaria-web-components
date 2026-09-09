@@ -77,6 +77,8 @@ Run the interactive deck locally:
 pnpm dev:showcase
 ```
 
+The separate developer-focused booth loop is available at `/loop.html`. Open `/loop.html?paused=1` for local review with arrow-key navigation before publishing. Its eight screens total 150 seconds and use bundled screenshots rather than live requests. The loop has its own copy and styles; revising it does not change the narrated deck at `/`.
+
 The deck calls the deployed Sefaria API. Network, CORS, contract, and documented HTTP failures remain visible; there is no automatic fixture fallback.
 
 The top-level presentation requires a browser content viewport of at least 1440 by 900 CSS pixels. Below either dimension it replaces the deck with a blocking larger-window message; enlarging the viewport restores the same slide and mounted demonstrations. The mouse wheel moves forward and backward through the deck. On the MCP slide it traverses the three recorded screenshots before leaving the slide in either direction. Scrollable code, JSON, component panes, and live iframe demonstrations retain their native scrolling rather than advancing the deck.
