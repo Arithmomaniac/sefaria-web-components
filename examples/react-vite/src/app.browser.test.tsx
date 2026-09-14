@@ -165,10 +165,14 @@ test("blank validation does not cancel an admitted request", async () => {
   expect(fetch).toHaveBeenCalledOnce();
   expect(requestSignal?.aborted).toBe(false);
 
+  resolveRequest(Response.json(fixture));
   await act(async () => {
-    resolveRequest(Response.json(fixture));
     await waitForReact();
   });
+  await vi.waitFor(
+    () => expect(requireCard(container).viewModel.state).toBe("data"),
+    { timeout: 5_000 },
+  );
   expect(requireCard(container).viewModel.state).toBe("data");
   expect(container.querySelector("#request-status")?.textContent).toContain(
     "Loaded Micah 6:8",

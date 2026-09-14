@@ -297,6 +297,16 @@ Review the initial corrections for:
 - [ ] Markdown prose is not hard-wrapped.
 - [ ] Links target current documents.
 
+## Final integration policy
+
+- [ ] Active runtime and build paths contain no Python dependency or retired demo assembly.
+- [ ] Every package, example, and test-workspace manifest remains private.
+- [ ] Library exports and packed files resolve built artifacts rather than producer source.
+- [ ] Workflow YAML contains no publication, deployment, credential, write-permission, tag, or manual-release capability.
+- [ ] The lockfile contains no mirror-specific remote tarball resolution.
+- [ ] Maintained entry documentation distinguishes source/local-tarball use from future registry availability and makes no unsupported official or deployed claim.
+- [ ] Every retained test from the immutable baseline inventory is present in Vitest discovery; every retirement has a precise presentation-only or supersession reason.
+
 ## TypeScript toolchain
 
 - [ ] `pnpm lint` uses only the explicitly configured native Oxlint rules; it does not inherit new default categories.

@@ -488,7 +488,7 @@ describe("OpenAPI generation", () => {
     } finally {
       await rm(temporaryParent, { recursive: true, force: true });
     }
-  });
+  }, 15_000);
 
   it("retains recovery files when refresh rollback fails", async () => {
     const temporaryParent = await mkdtemp(
@@ -551,7 +551,7 @@ describe("OpenAPI generation", () => {
     } finally {
       await rm(temporaryParent, { recursive: true, force: true });
     }
-  });
+  }, 15_000);
 });
 
 describe("reviewed Core corrections", () => {

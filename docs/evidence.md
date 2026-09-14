@@ -1,4 +1,4 @@
-> Created/edited by GitHub Copilot with human review/feedback by avilevin.
+> Created/edited by GitHub Copilot; pending human review.
 
 # Evidence
 
@@ -82,6 +82,24 @@ The package smoke packed the three unchanged private library tarballs, validated
 The generated metadata qualification covered seven registered elements and all 18 package subpaths. The Lit analyzer supplied declaration metadata; the bounded repository adapter rejected placeholder dynamic event names, validated literal event and shared CSS-token catalogs against source, and recorded the current absence of public slots and CSS parts. Generated JSON and Markdown passed stale-generation and formatting checks.
 
 Changesets 3.0.2 accepted the configured fixed group containing exactly the three libraries with private versioning enabled and private tagging disabled. In an external disposable Git fixture starting at `0.1.0`, the rehearsal observed synchronized `0.1.1-alpha.0` then `0.1.1-alpha.1` versions, updated internal dependencies and changelogs, retained private flags, and created no tags or automatic commits. This is local unpublished package qualification, not publication or official Sefaria adoption.
+
+## Integrated-toolkit qualification
+
+**Observed on September 14, 2026 with Node 26.8.1 and pnpm 11.22.0 on Windows:** the qualification started from toolkit commit `598662766e9b572a579eebda783f6de17409e109`. After removing the enumerated dependency and build-output directories, no library or example `dist` output remained. `pnpm install --frozen-lockfile` used the machine-configured package proxy, and the normal `pnpm check` then completed without Python, VS Code authentication, a live Sefaria request, a producer-source alias, or prebuilt package output.
+
+The normal check discovered 83 test files and passed 610 tests. Its package smoke inspected all 18 private package exports, installed the actual vanilla and React tarballs into isolated consumers, deleted the source tarballs before runtime, resolved both top-level and UI-parent-relative dependencies from the installed packages, proved Node-safe subpaths and browser registration, and completed the Chromium interaction paths. The deterministic MCP qualification retained the official Apps 1.7.5 and SDK 1.30.0 Node protocols, Inspector discovery, separate host and sandbox origins, exact request stages, and desktop and narrow geometry checks.
+
+The immutable test-disposition gate compared the 73-file baseline inventory at `7bc2d258fac2959beb5252ebdbcbddbaccd0c7b7` and the pre-retirement showcase at `d7e2d59645ebf7427dcff2cbdd78073e2e7df58c`. It classified 64 baseline tests as retained and verified that Vitest actually discovered every maintained destination. Nine baseline tests have explicit presentation-only or superseded dispositions; useful source, factory, React, Reader, selection, history, supplied, partial, empty, and error behavior remains mapped to executable maintained tests.
+
+The cold run exposed a stale TypeScript incremental-state failure in the MCP example: deleting `examples/mcp-app/dist` left `tsconfig.server.tsbuildinfo` outside the output tree, so a later server build could skip emission of `dist/server/stdio.js`. The server build metadata now lives at `dist/server/.tsbuildinfo`, and site assembly consumes the complete MCP package build rather than redirecting its Vite output. A cold MCP build, site assembly, and official Inspector `tools/list` all succeeded after the correction.
+
+Independent GitHub-flavored Markdown rendering with repository context displayed the current toolkit-branch root README, documentation index, supplied-data lesson, live-interaction lesson, React lesson, Reader lesson, and customization lesson. The rendered HTML exposed the essential install/build commands, fenced source examples, and maintained next-step links. A separate deterministic parity gate validates inline links, reference definitions, HTML anchors, and the maintained lesson journey, including negative broken-file and broken-anchor mutations; CI does not depend on external GitHub availability.
+
+The production documentation-site gate served the built site on an operating-system-assigned port and verified the served identity before navigation. It exercised supplied data with zero requests, one explicit public-client fixture request, a real source selection, Reader connection and breadcrumb navigation, display-only changes with no additional requests, source-file navigation, narrow and iframe geometry, and deterministic keyboard focus or activation for the landing page, source card, Reader, linked popup, and static MCP preview.
+
+**Read-only repository policy observation on September 14, 2026:** `main` remained the default branch at `7bc2d258fac2959beb5252ebdbcbddbaccd0c7b7`. Both `main` and `feature/avilevin/frontend-toolkit-alpha` required the strict `check` status from GitHub App ID 15368, pull-request review, conversation resolution, administrator enforcement, and disabled force-push and deletion. Pages remained workflow-based with source `main:/`; the `github-pages` environment used a custom branch allowlist containing only `main`, not every protected branch. Private vulnerability reporting was disabled. No repository setting or deployment was changed during qualification.
+
+The authenticated VS Code and live Sefaria walkthroughs remain optional named-host evidence recorded elsewhere in this document. They were not repeated or converted into deterministic CI requirements, and the qualification does not establish publication, deployment, official Sefaria ownership, or future host compatibility.
 
 ## Historical decision provenance
 

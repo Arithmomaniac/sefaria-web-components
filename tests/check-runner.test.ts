@@ -12,6 +12,9 @@ describe("repository check runner", () => {
 
     expect(names).not.toContain("Python static checks");
     expect(names).not.toContain("Python staged tests");
+    expect(names.indexOf("Integration policy")).toBeLessThan(
+      names.indexOf("Workspace builds"),
+    );
     expect(names.indexOf("Workspace builds")).toBeLessThan(
       names.indexOf("MCP Inspector stdio acceptance"),
     );
@@ -76,14 +79,27 @@ describe("repository check runner", () => {
 
   it("keeps emitting build metadata inside the output directory", async () => {
     const repository = path.resolve(import.meta.dirname, "..");
-    const configs = [
-      "packages/client/tsconfig.build.json",
-      "packages/web-components/tsconfig.build.json",
-      "packages/text-transform/tsconfig.build.json",
-      "tests/compatibility/tsconfig.build.json",
+    const configs: Array<readonly [string, string, string]> = [
+      ["packages/client/tsconfig.build.json", "dist", "dist/.tsbuildinfo"],
+      [
+        "packages/web-components/tsconfig.build.json",
+        "dist",
+        "dist/.tsbuildinfo",
+      ],
+      [
+        "packages/text-transform/tsconfig.build.json",
+        "dist",
+        "dist/.tsbuildinfo",
+      ],
+      ["tests/compatibility/tsconfig.build.json", "dist", "dist/.tsbuildinfo"],
+      [
+        "examples/mcp-app/tsconfig.server.json",
+        "dist/server",
+        "dist/server/.tsbuildinfo",
+      ],
     ];
 
-    for (const config of configs) {
+    for (const [config, outDir, tsBuildInfoFile] of configs) {
       const contents = JSON.parse(
         await readFile(path.join(repository, config), "utf8"),
       ) as {
@@ -94,8 +110,8 @@ describe("repository check runner", () => {
       };
 
       expect(contents.compilerOptions, config).toMatchObject({
-        outDir: "dist",
-        tsBuildInfoFile: "dist/.tsbuildinfo",
+        outDir,
+        tsBuildInfoFile,
       });
     }
   });

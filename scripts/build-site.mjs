@@ -1,11 +1,4 @@
-import {
-  access,
-  copyFile,
-  mkdir,
-  readFile,
-  rename,
-  rm,
-} from "node:fs/promises";
+import { access, copyFile, mkdir, readFile, rm } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 import { spawnSync } from "node:child_process";
@@ -49,12 +42,18 @@ for (const step of createSiteBuildSteps({ skipTypecheck })) {
       `--outDir=${destination}`,
       "--emptyOutDir",
     ]);
-    if (step.mcpApp) {
-      await rename(
-        path.join(destination, "mcp-app.html"),
-        path.join(destination, "index.html"),
-      );
+    continue;
+  }
+  if (step.kind === "mcp-app") {
+    const destination = path.join(stagedPublic, "examples", step.route);
+    await mkdir(destination, { recursive: true });
+    if (step.build) {
+      runPnpm(["--filter", step.packageName, "build"]);
     }
+    await copyFile(
+      path.join(root, "examples", "mcp-app", "dist", "app", "mcp-app.html"),
+      path.join(destination, "index.html"),
+    );
     continue;
   }
   if (!examplesOnly) {

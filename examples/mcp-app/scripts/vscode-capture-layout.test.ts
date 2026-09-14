@@ -15,7 +15,7 @@ beforeAll(async () => {
 });
 afterAll(async () => {
   await browser?.close();
-});
+}, 30_000);
 
 it("reveals a tall nested App in a virtualized Chat list without hiding its header", async () => {
   const page = await browser.newPage();

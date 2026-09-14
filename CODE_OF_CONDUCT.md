@@ -1,11 +1,9 @@
-# Microsoft Open Source Code of Conduct
+> Created/edited by GitHub Copilot; pending human review.
 
-This project has adopted the
-[Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
+# Code of Conduct
 
-Resources:
+This project uses the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/) as its conduct standard. That source attribution does not make this repository a Microsoft project or make Microsoft responsible for repository moderation.
 
-- [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/)
-- [Microsoft Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/)
-- Contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with questions
-  or concerns.
+Questions or reports about conduct in this repository should go to the current maintainer through a contact method published on the [maintainer's GitHub profile](https://github.com/Arithmomaniac). Do not publish sensitive personal details in an issue.
+
+The [Microsoft Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) explains the source policy. Microsoft's contact channels are not reporting routes for this independently maintained repository.
