@@ -76,12 +76,20 @@ export function createSiteBuildSteps({ skipTypecheck }) {
         args: ["--filter", example.packageName, "typecheck"],
       });
     }
-    steps.push({
-      kind: "vite",
-      packageName: example.packageName,
-      route: example.route,
-      mcpApp: example.mcpApp === true,
-    });
+    steps.push(
+      example.mcpApp
+        ? {
+            kind: "mcp-app",
+            packageName: example.packageName,
+            route: example.route,
+            build: !skipTypecheck,
+          }
+        : {
+            kind: "vite",
+            packageName: example.packageName,
+            route: example.route,
+          },
+    );
   }
   steps.push({ kind: "vitepress" });
   return steps;

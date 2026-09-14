@@ -6,6 +6,7 @@ import { pathToFileURL } from "node:url";
 
 export const CHECK_STAGES = [
   { name: "OpenAPI contracts", args: ["openapi:check"] },
+  { name: "Integration policy", args: ["integration:check"] },
   { name: "Formatting", args: ["format:check"] },
   { name: "Oxlint", args: ["lint"] },
   { name: "Workspace builds", args: ["build"] },

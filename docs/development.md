@@ -16,6 +16,10 @@ Run the deterministic workflow-policy regression with:
 pnpm test -- tests/workflow-policy.test.ts
 ```
 
+The `integration:check` stage also parses active paths, package manifests, workflow YAML, and the lockfile. It rejects active Python runtime/build files, retired demo assembly, source export fallbacks, non-private manifests, publication or deployment capabilities, credential-like workflow fields, remote tarball resolutions, and unsupported installation, ownership, or deployment claims in maintained entry-point documentation. Historical evidence and immutable archive links are outside those active-path checks.
+
+The same stage reconciles the immutable 73-file test inventory from `7bc2d258fac2959beb5252ebdbcbddbaccd0c7b7` and the nine pre-retirement showcase tests from `d7e2d59645ebf7427dcff2cbdd78073e2e7df58c`. It requires every retained destination to appear in Vitest's actual static discovery output and records a specific reason for each presentation-only or superseded retirement.
+
 The maintained bootstrap handoff is [`IMPLEMENTATION-PLAN.md`](https://github.com/Arithmomaniac/sefaria-web-components/blob/feature/avilevin/frontend-toolkit-alpha/IMPLEMENTATION-PLAN.md). Its archive links point to the immutable pre-bootstrap baseline; it is an execution handoff, not a normative component or transport specification.
 
 ## Contributor guides

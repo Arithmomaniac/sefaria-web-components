@@ -32,6 +32,7 @@
     "dev:text-segment": "pnpm build && vite . --open /examples/explorer/text-segment.html",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "integration:check": "node scripts/check-integration-policy.mjs && node scripts/check-test-disposition.mjs",
     "lint": "oxlint --config .oxlintrc.json .",
     "metadata:check": "node scripts/generate-package-metadata.mjs --check",
     "metadata:generate": "node scripts/generate-package-metadata.mjs",
