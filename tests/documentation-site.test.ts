@@ -11,6 +11,7 @@ const lessons = [
   "04-reader.md",
   "05-customization.md",
   "06-host-integration.md",
+  "react.md",
 ];
 
 describe("documentation learning journey", () => {
@@ -56,6 +57,50 @@ describe("documentation learning journey", () => {
     expect(config).not.toContain("github.io");
   });
 
+  it("keeps supplied-data and React teaching aligned with maintained source", async () => {
+    const suppliedLesson = await readFile(
+      path.join(root, "docs", "learn", "02-supplied-data.md"),
+      "utf8",
+    );
+    const vanillaSource = await readFile(
+      path.join(root, "examples", "vanilla-vite", "src", "main.ts"),
+      "utf8",
+    );
+    expect(suppliedLesson).toContain("createSourceCardViewModel(validated, {");
+    expect(vanillaSource).toContain(
+      "createSourceCardViewModel(validatedPayload, {",
+    );
+    expect(vanillaSource).toContain(
+      'updateStatus("Rendered supplied Micah 6:8 data with zero requests.")',
+    );
+    expect(suppliedLesson).toContain("pnpm-workspace.yaml");
+    expect(suppliedLesson).not.toContain('"pnpm": {\n    "overrides"');
+
+    const reactLesson = await readFile(
+      path.join(root, "docs", "learn", "react.md"),
+      "utf8",
+    );
+    const reactSource = await readFile(
+      path.join(root, "examples", "react-vite", "src", "app.tsx"),
+      "utf8",
+    );
+    const declarations = await readFile(
+      path.join(root, "examples", "react-vite", "src", "custom-elements.d.ts"),
+      "utf8",
+    );
+    for (const sourceFragment of [
+      'useElementProperty(cardRef, "selectable", viewModel.state === "data")',
+      'previous.removeEventListener("sefaria-source-select"',
+      "controller.current?.abort()",
+      "setSelected({",
+    ]) {
+      expect(reactSource).toContain(sourceFragment);
+      expect(reactLesson).toContain(sourceFragment);
+    }
+    expect(declarations).toContain('"sefaria-source-card"');
+    expect(reactLesson).toContain('"sefaria-source-card"');
+  });
+
   it("builds distinct example files instead of fallback responses", async () => {
     const site = path.join(root, "dist", "site");
     for (const relativePath of [
@@ -96,5 +141,12 @@ describe("documentation learning journey", () => {
     await expect(
       access(path.join(root, "demos", "showcase")),
     ).rejects.toMatchObject({ code: "ENOENT" });
+  });
+
+  it("keeps the committed lockfile independent of local registry mirrors", async () => {
+    const lockfile = await readFile(path.join(root, "pnpm-lock.yaml"), "utf8");
+    expect(lockfile).not.toMatch(/tarball:\s+https?:\/\//);
+    expect(lockfile).not.toContain("pkgs.visualstudio.com");
+    expect(lockfile).not.toContain("packagefeedproxy.microsoft.io");
   });
 });

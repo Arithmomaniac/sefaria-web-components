@@ -10,6 +10,9 @@ export default defineConfig({
   title: "Sefaria Frontend Toolkit",
   description:
     "Development documentation and local examples for the unpublished Sefaria Frontend Toolkit.",
+  head: [
+    ["meta", { name: "sefaria-docs-site", content: "local-docs-site-wave-3" }],
+  ],
   cleanUrls: false,
   ignoreDeadLinks: [
     /^\/examples\//,

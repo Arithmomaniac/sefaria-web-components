@@ -1,4 +1,3 @@
-import { spawn } from "node:child_process";
 import { mkdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
@@ -6,42 +5,53 @@ import { URL } from "node:url";
 
 import { chromium } from "playwright";
 
+import { classifySiteRequest } from "./site-request-policy.mjs";
+import { startSitePreview } from "./site-preview-server.mjs";
+
 const root = path.resolve(import.meta.dirname, "..");
-const port = 4179;
-const origin = `http://127.0.0.1:${port}`;
 const screenshotDirectory = process.env.SITE_SCREENSHOT_DIR;
-const server = startPreview();
+const previewServer = await startSitePreview({ root });
+const { origin } = previewServer;
 
 try {
-  await waitForServer();
+  await previewServer.waitUntilReady();
   const browser = await chromium.launch({ headless: true });
   try {
     const page = await browser.newPage({
       viewport: { width: 1280, height: 900 },
     });
-    const externalRequests = [];
-    page.on("request", (request) => {
-      if (request.url().startsWith("https://www.sefaria.org/")) {
-        externalRequests.push(request.url());
-      }
-    });
+    const textRequests = [];
+    const unexpectedRequests = [];
     const fixture = JSON.parse(
       await readFile(
         path.join(root, "examples", "react-vite", "src", "micah-6-8.json"),
         "utf8",
       ),
     );
-    await page.route(
-      "https://www.sefaria.org/api/v3/texts/**",
-      async (route) => {
+    await page.route("**/*", async (route) => {
+      const request = route.request();
+      const policy = classifySiteRequest({
+        method: request.method(),
+        requestUrl: request.url(),
+        siteOrigin: origin,
+      });
+      if (policy === "local") {
+        await route.continue();
+        return;
+      }
+      if (policy === "fixture") {
+        textRequests.push(request.url());
         await route.fulfill({ json: fixture });
-      },
-    );
+        return;
+      }
+      unexpectedRequests.push(`${request.method()} ${request.url()}`);
+      await route.abort("blockedbyclient");
+    });
 
     await page.goto(origin, { waitUntil: "networkidle" });
     await assertText(page.locator("h1"), "Sefaria Frontend Toolkit");
     await assertText(page.locator("body"), "Development preview");
-    assertEqual(externalRequests.length, 0, "landing request count");
+    assertEqual(textRequests.length, 0, "landing request count");
     await capture(page, "site-landing.png");
 
     const learnLink = page.getByRole("link", {
@@ -78,7 +88,7 @@ try {
         `Unexpected authored source link: ${authoredSource}; frame: ${authoredFrame?.url()}`,
       );
     }
-    assertEqual(externalRequests.length, 0, "authored lesson request count");
+    assertEqual(textRequests.length, 0, "authored lesson request count");
 
     const liveLessons = {
       "03-live-data": [
@@ -93,12 +103,12 @@ try {
       ],
     };
     for (const [lesson, links] of Object.entries(liveLessons)) {
-      externalRequests.length = 0;
+      textRequests.length = 0;
       await page.goto(`${origin}/learn/${lesson}.html`, {
         waitUntil: "networkidle",
       });
       assertEqual(
-        externalRequests.length,
+        textRequests.length,
         0,
         `${lesson} unsolicited request count`,
       );
@@ -122,7 +132,12 @@ try {
           page.waitForURL("**/examples/explorer/source-card.html"),
           page.getByRole("link", { name: links[0][0] }).click(),
         ]);
-        await page.locator("#source-card-form").waitFor();
+        await page.locator("#request-state[data-state='data']").waitFor();
+        assertEqual(
+          textRequests.length,
+          1,
+          "source-card explicit request count",
+        );
       }
     }
 
@@ -156,9 +171,51 @@ try {
       throw new Error(`Unexpected React source link: ${sourceHref}`);
     }
 
+    textRequests.length = 0;
+    await page.goto(`${origin}/learn/react.html`, {
+      waitUntil: "networkidle",
+    });
+    const reactLesson = page.frameLocator(
+      'iframe[title="React custom-element integration"]',
+    );
+    await reactLesson.locator("sefaria-source-card").waitFor();
+    await assertText(
+      reactLesson.locator("#selected-ref"),
+      "Select the rendered segment",
+    );
+    assertEqual(textRequests.length, 0, "embedded React initial request count");
+    await capture(page, "site-react-lesson.png");
+
+    textRequests.length = 0;
+    await page.goto(`${origin}/examples/vanilla/index.html`, {
+      waitUntil: "networkidle",
+    });
+    await assertText(
+      page.locator("#status"),
+      "Rendered supplied Micah 6:8 data with zero requests.",
+    );
+    assertEqual(
+      await page.locator("#status").getAttribute("data-request-count"),
+      "0",
+      "vanilla supplied-data host request count",
+    );
+    assertEqual(textRequests.length, 0, "vanilla supplied-data request count");
+    await page.locator("#load-fixture").click();
+    await page.locator("#status[data-request-count='1']").waitFor();
+    await assertText(
+      page.locator("#status"),
+      "Loaded Micah 6:8 through the public client.",
+    );
+    assertEqual(
+      textRequests.length,
+      0,
+      "vanilla injected-client network count",
+    );
+
     await page.goto(`${origin}/examples/react/index.html`, {
       waitUntil: "networkidle",
     });
+    textRequests.length = 0;
     await assertText(page.locator("#request-count"), "Host request count: 0");
     const preview = page.locator("#preview");
     const initialCard = page.locator("sefaria-source-card");
@@ -184,6 +241,7 @@ try {
     );
     await assertText(page.locator("#request-count"), "Host request count: 1");
     await assertText(page.locator("#request-status"), "Loaded Micah 6:8.");
+    assertEqual(textRequests.length, 1, "React explicit request count");
     const nextHandle = await initialCard.elementHandle();
     assertEqual(
       await initialHandle.evaluate(
@@ -193,6 +251,16 @@ try {
       true,
       "React element identity",
     );
+    await initialCard
+      .getByRole("button", {
+        name: "Show connections for Micah 6:8",
+      })
+      .first()
+      .click();
+    await page
+      .locator("#selected-ref")
+      .filter({ hasText: "React received selection: Micah 6:8." })
+      .waitFor();
     await capture(page, "site-react.png");
 
     await page.setViewportSize({ width: 390, height: 844 });
@@ -224,46 +292,16 @@ try {
     });
     await assertText(page.locator("body"), "Static fixture preview");
     await capture(page, "site-mcp-fixture.png");
+    assertEqual(
+      unexpectedRequests.length,
+      0,
+      `unapproved outbound requests: ${unexpectedRequests.join(", ")}`,
+    );
   } finally {
     await browser.close();
   }
 } finally {
-  server.kill();
-}
-
-function startPreview() {
-  return spawn(
-    process.execPath,
-    [
-      path.join(root, "node_modules", "vitepress", "bin", "vitepress.js"),
-      "preview",
-      "docs",
-      "--host",
-      "127.0.0.1",
-      "--port",
-      String(port),
-    ],
-    {
-      cwd: root,
-      stdio: ["ignore", "pipe", "pipe"],
-    },
-  );
-}
-
-async function waitForServer() {
-  for (let attempt = 0; attempt < 60; attempt += 1) {
-    if (server.exitCode !== null) {
-      throw new Error(`VitePress preview exited with code ${server.exitCode}.`);
-    }
-    try {
-      const response = await globalThis.fetch(origin);
-      if (response.ok) return;
-    } catch {
-      // The preview server is still starting.
-    }
-    await new Promise((resolve) => globalThis.setTimeout(resolve, 250));
-  }
-  throw new Error("VitePress preview did not become ready.");
+  await previewServer.close();
 }
 
 async function assertText(locator, expected) {

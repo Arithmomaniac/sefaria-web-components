@@ -4,6 +4,7 @@ import {
   cp,
   mkdir,
   mkdtemp,
+  readdir,
   readFile,
   realpath,
   rm,
@@ -40,7 +41,7 @@ const packageDefinitions = [
   {
     name: "@sefaria/client",
     directory: "client",
-    filename: "sefaria-client-0.0.0.tgz",
+    filename: undefined,
     subpaths: [
       ".",
       "./client",
@@ -54,13 +55,13 @@ const packageDefinitions = [
   {
     name: "@sefaria/text-transform",
     directory: "text-transform",
-    filename: "sefaria-text-transform-0.0.0.tgz",
+    filename: undefined,
     subpaths: ["."],
   },
   {
     name: "@sefaria/web-components",
     directory: "web-components",
-    filename: "sefaria-web-components-0.0.0.tgz",
+    filename: undefined,
     subpaths: [
       ".",
       "./bilingual-segment",
@@ -85,6 +86,7 @@ if (isPathWithin(repository, root) || root === repository) {
 try {
   await mkdir(tarballs, { recursive: true });
   for (const packageDefinition of packageDefinitions) {
+    const before = new Set(await readdir(tarballs));
     run("pnpm", [
       "--filter",
       packageDefinition.name,
@@ -92,6 +94,15 @@ try {
       "--pack-destination",
       tarballs,
     ]);
+    const emitted = (await readdir(tarballs)).filter(
+      (filename) => filename.endsWith(".tgz") && !before.has(filename),
+    );
+    if (emitted.length !== 1) {
+      throw new Error(
+        `${packageDefinition.name} emitted ${emitted.length} tarballs: ${emitted.join(", ")}`,
+      );
+    }
+    packageDefinition.filename = emitted[0];
     await inspectTarball(packageDefinition);
   }
 
@@ -125,6 +136,9 @@ try {
 }
 
 async function inspectTarball(packageDefinition) {
+  if (packageDefinition.filename === undefined) {
+    throw new Error(`${packageDefinition.name} did not emit a tarball.`);
+  }
   const tarball = path.join(tarballs, packageDefinition.filename);
   await access(tarball);
   const manifest = JSON.parse(
@@ -160,7 +174,12 @@ async function stageConsumer({ consumer, example, name }) {
     path.join(consumer, "src"),
     { recursive: true },
   );
-  const fileDependency = (filename) => `file:../tarballs/${filename}`;
+  const fileDependency = (filename) => {
+    if (filename === undefined) {
+      throw new Error("A package tarball filename is missing.");
+    }
+    return `file:../tarballs/${filename}`;
+  };
   const exampleManifest = JSON.parse(
     await readFile(
       path.join(repository, "examples", example, "package.json"),
@@ -314,7 +333,29 @@ async function smokeVanillaChromium() {
     const browser = await chromium.launch({ headless: true });
     try {
       const page = await browser.newPage();
+      await page.addInitScript(() => {
+        const originalFetch = globalThis.fetch;
+        globalThis.__exampleGlobalFetchCount = 0;
+        globalThis.fetch = (...args) => {
+          globalThis.__exampleGlobalFetchCount += 1;
+          return originalFetch(...args);
+        };
+      });
       await page.goto(url);
+      await page.locator("#status[data-request-count='0']").waitFor();
+      const initial = await page.evaluate(() => {
+        const card = globalThis.document.querySelector("sefaria-source-card");
+        return {
+          state: card?.viewModel?.state,
+          globalFetchCount: globalThis.__exampleGlobalFetchCount,
+        };
+      });
+      if (initial.state !== "data" || initial.globalFetchCount !== 0) {
+        throw new Error(
+          `Vanilla supplied-data render was not request-free: ${JSON.stringify(initial)}`,
+        );
+      }
+      await page.locator("#load-fixture").click();
       await page.locator("#status[data-request-count='1']").waitFor();
       const result = await page.evaluate(() => {
         const card = globalThis.document.querySelector("sefaria-source-card");
@@ -334,12 +375,14 @@ async function smokeVanillaChromium() {
           ),
           state: card?.viewModel?.state,
           text: card?.shadowRoot?.textContent,
+          globalFetchCount: globalThis.__exampleGlobalFetchCount,
         };
       });
       if (
         !result.registered ||
         result.registeredTags.length !== 7 ||
         result.state !== "data" ||
+        result.globalFetchCount !== 0 ||
         !result.text?.includes("Micah 6:8")
       ) {
         throw new Error(

@@ -426,9 +426,12 @@ The normal build creates `dist` JavaScript and declarations before workspace con
 ```powershell
 pnpm install --frozen-lockfile
 pnpm build
-pnpm --filter @sefaria/client pack --pack-destination .toolchain/tarballs
-pnpm --filter @sefaria/text-transform pack --pack-destination .toolchain/tarballs
-pnpm --filter @sefaria/web-components pack --pack-destination .toolchain/tarballs
+$repository = (Resolve-Path .).Path
+$destination = Join-Path $repository ".toolchain\tarballs"
+New-Item -ItemType Directory -Force $destination
+pnpm --filter @sefaria/client pack --pack-destination $destination
+pnpm --filter @sefaria/text-transform pack --pack-destination $destination
+pnpm --filter @sefaria/web-components pack --pack-destination $destination
 ```
 
 The packages remain private. There is no npm alpha installation command, publication workflow, tag, or release in this branch.

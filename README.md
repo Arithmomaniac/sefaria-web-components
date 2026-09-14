@@ -4,7 +4,7 @@
 
 Build Sefaria reading surfaces from validated transport data, pure text processing, component-specific factories, and request-free Web Components. Use the complete Reader, individual components, or the headless packages without bringing along the Sefaria website.
 
-> **Experimental and unpublished.** This repository is a private-source development project with no support or stability guarantee. It is not an official Sefaria product, and its packages are not available from a public registry or CDN.
+> **Experimental and unpublished.** This public source repository is a development project with no support or stability guarantee. It is not an official Sefaria product, and its private packages are not available from a public registry or CDN.
 
 ## First run
 
@@ -24,7 +24,7 @@ If you want the shortest component proof instead of the documentation site:
 pnpm dev:vanilla
 ```
 
-That example validates a supplied `Micah 6:8` payload, projects it through the public pure factory, and renders it with zero requests. [Local tarball setup](docs/learn/02-supplied-data.md#try-it) covers an external consumer that cannot resolve workspace source.
+That example validates a supplied `Micah 6:8` payload, projects it through the public pure factory, and renders it with zero requests. Its explicit button then exercises the public client and async factory with one injected offline response. [Local tarball setup](docs/learn/02-supplied-data.md#try-it) covers an external consumer that cannot resolve workspace source.
 
 ## Choose a path
 
@@ -53,7 +53,7 @@ Read [How the pieces fit together](docs/guides/data-flow.md) for the complete bo
 
 ## Current examples
 
-- `examples/vanilla-vite`: supplied-data private-package consumer.
+- `examples/vanilla-vite`: zero-request supplied-data render plus an explicit injected-client action.
 - `examples/react-vite`: typed property assignment, real event binding, explicit live loading, stable element identity, cancellation, and StrictMode cleanup.
 - `examples/explorer`: authored zero-request states plus explicit live component pages.
 - `examples/reader`: supported controlled Reader and a distinct lower-level spatial composition.

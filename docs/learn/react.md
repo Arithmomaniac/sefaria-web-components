@@ -2,64 +2,152 @@
 
 # Use the Web Components from React
 
-This is a branch from the supplied-data and interaction lessons. It uses React 19 as a host for the same browser registration, source-card factory, view model, and event used by the vanilla example. It is not a React wrapper package, and React is not a toolkit runtime dependency.
+## Objective
 
-## Assign typed properties and events
+Use React 19 as the host for the same browser registration, source-card factories, view model, and event used by the vanilla path. Keep one custom-element instance mounted, assign object properties without attribute serialization, render a real selection event into React state, and clean up listeners and requests under StrictMode.
 
-Keep the custom element stable, assign complex values through its typed DOM property, and attach the real event listener to the element:
+This is an integration pattern, not a React wrapper package or toolkit runtime dependency.
+
+## Prerequisites
+
+- Complete [Render supplied data](02-supplied-data.md) and [Load data and handle interaction](03-live-data.md).
+- Include `examples/react-vite/src/custom-elements.d.ts` in the consumer's TypeScript project so JSX recognizes the element:
 
 ```tsx
-import "@sefaria/web-components";
 import type { SefariaSourceCard } from "@sefaria/web-components";
-import type { SourceCardViewModel } from "@sefaria/web-components/source-card";
-import { useCallback, useEffect, useRef } from "react";
+import type { DetailedHTMLProps, HTMLAttributes, Ref } from "react";
 
-function SourceCard({ viewModel }: { viewModel: SourceCardViewModel }) {
-  const cardRef = useRef<SefariaSourceCard>(null);
-
-  useEffect(() => {
-    if (cardRef.current) cardRef.current.viewModel = viewModel;
-  }, [viewModel]);
-
-  const setCardRef = useCallback((card: SefariaSourceCard | null) => {
-    const previous = cardRef.current;
-    previous?.removeEventListener("sefaria-source-select", onSelect);
-    cardRef.current = card;
-    card?.addEventListener("sefaria-source-select", onSelect);
-  }, []);
-
-  function onSelect(event: Event): void {
-    const detail = (event as CustomEvent<{ ref: string }>).detail;
-    console.log(detail.ref);
+declare module "react" {
+  namespace JSX {
+    interface IntrinsicElements {
+      "sefaria-source-card": DetailedHTMLProps<
+        HTMLAttributes<SefariaSourceCard>,
+        SefariaSourceCard
+      > & { ref?: Ref<SefariaSourceCard> };
+    }
   }
-
-  return <sefaria-source-card ref={setCardRef} />;
 }
 ```
 
-Do not write `view-model={viewModel}` in JSX: React would serialize an attribute instead of assigning the component's object property. The maintained example uses a small typed `useElementProperty` hook for repeated property assignments, not a general binding framework.
-
-## Load and clean up
-
-The React host creates the client once, starts requests only from an explicit submit action, and owns an `AbortController` plus an operation counter. Its effect cleanup marks the component unmounted, invalidates pending operations, and aborts the current request.
-
-React development StrictMode intentionally exercises setup and cleanup more than once. Correct code removes the listener from the previous element and does not issue a mount-time request, so StrictMode does not require request coalescing or a hidden singleton.
-
 ## Try it
+
+Run the maintained app:
 
 ```powershell
 pnpm dev:react
 ```
 
-The initial card uses supplied validated data and reports zero requests. **Load from Sefaria** uses the public async factory with `cache: false`. Selecting the rendered Micah 6:8 row sends a real `sefaria-source-select` event back to React state. Theme, width, and displayed-side controls keep the same element instance and do not refetch.
+The app imports `@sefaria/web-components` once in its browser entry. Its reusable property helper assigns DOM properties during layout rather than serializing attributes:
 
-<iframe class="example-frame" title="React custom-element integration" src="/examples/react/index.html"></iframe>
+```tsx
+function useElementProperty<
+  TElement extends HTMLElement,
+  TKey extends keyof TElement,
+>(ref: RefObject<TElement | null>, key: TKey, value: TElement[TKey]): void {
+  useLayoutEffect(() => {
+    const element = ref.current;
+    if (element !== null) element[key] = value;
+  }, [key, ref, value]);
+}
+```
 
-## Source and tests
+The maintained component keeps the element stable, enables selection for rendered data, attaches the native event once per element, and displays the event through React state:
+
+```tsx
+const [selected, setSelected] = useState<SourceSelection>();
+const cardRef = useRef<SefariaSourceCard>(null);
+
+useElementProperty(cardRef, "viewModel", viewModel);
+useElementProperty(cardRef, "selectable", viewModel.state === "data");
+useElementProperty(cardRef, "selectedPosition", selected?.position);
+
+const setCardRef = useCallback((card: SefariaSourceCard | null): void => {
+  const previous = cardRef.current;
+  if (previous !== null) {
+    previous.removeEventListener("sefaria-source-select", onSourceSelection);
+  }
+  cardRef.current = card;
+  if (card !== null) {
+    card.addEventListener("sefaria-source-select", onSourceSelection);
+  }
+}, []);
+
+function onSourceSelection(event: Event): void {
+  const detail = (event as CustomEvent<SourceSelection>).detail;
+  setSelected({ position: [...detail.position], ref: detail.ref });
+}
+
+return (
+  <>
+    <sefaria-source-card ref={setCardRef} />
+    <p aria-live="polite">
+      {selected
+        ? `React received selection: ${selected.ref}.`
+        : "Select the rendered segment to send its event to React."}
+    </p>
+  </>
+);
+```
+
+The host also owns request identity and cleanup. These are the load/unmount guards used by the maintained app:
+
+```tsx
+const controller = useRef<AbortController | undefined>(undefined);
+const operation = useRef(0);
+const mounted = useRef(true);
+
+useEffect(() => {
+  mounted.current = true;
+  return () => {
+    mounted.current = false;
+    operation.current += 1;
+    controller.current?.abort();
+  };
+}, []);
+
+controller.current?.abort();
+const currentController = new AbortController();
+controller.current = currentController;
+const currentOperation = ++operation.current;
+
+const next = await loadSourceCardViewModel(
+  { tref: normalized },
+  client,
+  currentController.signal,
+);
+if (
+  mounted.current &&
+  !currentController.signal.aborted &&
+  currentOperation === operation.current
+) {
+  setViewModel(next);
+}
+```
+
+## Expected result
+
+The initial card comes from validated supplied data and reports zero requests. **Load from Sefaria** is the only action that calls the public async factory. Selecting the rendered Micah 6:8 row emits `sefaria-source-select`, and the visible React status changes to `React received selection: Micah 6:8.` Theme, width, and displayed-side controls preserve the same element and do not refetch.
+
+React development StrictMode may repeat setup and cleanup. The maintained code removes the listener from the previous element, makes no mount-time request, aborts unmounted work, and rejects stale completion without adding request coalescing or a hidden singleton.
+
+<iframe class="example-frame react" title="React custom-element integration" src="/examples/react/index.html"></iframe>
+
+## Who owns what
+
+React owns state, the typed ref, property assignment, event listener lifecycle, input, loading/error UI, cancellation, stale-result rejection, and element placement. The async factory owns one admitted request and projection. The custom element remains request-free and owns rendering and event emission.
+
+## Exercise
+
+Select the Micah 6:8 segment and confirm the visible React event status changes without inspecting Shadow DOM. Then start two loads quickly and confirm the first signal aborts and cannot replace the second result. Finally unmount during a pending load and verify the signal aborts and listener additions equal removals.
+
+## Source and run links
 
 - [`app.tsx`](https://github.com/Arithmomaniac/sefaria-web-components/blob/feature/avilevin/frontend-toolkit-alpha/examples/react-vite/src/app.tsx)
+- [`custom-elements.d.ts`](https://github.com/Arithmomaniac/sefaria-web-components/blob/feature/avilevin/frontend-toolkit-alpha/examples/react-vite/src/custom-elements.d.ts)
 - [`use-element-property.ts`](https://github.com/Arithmomaniac/sefaria-web-components/blob/feature/avilevin/frontend-toolkit-alpha/examples/react-vite/src/use-element-property.ts)
 - [`app.browser.test.tsx`](https://github.com/Arithmomaniac/sefaria-web-components/blob/feature/avilevin/frontend-toolkit-alpha/examples/react-vite/src/app.browser.test.tsx)
 - [React example README](https://github.com/Arithmomaniac/sefaria-web-components/blob/feature/avilevin/frontend-toolkit-alpha/examples/react-vite/README.md)
+
+## Next step
 
 Continue with [Use the controlled Reader or compose a custom host](04-reader.md).

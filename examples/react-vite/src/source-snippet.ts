@@ -5,12 +5,14 @@ export const reactSourceCardSnippet = `const result = await loadSourceCardViewMo
 );
 
 const cardRef = useRef<SefariaSourceCard>(null);
+const [selected, setSelected] = useState<SourceSelection>();
 useElementProperty(cardRef, "viewModel", viewModel);
 useElementProperty(cardRef, "selectable", viewModel.state === "data");
+useElementProperty(cardRef, "selectedPosition", selected?.position);
 
 function onSourceSelection(event: Event) {
   const detail = (event as CustomEvent<SourceSelection>).detail;
-  setSelectedPosition(detail.position);
+  setSelected({ position: [...detail.position], ref: detail.ref });
 }
 
 const setCardRef = useCallback((card: SefariaSourceCard | null) => {
@@ -22,4 +24,9 @@ const setCardRef = useCallback((card: SefariaSourceCard | null) => {
   card?.addEventListener("sefaria-source-select", onSourceSelection);
 }, []);
 
-return <sefaria-source-card ref={setCardRef} />;`;
+return (
+  <>
+    <sefaria-source-card ref={setCardRef} />
+    <p>{selected ? \`React received selection: \${selected.ref}.\` : ""}</p>
+  </>
+);`;

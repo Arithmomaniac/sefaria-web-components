@@ -23,10 +23,13 @@ pnpm build
 pnpm dev:vanilla
 ```
 
-The maintained vanilla example validates its imported JSON fixture before projection. The essential browser module is:
+The maintained vanilla example validates its imported JSON fixture before projection. This is its initial render path:
 
 ```ts
-import { zCoreV3TextsResponse } from "@sefaria/client";
+import {
+  type CoreV3TextsResponse,
+  zCoreV3TextsResponse,
+} from "@sefaria/client";
 import "@sefaria/web-components";
 import type { SefariaSourceCard } from "@sefaria/web-components";
 import { createSourceCardViewModel } from "@sefaria/web-components/source-card";
@@ -36,23 +39,29 @@ import payload from "./micah-6-8.json";
 const card = document.querySelector<SefariaSourceCard>("sefaria-source-card");
 if (!card) throw new Error("The source-card element is missing.");
 
-const validated = zCoreV3TextsResponse.parse(payload);
+const validated = zCoreV3TextsResponse.parse(payload) as CoreV3TextsResponse;
 card.viewModel = createSourceCardViewModel(validated, {
   tref: "Micah 6:8",
 });
+card.selectable = true;
 ```
+
+The same maintained page also has **Load through the public client**. That explicit action calls `loadSourceCardViewModel` with one injected deterministic response, preserving the public-client and async-factory consumer proof without changing the initial zero-request path.
 
 For an external local-tarball consumer, first build and pack all three private packages:
 
 ```powershell
 pnpm build
-New-Item -ItemType Directory -Force .artifacts\local-packages
-pnpm --filter @sefaria/client pack --pack-destination .artifacts\local-packages
-pnpm --filter @sefaria/text-transform pack --pack-destination .artifacts\local-packages
-pnpm --filter @sefaria/web-components pack --pack-destination .artifacts\local-packages
+$repository = (Resolve-Path .).Path
+$destination = Join-Path $repository ".artifacts\local-packages"
+New-Item -ItemType Directory -Force $destination
+pnpm --filter @sefaria/client pack --pack-destination $destination
+pnpm --filter @sefaria/text-transform pack --pack-destination $destination
+pnpm --filter @sefaria/web-components pack --pack-destination $destination
+Get-ChildItem $destination -Filter *.tgz
 ```
 
-Copy the three tarballs into an external Vite project. Its `package.json` must point both top-level dependencies and pnpm overrides at those local files so internal private dependencies do not resolve through a registry:
+`pnpm --filter ... pack` runs from each package directory, so the absolute destination is intentional. Copy the three emitted tarballs into an external Vite project. Its `package.json` points the top-level dependencies at those local files:
 
 ```json
 {
@@ -62,32 +71,37 @@ Copy the three tarballs into an external Vite project. Its `package.json` must p
     "@sefaria/client": "file:./sefaria-client-0.0.0.tgz",
     "@sefaria/text-transform": "file:./sefaria-text-transform-0.0.0.tgz",
     "@sefaria/web-components": "file:./sefaria-web-components-0.0.0.tgz"
-  },
-  "pnpm": {
-    "overrides": {
-      "@sefaria/client": "file:./sefaria-client-0.0.0.tgz",
-      "@sefaria/text-transform": "file:./sefaria-text-transform-0.0.0.tgz",
-      "@sefaria/web-components": "file:./sefaria-web-components-0.0.0.tgz"
-    }
   }
 }
 ```
 
-Use the actual tarball filenames printed by `pnpm pack`. `pnpm package:smoke` performs the repository's stricter external-consumer qualification in a unique directory outside the checkout and verifies that no workspace source or registry fallback is used.
+Put the matching transitive overrides in `pnpm-workspace.yaml`, which is the pnpm 11 configuration surface:
+
+```yaml
+overrides:
+  "@sefaria/client": "file:./sefaria-client-0.0.0.tgz"
+  "@sefaria/text-transform": "file:./sefaria-text-transform-0.0.0.tgz"
+  "@sefaria/web-components": "file:./sefaria-web-components-0.0.0.tgz"
+
+allowBuilds:
+  esbuild: true
+```
+
+Use the actual tarball filenames emitted by `pnpm pack`. `pnpm package:smoke` executes this topology in a unique directory outside the checkout: it packs to an absolute destination, discovers and inspects the emitted archives, installs external consumers with exact `file:` dependencies and workspace overrides, and verifies that no workspace source or registry fallback is used.
 
 ## Expected result
 
-The card displays the supplied Micah 6:8 text and attribution. The browser performs zero Sefaria requests because the host uses validated captured data and the pure factory.
+The card initially displays the supplied Micah 6:8 text and attribution with host request count zero. The browser's global `fetch` also remains unused. Selecting **Load through the public client** increments the host counter to one while the injected fixture transport keeps the example offline.
 
 <iframe class="example-frame" title="Vanilla supplied-data example" src="/examples/vanilla/index.html"></iframe>
 
 ## Who owns what
 
-The fixture is unknown JSON until `zCoreV3TextsResponse` validates it. `createSourceCardViewModel` owns projection and text preparation. The element owns presentation. No client exists on this path, so a request would be a boundary violation rather than an optimization detail.
+The fixture is unknown JSON until `zCoreV3TextsResponse` validates it. `createSourceCardViewModel` owns projection and text preparation. The element owns presentation. The initial path does not call the client. The explicit second path lets the host call the public async factory with an injected deterministic transport.
 
 ## Exercise
 
-Add a request counter around `globalThis.fetch` before the example module loads and assert that it remains zero. Then change the card's `layout` property and confirm the same view-model object is still rendered.
+Inspect `data-request-count` before and after the explicit client action. Then add a counter around `globalThis.fetch` before the module loads and confirm it stays zero because the example's admitted client action uses its injected fixture transport.
 
 ## Source and run links
 
