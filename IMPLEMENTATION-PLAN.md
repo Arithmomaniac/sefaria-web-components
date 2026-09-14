@@ -1,3 +1,5 @@
+> Created/edited by GitHub Copilot; pending human review.
+
 # Sefaria Frontend Toolkit integration handoff
 
 **Status:** Maintained bootstrap handoff for the unpublished toolkit integration branch. This document supersedes the historical transfer-first plan preserved in the session archive; it does not authorize repository transfer, publication, Pages deployment, or a default-branch change.
@@ -20,7 +22,11 @@ The policy regression is `tests/workflow-policy.test.ts`. It covers supported pu
 
 ## Later implementation boundaries
 
-Subsequent PRs may establish package artifacts, examples, and documentation/site work only after this integration branch is merged and its protection is verified. All packages and examples remain private until a separately approved release plan exists. Any public-contract or cross-package change must follow the applicable specification, evidence, and review gate.
+Subsequent PRs may establish package artifacts, examples, and documentation/site work after the bootstrap PR merges into the protected toolkit branch. Nothing here implies toolkit-to-main promotion. All packages and examples remain private until a separately approved release plan exists. Any public-contract or cross-package change must follow the applicable specification, evidence, and review gate.
+
+## Approved follow-on outline
+
+The approved unpublished plan continues with four bounded slices after bootstrap: package foundation renames `packages/components` to `packages/web-components`, preserves supported subpaths, and proves private tarball consumption; three parallel example streams cover a linked article, a standalone Node MCP App, and a curated example workbench with the real React extraction; local documentation consolidates maintained Markdown with a local VitePress site; and final qualification proves the package, example, documentation, and integration boundaries without publication or deployment. Mutable execution tracking belongs in coordinator SQL, not this handoff.
 
 ## Immutable historical archive
 
