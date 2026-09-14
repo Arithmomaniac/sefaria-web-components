@@ -44,6 +44,9 @@ importers:
       vitest-browser-lit:
         specifier: ^1.0.1
         version: 1.0.1(lit@3.3.3)(vitest@4.1.11)
+      yaml:
+        specifier: 2.9.0
+        version: 2.9.0
 
   demos/explorer:
     dependencies:

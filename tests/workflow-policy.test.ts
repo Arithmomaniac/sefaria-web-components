@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { parseDocument } from "yaml";
 import { describe, expect, it } from "vitest";
 
 const workflow = readFileSync(
@@ -8,261 +9,231 @@ const workflow = readFileSync(
 );
 
 const toolkitBranch = "feature/avilevin/frontend-toolkit-alpha";
+type RecordValue = Record<string, unknown>;
 
-type WorkflowPolicy = {
-  events: {
-    pull_request: { branches: string[] };
-    push: { branches: string[]; tags: string[] };
-    workflow_dispatch: boolean;
-  };
-  permissions: Record<string, string>;
-  jobs: Record<
-    string,
-    {
-      if?: string;
-      continueOnError?: boolean;
-      permissions?: Record<string, string>;
-      steps: string[];
-    }
-  >;
-};
+function isRecord(value: unknown): value is RecordValue {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
 
-function parseWorkflowPolicy(source: string): WorkflowPolicy {
-  const lines = source.split(/\r?\n/);
-  const policy: WorkflowPolicy = {
-    events: {
-      pull_request: { branches: [] },
-      push: { branches: [], tags: [] },
-      workflow_dispatch: false,
-    },
-    permissions: {},
-    jobs: {},
-  };
-  let section = "";
-  let event = "";
-  let eventList = "";
-  let job = "";
-  let nestedJobPermissions = false;
+function parseWorkflow(source: string): RecordValue {
+  const document = parseDocument(source, { prettyErrors: true });
+  if (document.errors.length > 0) {
+    throw new Error(document.errors.map((error) => error.message).join("\n"));
+  }
+  const value: unknown = document.toJS();
+  if (!isRecord(value)) {
+    throw new Error(
+      "Workflow YAML must contain a mapping at the document root.",
+    );
+  }
+  return value;
+}
 
-  for (const line of lines) {
-    if (line === "on:") {
-      section = "events";
-      continue;
-    }
-    if (line === "permissions:") {
-      section = "permissions";
-      nestedJobPermissions = false;
-      continue;
-    }
-    if (line === "jobs:") {
-      section = "jobs";
-      continue;
-    }
+function stringList(value: unknown, path: string, issues: string[]) {
+  if (!Array.isArray(value) || value.some((item) => typeof item !== "string")) {
+    issues.push(`invalid ${path}`);
+    return [];
+  }
+  return value;
+}
+
+function policyIssues(workflowValue: RecordValue) {
+  const issues: string[] = [];
+  const events = workflowValue.on;
+  const permissions = workflowValue.permissions;
+  const jobs = workflowValue.jobs;
+
+  if (!isRecord(events)) {
+    issues.push("missing workflow events");
+  } else {
+    const eventKeys = Object.keys(events).sort();
     if (
-      section === "events" &&
-      /^ {2}(pull_request|push|workflow_dispatch):$/.test(line)
+      JSON.stringify(eventKeys) !== JSON.stringify(["pull_request", "push"])
     ) {
-      event = line.trim().slice(0, -1);
-      if (event === "workflow_dispatch") {
-        policy.events.workflow_dispatch = true;
+      issues.push("unsupported workflow events");
+    }
+    for (const eventName of ["pull_request", "push"]) {
+      const event = events[eventName];
+      if (!isRecord(event)) {
+        issues.push(`missing ${eventName} event`);
+        continue;
       }
-      continue;
-    }
-    if (section === "events" && /^ {4}(branches|tags):/.test(line)) {
-      eventList = line.trim().slice(0, -1);
-      continue;
-    }
-    if (
-      section === "events" &&
-      /^ {6}- /.test(line) &&
-      (event === "pull_request" || event === "push")
-    ) {
-      const value = line.trim().slice(2);
-      if (eventList === "tags") {
-        policy.events.push.tags.push(value);
-      } else {
-        policy.events[event].branches.push(value);
+      if (
+        JSON.stringify(Object.keys(event).sort()) !==
+        JSON.stringify(["branches"])
+      ) {
+        issues.push(`unsupported ${eventName} filters`);
       }
-      continue;
-    }
-    if (section === "permissions" && /^ {2}[a-z-]+: /.test(line)) {
-      const [name, value] = line.trim().split(": ");
-      policy.permissions[name] = value;
-      continue;
-    }
-    if (section === "jobs" && /^ {2}[a-z-]+:$/.test(line)) {
-      job = line.trim().slice(0, -1);
-      policy.jobs[job] = { steps: [] };
-      nestedJobPermissions = false;
-      continue;
-    }
-    if (section === "jobs" && job && /^ {4}permissions:$/.test(line)) {
-      nestedJobPermissions = true;
-      policy.jobs[job].permissions = {};
-      continue;
-    }
-    if (
-      section === "jobs" &&
-      job &&
-      nestedJobPermissions &&
-      /^ {6}[a-z-]+: /.test(line)
-    ) {
-      const [name, value] = line.trim().split(": ");
-      policy.jobs[job].permissions![name] = value;
-      continue;
-    }
-    if (section === "jobs" && job && /^ {4}if: /.test(line)) {
-      policy.jobs[job].if = line.trim().slice(4);
-      continue;
-    }
-    if (section === "jobs" && job && /^ {4}continue-on-error: /.test(line)) {
-      policy.jobs[job].continueOnError = line.trim().slice(19) === "true";
-      continue;
-    }
-    if (section === "jobs" && job && /^ {6}- uses: /.test(line)) {
-      policy.jobs[job].steps.push(line.trim().slice(8));
-      nestedJobPermissions = false;
-      continue;
-    }
-    if (section === "jobs" && job && /^ {6}- run: /.test(line)) {
-      policy.jobs[job].steps.push(line.trim().slice(7));
-      nestedJobPermissions = false;
+      const branches = stringList(
+        event.branches,
+        `${eventName}.branches`,
+        issues,
+      );
+      const expected =
+        eventName === "push" ? [toolkitBranch] : ["main", toolkitBranch];
+      if (
+        JSON.stringify([...branches].sort()) !==
+        JSON.stringify([...expected].sort())
+      ) {
+        issues.push(`unexpected ${eventName} branches`);
+      }
     }
   }
 
-  return policy;
-}
-
-function policyIssues(policy: WorkflowPolicy) {
-  const issues: string[] = [];
-  const check = policy.jobs.check;
-  if (!check) issues.push("missing check job");
   if (
-    JSON.stringify(policy.permissions) !== JSON.stringify({ contents: "read" })
+    !isRecord(permissions) ||
+    JSON.stringify(permissions) !== JSON.stringify({ contents: "read" })
   ) {
     issues.push("unsafe default permissions");
   }
+
   if (
-    JSON.stringify(policy.events.pull_request.branches.sort()) !==
-    JSON.stringify(["main", toolkitBranch].sort())
+    !isRecord(jobs) ||
+    JSON.stringify(Object.keys(jobs)) !== JSON.stringify(["check"])
   ) {
-    issues.push("unexpected pull request branches");
+    issues.push("unexpected jobs");
+    return issues;
   }
-  if (
-    JSON.stringify(policy.events.push.branches) !==
-    JSON.stringify([toolkitBranch])
-  ) {
-    issues.push("unexpected push branches");
+
+  const check = jobs.check;
+  if (!isRecord(check)) {
+    issues.push("invalid check job");
+    return issues;
   }
-  if (policy.events.push.tags.length > 0) issues.push("tag trigger");
-  if (policy.events.workflow_dispatch) issues.push("manual dispatch");
-  if (!check) return issues;
-  if (check.permissions) issues.push("job-level permissions");
-  if (check.if) issues.push("conditionally skipped check");
-  if (check.continueOnError) issues.push("continue-on-error check");
-  if (!check.steps.includes("pnpm check"))
-    issues.push("missing validation step");
-  if (
-    check.steps.some((step) =>
-      /deploy-pages|upload-pages-artifact|publish|release/i.test(step),
-    )
-  ) {
-    issues.push("deployment or publication action");
+  for (const key of ["permissions", "environment", "if", "continue-on-error"]) {
+    if (key in check) {
+      issues.push(`unsupported check job field: ${key}`);
+    }
+  }
+  if (!Array.isArray(check.steps)) {
+    issues.push("missing check steps");
+    return issues;
+  }
+
+  let validationStepCount = 0;
+  for (const [index, step] of check.steps.entries()) {
+    if (!isRecord(step)) {
+      issues.push(`invalid check step ${index}`);
+      continue;
+    }
+    for (const key of ["if", "continue-on-error"]) {
+      if (key in step) {
+        issues.push(`unsupported check step field: ${key}`);
+      }
+    }
+    if (typeof step.run === "string") {
+      if (/\b(pnpm|npm|changeset) publish\b|\brelease\b/i.test(step.run)) {
+        issues.push("publication or release command");
+      }
+      if (step.run === "pnpm check") {
+        validationStepCount += 1;
+      }
+    }
+    if (
+      typeof step.uses === "string" &&
+      /(deploy-pages|upload-pages-artifact|release)/i.test(step.uses)
+    ) {
+      issues.push("deployment or release action");
+    }
+  }
+  if (validationStepCount !== 1) {
+    issues.push("missing or duplicated unconditional pnpm check step");
   }
   return issues;
 }
 
 describe("integration workflow policy", () => {
-  it("scopes validation to supported pull requests and toolkit pushes", () => {
-    const parsed = parseWorkflowPolicy(workflow);
-    expect(parsed.events.pull_request.branches).toEqual(
-      expect.arrayContaining(["main", toolkitBranch]),
-    );
-    expect(parsed.events.push.branches).toEqual([toolkitBranch]);
-    expect(parsed.events.push.branches).not.toContain("main");
-    expect(parsed.events.pull_request.branches).not.toContain("release/*");
+  it("parses supported event scopes and the one unconditional check job", () => {
+    const parsed = parseWorkflow(workflow);
     expect(policyIssues(parsed)).toEqual([]);
+    expect((parsed.on as RecordValue).push).toEqual({
+      branches: [toolkitBranch],
+    });
+    expect((parsed.on as RecordValue).pull_request).toEqual({
+      branches: ["main", toolkitBranch],
+    });
   });
 
-  it("rejects unsupported PR targets, tags, and manual dispatch", () => {
-    const unsupportedPr = parseWorkflowPolicy(
+  it("rejects unsupported PR targets, tags, dispatch, and a main push", () => {
+    const unsupportedPr = parseWorkflow(
       workflow.replace(`      - ${toolkitBranch}`, "      - release/*"),
     );
-    const tags = parseWorkflowPolicy(
+    const tags = parseWorkflow(
       workflow.replace(
-        new RegExp(`    branches:\\s+- ${toolkitBranch}`),
-        "    tags:\n      - v*",
+        new RegExp(`(push:\\s+branches:\\s+- ${toolkitBranch})`),
+        "$1\n    tags:\n      - v*",
       ),
     );
-    const dispatch = parseWorkflowPolicy(
+    const dispatch = parseWorkflow(
       workflow.replace("  push:", "  workflow_dispatch:\n  push:"),
+    );
+    const mainPush = parseWorkflow(
+      workflow.replace(
+        new RegExp(`(push:\\s+branches:\\s+- ${toolkitBranch})`),
+        "$1\n      - main",
+      ),
     );
 
     expect(policyIssues(unsupportedPr)).toContain(
-      "unexpected pull request branches",
+      "unexpected pull_request branches",
     );
-    expect(policyIssues(tags)).toContain("tag trigger");
-    expect(policyIssues(dispatch)).toContain("manual dispatch");
+    expect(policyIssues(tags)).toContain("unsupported push filters");
+    expect(policyIssues(dispatch)).toContain("unsupported workflow events");
+    expect(policyIssues(mainPush)).toContain("unexpected push branches");
   });
 
-  it("rejects each unsafe permission, action, and skip mutation independently", () => {
-    const mutations: Array<[string, string, string]> = [
+  it("rejects each unsafe job, action, step, and filter mutation independently", () => {
+    const mutations: Array<[string, string]> = [
       [
-        "default permission",
-        workflow.replace("  contents: read", "  contents: write"),
-        "unsafe default permissions",
-      ],
-      [
-        "job permission",
+        "deploy job",
         workflow.replace(
-          "    runs-on: ubuntu-latest",
-          "    permissions:\n      contents: write\n    runs-on: ubuntu-latest",
+          "jobs:",
+          "jobs:\n  deploy:\n    runs-on: ubuntu-latest\n    steps:\n      - run: pnpm publish",
         ),
-        "job-level permissions",
       ],
       [
-        "deployment action",
+        "named publication step",
         workflow.replace(
-          "      - run: pnpm check",
-          "      - uses: actions/deploy-pages@v5\n      - run: pnpm check",
+          "- run: pnpm check",
+          "- name: Publish\n        run: pnpm publish",
         ),
-        "deployment or publication action",
       ],
       [
-        "publication action",
+        "named deployment step",
         workflow.replace(
-          "      - run: pnpm check",
-          "      - run: pnpm publish\n      - run: pnpm check",
+          "- run: pnpm check",
+          "- name: Deploy\n        uses: actions/deploy-pages@v5\n      - run: pnpm check",
         ),
-        "deployment or publication action",
       ],
       [
-        "missing check",
-        workflow.replace("  check:", "  validation:"),
-        "missing check job",
-      ],
-      [
-        "conditional check",
+        "conditional validation step",
         workflow.replace(
-          "    runs-on: ubuntu-latest",
-          "    if: false\n    runs-on: ubuntu-latest",
+          "- run: pnpm check",
+          "- if: false\n        run: pnpm check",
         ),
-        "conditionally skipped check",
       ],
       [
-        "continue-on-error check",
+        "continue-on-error validation step",
         workflow.replace(
-          "    runs-on: ubuntu-latest",
-          "    continue-on-error: true\n    runs-on: ubuntu-latest",
+          "- run: pnpm check",
+          "- continue-on-error: true\n        run: pnpm check",
         ),
-        "continue-on-error check",
+      ],
+      [
+        "pull request paths filter",
+        workflow.replace(
+          "    branches:",
+          "    paths:\n      - '**/*.ts'\n    branches:",
+        ),
       ],
     ];
 
-    for (const [name, candidate, issue] of mutations) {
-      expect(policyIssues(parseWorkflowPolicy(candidate)), name).toContain(
-        issue,
-      );
+    for (const [name, candidate] of mutations) {
+      expect(policyIssues(parseWorkflow(candidate)), name).not.toEqual([]);
     }
+  });
+
+  it("surfaces malformed workflow YAML", () => {
+    expect(() => parseWorkflow(`${workflow}\n  - malformed`)).toThrow();
   });
 });

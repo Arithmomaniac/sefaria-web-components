@@ -26,7 +26,7 @@ Subsequent PRs may establish package artifacts, examples, and documentation/site
 
 ## Approved follow-on outline
 
-The approved unpublished plan continues with four bounded slices after bootstrap: package foundation renames `packages/components` to `packages/web-components`, preserves supported subpaths, and proves private tarball consumption; three parallel example streams cover a linked article, a standalone Node MCP App, and a curated example workbench with the real React extraction; local documentation consolidates maintained Markdown with a local VitePress site; and final qualification proves the package, example, documentation, and integration boundaries without publication or deployment. Mutable execution tracking belongs in coordinator SQL, not this handoff.
+The approved unpublished plan continues with four bounded waves after bootstrap: package foundation renames `packages/components` to `packages/web-components`, preserves supported subpaths, and proves private tarball consumption; the next wave contains three parallel example PRs covering a linked article, a standalone Node MCP App, and a curated example workbench with the real React extraction; local documentation consolidates maintained Markdown with a local VitePress site; and final qualification proves the package, example, documentation, and integration boundaries without publication or deployment. Mutable execution tracking belongs in coordinator SQL, not this handoff.
 
 ## Immutable historical archive
 
