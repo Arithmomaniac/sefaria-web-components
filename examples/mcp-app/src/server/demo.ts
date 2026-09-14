@@ -8,6 +8,21 @@ import { chromium, type Frame, type Page } from "playwright";
 
 import { startLocalEnvironment } from "./local-environment.js";
 
+interface RecordedRequest {
+  readonly method: string;
+  readonly origin: string;
+  readonly url: string;
+}
+
+interface ReaderState {
+  readonly currentEntryId: string;
+  readonly label: string;
+  readonly category: string | null;
+  readonly page: number;
+  readonly total: number;
+  readonly targetRefs: readonly string[];
+}
+
 const linksFixture = JSON.parse(
   await readFile(
     new URL(
@@ -17,6 +32,7 @@ const linksFixture = JSON.parse(
     "utf8",
   ),
 ) as Array<Record<string, unknown>>;
+const deterministicLinksFixture = expandLinksFixture(linksFixture);
 const textFixture = JSON.parse(
   await readFile(
     new URL(
@@ -29,47 +45,12 @@ const textFixture = JSON.parse(
   versions: Array<Record<string, unknown>>;
 };
 
-const requests: string[] = [];
+const requests: RecordedRequest[] = [];
+const deterministicFetch = createDeterministicFetch(requests);
+verifyExactSequenceRejectsDuplicates();
+await verifyDeterministicFetchRejectsUnexpectedRequests(deterministicFetch);
 const environment = await startLocalEnvironment({
-  fetch: async (input, init) => {
-    const url = new URL(
-      typeof input === "string"
-        ? input
-        : input instanceof URL
-          ? input.href
-          : input.url,
-    );
-    requests.push(url.href);
-    if (url.pathname.startsWith("/api/v3/texts/")) {
-      const reference = decodeURIComponent(
-        url.pathname.slice("/api/v3/texts/".length),
-      );
-      if (reference === "Invalid 1:1") {
-        return Response.json({ versions: "wrong" });
-      }
-      if (reference === "Denied 1:1") {
-        return new Response("denied", { status: 503 });
-      }
-      if (reference === "Slow 1:1") {
-        await new Promise<void>((resolve, reject) => {
-          const timer = setTimeout(resolve, 2_000);
-          init?.signal?.addEventListener(
-            "abort",
-            () => {
-              clearTimeout(timer);
-              reject(new DOMException("Aborted", "AbortError"));
-            },
-            { once: true },
-          );
-        });
-      }
-      return Response.json(textPayload(reference));
-    }
-    if (url.pathname.startsWith("/api/links/")) {
-      return Response.json(linksFixture);
-    }
-    throw new Error(`Unexpected deterministic request ${url.href}.`);
-  },
+  fetch: deterministicFetch,
 });
 
 const browser = await chromium.launch({ headless: true });
@@ -83,7 +64,10 @@ const result = {
     host: environment.hostUrl.origin,
     sandbox: environment.sandboxUrl.origin,
   },
-  stages: [] as Array<{ readonly name: string; readonly requests: string[] }>,
+  stages: [] as Array<{
+    readonly name: string;
+    readonly requests: readonly RecordedRequest[];
+  }>,
 };
 
 try {
@@ -101,20 +85,35 @@ try {
   await page.goto(new URL("?auto=text", environment.hostUrl).href);
   const app = await waitForAppFrame(page);
   await app.locator("sefaria-reader").waitFor();
-  await waitForRequestCount(2);
+  await waitForExactRequestCount(requests, 2);
   assertSequence(requests, [
     ["/api/v3/texts/Micah%206%3A8", null],
     ["/api/links/Micah%206%3A8", "1"],
   ]);
-  record("text seed and continuation");
+  record("text seed and continuation", 0);
 
   const beforeLocal = requests.length;
-  await dispatchReaderEvent(app, "sefaria-reader-connections-category-change", {
+  const initialReaderState = await readReaderState(app);
+  if (initialReaderState.category !== null || initialReaderState.page !== 0) {
+    throw new Error(
+      `Expected the initial connection projection to be the overview on page 0, received ${JSON.stringify(initialReaderState)}.`,
+    );
+  }
+  await app.getByRole("button", { name: /^Commentary \(\d+\)$/ }).click();
+  await waitForReaderState(app, {
     category: "Commentary",
-  });
-  await dispatchReaderEvent(app, "sefaria-reader-connections-page-change", {
     page: 0,
+    total: 25,
   });
+  await app.getByRole("button", { name: "More", exact: true }).click();
+  const pagedReaderState = await waitForReaderState(app, {
+    category: "Commentary",
+    page: 1,
+    total: 25,
+  });
+  if (pagedReaderState.targetRefs.length === 0) {
+    throw new Error("Expected the second Commentary page to contain entries.");
+  }
   await dispatchReaderEvent(
     app,
     "sefaria-reader-connections-preview-request",
@@ -124,113 +123,119 @@ try {
   if (requests.length !== beforeLocal) {
     throw new Error("Covered local projection unexpectedly called a tool.");
   }
-  record("local category page and covered preview");
+  record("local category page and covered preview", beforeLocal);
 
-  const targetRef = await app.locator("sefaria-reader").evaluate((reader) => {
-    const model = (
-      reader as HTMLElement & {
-        viewModel: {
-          currentEntryId: string;
-          connections?: {
-            state: string;
-            viewModel?: {
-              state: string;
-              entries?: Array<{ targetRef: string }>;
-            };
-          };
-        };
-      }
-    ).viewModel;
-    if (
-      model.connections?.state !== "component" ||
-      model.connections.viewModel?.state !== "data"
-    ) {
-      throw new Error("Reader connections are unavailable.");
-    }
-    const target = model.connections.viewModel.entries?.[0]?.targetRef;
-    if (!target)
-      throw new Error("No deterministic connection target is available.");
-    return target;
-  });
+  const targetRef = pagedReaderState.targetRefs[0];
+  if (!targetRef) {
+    throw new Error("Expected a deterministic second-page connection target.");
+  }
   const beforeConnection = requests.length;
-  await dispatchReaderEvent(app, "sefaria-reader-connection-select", {
-    targetRef,
+  await app
+    .getByRole("button", {
+      name: `Open ${targetRef} in context`,
+      exact: true,
+    })
+    .click();
+  await waitForReaderState(app, { label: targetRef });
+  await waitForExactRequestCount(requests, beforeConnection + 2);
+  assertSequence(requests.slice(beforeConnection), [
+    [`/api/v3/texts/${encodeURIComponent(targetRef)}`, null],
+    [`/api/links/${encodeURIComponent(targetRef)}`, "1"],
+  ]);
+  record("connection qualification", beforeConnection);
+
+  const childState = await readReaderState(app);
+  const beforeBack = requests.length;
+  await app.getByRole("button", { name: "Back", exact: true }).click();
+  const rootAfterBack = await waitForReaderState(app, {
+    currentEntryId: initialReaderState.currentEntryId,
   });
-  await waitForRequestCount(beforeConnection + 2);
-  await page.waitForTimeout(100);
-  const connectionRequests = requests.slice(beforeConnection);
-  const sourceRequests = connectionRequests.filter((url) =>
-    new URL(url).pathname.startsWith("/api/v3/texts/"),
-  ).length;
-  const linksRequests = connectionRequests.filter((url) =>
-    new URL(url).pathname.startsWith("/api/links/"),
-  ).length;
-  if (sourceRequests < 1 || sourceRequests > 2 || linksRequests !== 1) {
+  if (rootAfterBack.label !== initialReaderState.label) {
     throw new Error(
-      `Connection qualification sequence was ${JSON.stringify(connectionRequests)}.`,
+      `Expected Back to restore ${initialReaderState.label}, received ${rootAfterBack.label}.`,
     );
   }
-  record("connection qualification");
+  assertNoRequestSince(beforeBack, "Back");
+  record("local back", beforeBack);
+
+  if (rootAfterBack.category !== "Commentary") {
+    await app.getByRole("button", { name: /^Commentary \(\d+\)$/ }).click();
+    await waitForReaderState(app, { category: "Commentary", page: 0 });
+  }
+  if ((await readReaderState(app)).page === 0) {
+    await app.getByRole("button", { name: "More", exact: true }).click();
+    await waitForReaderState(app, { category: "Commentary", page: 1 });
+  }
+  const beforeSecondConnection = requests.length;
+  await app
+    .getByRole("button", {
+      name: `Open ${targetRef} in context`,
+      exact: true,
+    })
+    .click();
+  await waitForReaderState(app, { label: targetRef });
+  await waitForExactRequestCount(requests, beforeSecondConnection + 2);
+  assertSequence(requests.slice(beforeSecondConnection), [
+    [`/api/v3/texts/${encodeURIComponent(targetRef)}`, null],
+    [`/api/links/${encodeURIComponent(targetRef)}`, "1"],
+  ]);
+  record("history setup connection", beforeSecondConnection);
 
   const beforeHistory = requests.length;
-  await app.locator("sefaria-reader").evaluate((reader) => {
-    const element = reader as HTMLElement & {
-      viewModel: {
-        currentEntryId: string;
-        breadcrumbs: Array<{ entryId: string }>;
-      };
-    };
-    const root = element.viewModel.breadcrumbs[0];
-    if (!root) throw new Error("Reader root breadcrumb is missing.");
-    element.dispatchEvent(
-      new CustomEvent("sefaria-reader-history-activate", {
-        detail: {
-          originEntryId: element.viewModel.currentEntryId,
-          entryId: root.entryId,
-        },
-      }),
-    );
+  await app.locator('nav[aria-label="Reader history"] button').first().click();
+  const rootAfterHistory = await waitForReaderState(app, {
+    currentEntryId: initialReaderState.currentEntryId,
   });
-  await page.waitForTimeout(100);
-  if (requests.length !== beforeHistory) {
-    throw new Error("Retained history unexpectedly called a tool.");
+  if (
+    childState.currentEntryId === rootAfterHistory.currentEntryId ||
+    rootAfterHistory.label !== initialReaderState.label
+  ) {
+    throw new Error(
+      `Expected retained history to change from ${childState.currentEntryId} to ${initialReaderState.currentEntryId}.`,
+    );
   }
-  record("retained history");
+  assertNoRequestSince(beforeHistory, "Retained history");
+  record("retained history", beforeHistory);
 
+  const beforeInvalid = requests.length;
   await callFromHost(page, "get_text", "Invalid 1:1");
   await waitForInnerBody(page, "/versions");
-  record("invalid payload path");
+  await waitForExactRequestCount(requests, beforeInvalid + 1);
+  record("invalid payload path", beforeInvalid);
 
+  const beforeDenied = requests.length;
   await callFromHost(page, "get_text", "Denied 1:1");
   await waitForInnerBody(page, "503");
-  record("denied tool call");
+  await waitForExactRequestCount(requests, beforeDenied + 1);
+  record("denied tool call", beforeDenied);
 
   const beforeStale = requests.length;
   await callFromHost(page, "get_text", "Slow 1:1");
   await waitForRequestCount(beforeStale + 1);
   await callFromHost(page, "get_text", "Micah 6:8");
-  await waitForRequestCount(beforeStale + 3);
+  await waitForExactRequestCount(requests, beforeStale + 3);
   const currentApp = await waitForAppFrame(page);
   await currentApp.locator("sefaria-reader").waitFor();
   if (
     requests
       .slice(beforeStale)
-      .some((request) => new URL(request).pathname.includes("/api/links/Slow"))
+      .some((request) =>
+        new URL(request.url).pathname.includes("/api/links/Slow"),
+      )
   ) {
     throw new Error("The cancelled stale source call continued into links.");
   }
-  record("cancellation and stale completion");
+  record("cancellation and stale completion", beforeStale);
 
   await page.selectOption("#tool-name", "get_links_between_texts");
   await page.fill("#reference", "Micah 6:8");
   const beforeLinksSeed = requests.length;
   await page.click('button[type="submit"]');
-  await waitForRequestCount(beforeLinksSeed + 1);
-  await page.waitForTimeout(200);
-  if (requests.length !== beforeLinksSeed + 1) {
-    throw new Error("Links-seeded admission made a continuation request.");
-  }
-  record("links seed without continuation");
+  await waitForExactRequestCount(requests, beforeLinksSeed + 1);
+  assertSequence(requests.slice(beforeLinksSeed), [
+    ["/api/links/Micah%206%3A8", "1"],
+  ]);
+  record("links seed without continuation", beforeLinksSeed);
 
   const artifacts = path.resolve(".artifacts", "mcp-app");
   await mkdir(artifacts, { recursive: true });
@@ -247,8 +252,8 @@ try {
   await Promise.all([browser.close(), environment.close()]);
 }
 
-function record(name: string): void {
-  result.stages.push({ name, requests: [...requests] });
+function record(name: string, start: number): void {
+  result.stages.push({ name, requests: requests.slice(start) });
 }
 
 async function verifyCompiledStdio(): Promise<void> {
@@ -359,12 +364,36 @@ async function waitForRequestCount(expected: number): Promise<void> {
   );
 }
 
+async function waitForExactRequestCount(
+  actual: readonly RecordedRequest[],
+  expected: number,
+): Promise<void> {
+  for (let attempt = 0; attempt < 100; attempt += 1) {
+    if (actual.length > expected) {
+      throw new Error(
+        `Expected exactly ${expected} deterministic requests, observed ${actual.length}.`,
+      );
+    }
+    if (actual.length === expected) {
+      await new Promise((resolve) => setTimeout(resolve, 250));
+      if (actual.length === expected) return;
+      throw new Error(
+        `Expected exactly ${expected} deterministic requests after settling, observed ${actual.length}.`,
+      );
+    }
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  }
+  throw new Error(
+    `Expected exactly ${expected} deterministic requests, observed ${actual.length}.`,
+  );
+}
+
 function assertSequence(
-  actual: readonly string[],
+  actual: readonly RecordedRequest[],
   expected: ReadonlyArray<readonly [string, string | null]>,
 ): void {
-  const normalized = actual.slice(0, expected.length).map((item) => {
-    const url = new URL(item);
+  const normalized = actual.map((item) => {
+    const url = new URL(item.url);
     return [url.pathname, url.searchParams.get("with_text")] as const;
   });
   if (JSON.stringify(normalized) !== JSON.stringify(expected)) {
@@ -372,6 +401,254 @@ function assertSequence(
       `Expected request sequence ${JSON.stringify(expected)}, received ${JSON.stringify(normalized)}.`,
     );
   }
+}
+
+function verifyExactSequenceRejectsDuplicates(): void {
+  const expected = [
+    ["/api/v3/texts/Micah%206%3A8", null],
+    ["/api/links/Micah%206%3A8", "1"],
+  ] as const;
+  const source = {
+    method: "GET",
+    origin: "https://www.sefaria.org",
+    url: textUrl("Micah 6:8"),
+  };
+  const continuation = {
+    method: "GET",
+    origin: "https://www.sefaria.org",
+    url: linksUrl("Micah 6:8", "1"),
+  };
+  let rejected = false;
+  try {
+    assertSequence([source, continuation, continuation], expected);
+  } catch {
+    rejected = true;
+  }
+  if (!rejected) {
+    throw new Error(
+      "The exact-sequence assertion admitted a duplicate trailing request.",
+    );
+  }
+}
+
+function assertNoRequestSince(start: number, action: string): void {
+  if (requests.length !== start) {
+    throw new Error(`${action} unexpectedly called a tool.`);
+  }
+}
+
+async function readReaderState(frame: Frame): Promise<ReaderState> {
+  return frame.locator("sefaria-reader").evaluate((reader) => {
+    const model = (
+      reader as HTMLElement & {
+        viewModel: {
+          currentEntryId: string;
+          label: string;
+          connections?: {
+            state: string;
+            viewModel?: {
+              state: string;
+              category: string | null;
+              page: number;
+              total: number;
+              entries?: Array<{ targetRef: string }>;
+            };
+          };
+        };
+      }
+    ).viewModel;
+    if (
+      model.connections?.state !== "component" ||
+      model.connections.viewModel?.state !== "data"
+    ) {
+      throw new Error("Reader connections are unavailable.");
+    }
+    return {
+      currentEntryId: model.currentEntryId,
+      label: model.label,
+      category: model.connections.viewModel.category,
+      page: model.connections.viewModel.page,
+      total: model.connections.viewModel.total,
+      targetRefs:
+        model.connections.viewModel.entries?.map((entry) => entry.targetRef) ??
+        [],
+    };
+  });
+}
+
+async function waitForReaderState(
+  frame: Frame,
+  expected: Partial<
+    Pick<
+      ReaderState,
+      "currentEntryId" | "label" | "category" | "page" | "total"
+    >
+  >,
+): Promise<ReaderState> {
+  let state: ReaderState | undefined;
+  for (let attempt = 0; attempt < 100; attempt += 1) {
+    try {
+      state = await readReaderState(frame);
+      const matches = Object.entries(expected).every(
+        ([key, value]) => state?.[key as keyof ReaderState] === value,
+      );
+      if (matches) return state;
+    } catch {
+      // The Reader can briefly expose a loading projection between host calls.
+    }
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  }
+  throw new Error(
+    `Expected Reader state ${JSON.stringify(expected)}, received ${JSON.stringify(state)}.`,
+  );
+}
+
+function createDeterministicFetch(log: RecordedRequest[]): typeof fetch {
+  const supportedReferences = new Set([
+    "Micah 6:8",
+    "Invalid 1:1",
+    "Denied 1:1",
+    "Slow 1:1",
+    ...deterministicLinksFixture.flatMap((link) =>
+      typeof link.ref === "string" ? [link.ref] : [],
+    ),
+  ]);
+  const deterministicFetch = async (
+    input: string | URL | Request,
+    init?: RequestInit,
+  ): Promise<Response> => {
+    const url = new URL(
+      typeof input === "string"
+        ? input
+        : input instanceof URL
+          ? input.href
+          : input.url,
+    );
+    const method = (
+      init?.method ?? (input instanceof Request ? input.method : "GET")
+    ).toUpperCase();
+    if (method !== "GET") {
+      throw new Error(`Unexpected deterministic method ${method}.`);
+    }
+    if (url.origin !== "https://www.sefaria.org") {
+      throw new Error(`Unexpected deterministic origin ${url.origin}.`);
+    }
+
+    const textPrefix = "/api/v3/texts/";
+    const linksPrefix = "/api/links/";
+    let reference: string;
+    if (url.pathname.startsWith(textPrefix)) {
+      reference = decodeURIComponent(url.pathname.slice(textPrefix.length));
+      assertExactQuery(
+        url,
+        "version=primary&version=translation&return_format=default",
+      );
+    } else if (url.pathname.startsWith(linksPrefix)) {
+      reference = decodeURIComponent(url.pathname.slice(linksPrefix.length));
+      assertExactQuery(url, "with_text=1&with_sheet_links=0");
+    } else {
+      throw new Error(`Unexpected deterministic path ${url.pathname}.`);
+    }
+    if (!supportedReferences.has(reference)) {
+      throw new Error(`Unexpected deterministic reference ${reference}.`);
+    }
+
+    log.push({ method, origin: url.origin, url: url.href });
+    if (url.pathname.startsWith(textPrefix)) {
+      if (reference === "Invalid 1:1") {
+        return Response.json({ versions: "wrong" });
+      }
+      if (reference === "Denied 1:1") {
+        return new Response("denied", { status: 503 });
+      }
+      if (reference === "Slow 1:1") {
+        await new Promise<void>((resolve, reject) => {
+          const timer = setTimeout(resolve, 2_000);
+          init?.signal?.addEventListener(
+            "abort",
+            () => {
+              clearTimeout(timer);
+              reject(new DOMException("Aborted", "AbortError"));
+            },
+            { once: true },
+          );
+        });
+      }
+      return Response.json(textPayload(reference));
+    }
+    return Response.json(deterministicLinksFixture);
+  };
+  return deterministicFetch as typeof fetch;
+}
+
+function assertExactQuery(url: URL, expected: string): void {
+  if (url.searchParams.toString() !== expected) {
+    throw new Error(
+      `Unexpected deterministic query ${url.search}; expected ?${expected}.`,
+    );
+  }
+}
+
+async function verifyDeterministicFetchRejectsUnexpectedRequests(
+  fetchImpl: typeof fetch,
+): Promise<void> {
+  const text = textUrl("Micah 6:8");
+  const probes: ReadonlyArray<
+    readonly [string, string | URL, RequestInit | undefined]
+  > = [
+    ["method", text, { method: "POST" }],
+    ["origin", text.replace("www.sefaria.org", "example.test"), undefined],
+    ["reference", textUrl("Genesis 1:1"), undefined],
+    [
+      "text query",
+      "https://www.sefaria.org/api/v3/texts/Micah%206%3A8?version=primary&return_format=default",
+      undefined,
+    ],
+    ["links query", `${linksUrl("Micah 6:8", "1")}&unexpected=1`, undefined],
+  ];
+  for (const [name, input, init] of probes) {
+    let rejected = false;
+    try {
+      await fetchImpl(input, init);
+    } catch {
+      rejected = true;
+    }
+    if (!rejected) {
+      throw new Error(
+        `The deterministic fetch admitted an unsupported ${name}.`,
+      );
+    }
+  }
+}
+
+function expandLinksFixture(
+  source: Array<Record<string, unknown>>,
+): Array<Record<string, unknown>> {
+  const commentary = source.find((link) => link.category === "Commentary");
+  if (!commentary) {
+    throw new Error("The deterministic links fixture lacks Commentary.");
+  }
+  const nonCommentary = source.filter((link) => link.category !== "Commentary");
+  const expandedCommentary = Array.from({ length: 25 }, (_, index) => {
+    const number = index + 1;
+    const reference = `Rashi on Genesis 1:1:${number}`;
+    return {
+      ...structuredClone(commentary),
+      _id: `deterministic-commentary-${number}`,
+      commentaryNum: number,
+      ref: reference,
+      sourceRef: reference,
+    };
+  });
+  return [...nonCommentary, ...expandedCommentary];
+}
+
+function textUrl(reference: string): string {
+  return `https://www.sefaria.org/api/v3/texts/${encodeURIComponent(reference)}?version=primary&version=translation&return_format=default`;
+}
+
+function linksUrl(reference: string, withText: "0" | "1"): string {
+  return `https://www.sefaria.org/api/links/${encodeURIComponent(reference)}?with_text=${withText}&with_sheet_links=0`;
 }
 
 function textPayload(reference: string) {
