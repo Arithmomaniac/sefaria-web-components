@@ -96,21 +96,21 @@ async function startStaticServer(
       ) {
         return;
       }
-      const relative =
-        requestPath === "/" ? "index.html" : requestPath.slice(1);
-      const file = path.resolve(root, relative);
-      if (
-        !file.startsWith(`${path.resolve(root)}${path.sep}`) ||
-        !existsSync(file)
-      ) {
+      const candidate = resolveStaticFile(root, requestPath);
+      if (!candidate) {
         response.writeHead(404).end("Not found");
         return;
       }
-      const candidate = statSync(file).isDirectory()
-        ? path.join(file, "index.html")
-        : file;
       response.setHeader("content-type", contentType(candidate));
-      createReadStream(candidate).pipe(response);
+      const stream = createReadStream(candidate);
+      stream.once("error", (error) => {
+        if (!response.headersSent) {
+          response.writeHead(500).end(errorMessage(error));
+        } else {
+          response.destroy(error);
+        }
+      });
+      stream.pipe(response);
     } catch (error) {
       response.writeHead(400).end(errorMessage(error));
     }
@@ -130,6 +130,24 @@ async function startStaticServer(
         server.close((error) => (error ? reject(error) : resolve())),
       ),
   };
+}
+
+export function resolveStaticFile(
+  root: string,
+  requestPath: string,
+): string | undefined {
+  const relative = requestPath === "/" ? "index.html" : requestPath.slice(1);
+  const rootPath = path.resolve(root);
+  const file = path.resolve(rootPath, relative);
+  if (!file.startsWith(`${rootPath}${path.sep}`) || !existsSync(file)) {
+    return undefined;
+  }
+  const candidate = statSync(file).isDirectory()
+    ? path.join(file, "index.html")
+    : file;
+  return existsSync(candidate) && statSync(candidate).isFile()
+    ? candidate
+    : undefined;
 }
 
 export function buildCspHeader(value: string | null): string {

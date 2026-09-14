@@ -1,3 +1,5 @@
+import { fileURLToPath } from "node:url";
+
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
@@ -6,7 +8,7 @@ import { afterEach, expect, test, vi } from "vitest";
 import linksFixture from "../../../../packages/client/test/fixtures/links-connections-preview-2026-09-06.json";
 import textFixture from "../../../../packages/client/test/fixtures/v3-text-spanning-2026-08-29.json";
 import { startMcpHttpServer, type StartedHttpServer } from "./http-server.js";
-import { buildCspHeader } from "./local-environment.js";
+import { buildCspHeader, resolveStaticFile } from "./local-environment.js";
 import { createMcpServer } from "./server.js";
 import {
   MAX_LINKS,
@@ -135,6 +137,11 @@ test("rejects browser origins outside the configured reference host", async () =
 
 test("falls back to the restrictive default CSP for malformed metadata", () => {
   expect(buildCspHeader("not-json")).toBe(buildCspHeader(null));
+});
+
+test("does not stream a directory that has no index file", () => {
+  const serverSource = fileURLToPath(new URL(".", import.meta.url));
+  expect(resolveStaticFile(serverSource, "/")).toBeUndefined();
 });
 
 test("preserves repeated v3 version query values", () => {
