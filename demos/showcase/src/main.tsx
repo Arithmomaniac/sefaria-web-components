@@ -428,11 +428,14 @@ function demoCode(kind: DemoKind): {
   }
   if (kind === "linker") {
     return {
-      source: `<!-- Minimal embed; the preview also reports status and aborts scans. -->
-<script src="https://…/sefaria-linker.js"></script>
-<script>
-  addEventListener("sefaria-linker-ready", () => SefariaLinker.link());
-</script>`,
+      source: `<a
+  href="https://www.sefaria.org/Micah.6.8"
+  data-sefaria-ref="Micah 6:8"
+>
+  Micah 6:8
+</a>
+
+<!-- The page calls loadPopupViewModel after eligible activation. -->`,
       language: "markup",
       label: "HTML",
     };

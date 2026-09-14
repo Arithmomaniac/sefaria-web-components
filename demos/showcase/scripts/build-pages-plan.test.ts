@@ -8,19 +8,13 @@ import {
 
 describe("Pages build plan", () => {
   it("keeps standalone builds typechecked", () => {
-    const commands = createBuildCommands({
-      linkerUrl: "https://example.test/sefaria-linker.js",
-      skipTypecheck: false,
-    });
+    const commands = createBuildCommands({ skipTypecheck: false });
 
     expect(commands.every((command) => command.args[2] === "build")).toBe(true);
   });
 
   it("uses bundle-only commands after the repository typecheck has passed", () => {
-    const commands = createBuildCommands({
-      linkerUrl: "https://example.test/sefaria-linker.js",
-      skipTypecheck: true,
-    });
+    const commands = createBuildCommands({ skipTypecheck: true });
 
     expect(commands).toHaveLength(4);
     expect(commands.every((command) => command.args[2] === "exec")).toBe(true);
@@ -33,6 +27,7 @@ describe("Pages build plan", () => {
     expect(PAGE_DEMOS).toEqual([
       ["explorer", "@sefaria-example/explorer"],
       ["reader-workspace", "@sefaria-example/reader"],
+      ["linker", "@sefaria-example/linked-article"],
     ]);
     expect(LEGACY_DEMO_REDIRECTS).toEqual([
       ["component-lab", "authored.html"],

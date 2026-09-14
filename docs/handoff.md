@@ -20,7 +20,7 @@ The same pieces support both packaged and host-specific compositions:
 | Text, bilingual, reference, source-card, and connections primitives | [Developer explorer](../examples/explorer/index.html) |
 | Supported packaged Reader | `examples/reader/controlled.html` |
 | Custom host-owned spatial reading workflow | `examples/reader/index.html` |
-| Reading surfaces embedded in an ordinary page | [Linker demonstration](linker-demo.md) |
+| Reading surfaces embedded in an ordinary page | [Authored linked article](linked-article.md) |
 | The Reader delivered through an MCP App | [MCP App demonstration](mcp-app-demo.md) |
 | Guided explanation of the complete story | [Public showcase](https://arithmomaniac.github.io/sefaria-web-components/) |
 
@@ -34,7 +34,7 @@ The Reader is one composition of the reusable contracts, not the whole product. 
 | `packages/text-transform` | Pure sanitization, vocalization, footnotes, and connected-text previews |
 | `packages/web-components` | Component request types, view models, pure/async factories, reader session/controller, and request-free elements |
 | `examples/explorer` | Authored component states and live developer diagnostics |
-| `examples/reader`, `demos/linker`, `demos/mcp`, `demos/showcase` | Distinct website, embedding, host-transport, and presentation examples |
+| `examples/reader`, `examples/linked-article`, `demos/mcp`, `demos/showcase` | Distinct website, embedding, host-transport, and presentation examples |
 | `docs/specs` | Intended behavior and acceptance rules |
 | `docs/evidence.md` | Upstream observations, deployed fixtures, captures, and provenance |
 

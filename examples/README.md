@@ -43,7 +43,9 @@ The [React Vite example](react-vite/README.md) demonstrates custom host integrat
 
 ## Article and MCP host integration
 
-This catalog lists maintained runnable destinations only. Article and MCP entries are intentionally omitted until their independently owned example directories are present in this branch.
+The [authored linked article](linked-article/) progressively enhances ordinary Micah 6:8 Sefaria anchors with a request-free popup while preserving JavaScript-disabled and modifier-key navigation. The page owns its cache-disabled client and factory calls, cancellation, stale suppression, visible failures, and cleanup; its [README](linked-article/README.md) identifies the public subpaths and runnable source.
+
+The MCP entry remains omitted until its independently owned example directory is present in this branch.
 
 ## Curation disposition
 
@@ -52,6 +54,7 @@ This catalog lists maintained runnable destinations only. Article and MCP entrie
 | Authored explorer state arrays | Retained unchanged in the deep-linkable authored workbench. |
 | Five live component pages and contextual connections reader | Retained as explicit live actions; no authored scenario silently triggers them. |
 | Controlled and spatial Reader demos | Retained separately with responsibility guidance and `?tref=` deep links. |
+| Linker detection and bookmarklet demos | Replaced by the maintained authored linked article; the historical Pages route remains available for existing links. |
 | Showcase payload → view model → element explanation | Consolidated into maintained source/diagnostic panels and public-package descriptions without copying slide lifecycle code. |
 | Showcase React property/factory bindings | Backfilled into `react-vite` with production-path browser tests, real events, and cleanup; no runtime import from the showcase remains. |
 | Showcase theme and large-slide resize mechanics | The reusable theme/width teaching is retained in maintained examples. Reveal navigation, iframe activation messaging, video handling, and presentation media remain presentation-only and stay in place for the later documentation slice. |

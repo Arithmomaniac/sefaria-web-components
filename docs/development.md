@@ -38,9 +38,9 @@ For reader-oriented explanations, use the friendly guides rather than the archiv
 | `examples/explorer` | Provides one developer surface for request-free authored states and opt-in live pages for reference labels, text segments, bilingual segments, source cards, and contextual connections. Loading the landing page does not start every live request. |
 | `examples/reader` | Demonstrates a regular website host with viewport-height spatial panes over the lower-level reader session and shared browser data source, plus an interactive host that uses `loadReaderController` and `bindReaderController` with the supported `<sefaria-reader>` component. |
 | `examples/vanilla-vite` | Exercises installed public client, source-card factory, and custom-element registration paths with a deterministic validated `Micah 6:8` response. |
+| `examples/linked-article` | Progressively enhances authored Sefaria anchors with the public popup factory while preserving native navigation, page-owned cancellation, visible failures, and request-free rendering. |
 | `demos/mcp` | Exposes live `get_text` and adaptive `get_links_between_texts` tools, packages a single-file App, validates corrected payloads and metadata, seeds one stateful reader with zero initial requests, continues through host-proxied same-App tool calls, retains local breadcrumbs, and provides an authenticated isolated VS Code hierarchy walkthrough with separate explicit chat export. |
-| `demos/showcase` | Presents the supported controller-backed Reader, a separate manually composed side-by-side source/connections workflow, the Linker, and captured integrated MCP Reader evidence in the Reveal.js GitHub Pages deck. |
-| `demos/linker` | Builds an embeddable classic script, bookmarklet loader, automatic and no-autostart article pages, asynchronous citation detection, safe DOM linking, and request-free popups. Public hosting and broad live-site qualification remain external. |
+| `demos/showcase` | Presents the supported controller-backed Reader, a separate manually composed side-by-side source/connections workflow, the authored linked article, and captured integrated MCP Reader evidence in the Reveal.js GitHub Pages deck. |
 | `tests/compatibility` | Delivers focused pinned client and transform comparisons, a composed v3 validate-to-transform smoke case, and grouped qualification output without network access. The evidence is representative and non-exhaustive. |
 
 ## What changed from earlier plans
@@ -61,10 +61,9 @@ These are remaining intended capabilities, not removed plans. A scaffold, comman
 
 | Planned capability | Intended result | Contract |
 | --- | --- | --- |
-| Public Linker hosting and broader live-site qualification | Host the built artifact and prove the bounded integration against representative third-party sites and browser policies | [Linker demonstration](linker-demo.md), [Linker integration](specs/integrations.md#linker-script-purpose) |
 | Broader compatibility coverage | Extend the small current suite with additional source-backed cases, without promising exhaustive corpus equivalence | [Compatibility evidence](evidence.md#current-focused-compatibility-qualification) |
 
-The client, text-transform foundations, current components, controlled reader, contextual and multi-pane website reader demos, same-App MCP reader, named-host hierarchy acceptance, explicit chat export, and Linker demonstration are already delivered. New component slices still need concrete consumers; they do not justify restoring the superseded generalized model or hidden client policies.
+The client, text-transform foundations, current components, controlled reader, contextual and multi-pane website reader demos, same-App MCP reader, named-host hierarchy acceptance, explicit chat export, and authored linked article are already delivered. New component slices still need concrete consumers; they do not justify restoring the superseded generalized model or hidden client policies.
 
 ## Technology
 
@@ -103,7 +102,7 @@ pnpm build:pages
 pnpm preview:pages
 ```
 
-The generated `dist/pages` directory puts the deck at the site root, the consolidated developer explorer under `demos/explorer/`, the packaged and spatial Reader pages under `demos/reader-workspace/`, compatibility redirects at the other legacy demo subpaths, and the Linker artifact under `demos/linker/`. The retained source packages live under `examples/`; the temporary Pages routes remain compatible with the existing website. In GitHub Actions, the build derives the public Linker URL from `GITHUB_REPOSITORY`. For another public location, set `SEFARIA_PAGES_URL` to the HTTPS site root before `pnpm build:pages`.
+The generated `dist/pages` directory puts the deck at the site root, the consolidated developer explorer under `demos/explorer/`, the packaged and spatial Reader pages under `demos/reader-workspace/`, compatibility redirects at the other legacy demo subpaths, and the authored linked article under the stable `demos/linker/` route. The retained source packages live under `examples/`; the temporary Pages routes remain compatible with the existing website.
 
 `pnpm build:pages` typechecks each included demo before bundling it so the command remains safe to run independently. CI runs `pnpm build:pages:bundles` only after `pnpm check` has already completed the workspace typecheck; that command rebuilds the Pages bundles with their publication-specific base URLs without repeating TypeScript compilation.
 
@@ -119,7 +118,7 @@ Public screenshots live under `demos/showcase/public/media` with `manifest.json`
 | `tests/compatibility` | Pinned compatibility evidence for retained pure behavior |
 | `examples/explorer` | Request-free authored states and opt-in live diagnostics for component primitives and contextual connections |
 | `demos/mcp` | Corrected-payload MCP boundary, live FastMCP server, self-contained App, and isolated VS Code acceptance tooling |
-| `demos/linker` | Third-party citation detection, DOM linking, and popup integration |
+| `examples/linked-article` | Authored native citation navigation and page-owned popup integration |
 | `examples/reader` | Interactive multi-pane website host and controlled `<sefaria-reader>` host over the DOM-free reader session |
 | `examples/vanilla-vite` | Minimal deterministic public-package consumption path |
 | `demos/showcase` | Reveal.js GitHub Pages showcase, React factory bindings, resizable preview viewports, and static Pages assembly |
@@ -413,24 +412,15 @@ pnpm --filter @sefaria-demo/mcp-app dev
 
 The development URL uses `?standalone=1` and explains that a host tool result is required. Browser tests exercise successful, invalid-payload, and documented-error rendering without a host.
 
-## Run the Linker demonstration
+## Run the authored linked article
 
 ```powershell
-pnpm dev:linker
+pnpm dev:linked-article
 ```
 
-The development server shows the authored article page. It loads the same classic script produced for embedding and calls `SefariaLinker.link()` after the artifact is ready.
+The development server shows the authored article page. The native citation is present in static HTML; the module enhancement calls the public popup factory only after an eligible unmodified activation.
 
-The [Linker demonstration guide](linker-demo.md) covers embedding, the bookmarklet, configuration, safety bounds, and host-policy limitations. The local integration is implemented; public hosting and broader live-site qualification remain external.
-
-Build the distributable files with:
-
-```powershell
-$env:SEFARIA_LINKER_ARTIFACT_URL = "https://example.org/assets/sefaria-linker.js"
-pnpm --filter @sefaria-demo/linker build
-```
-
-The configured URL is written only into `dist/bookmarklet.txt`. The script itself keeps the Sefaria API origin configurable through `SefariaLinker.link({ baseUrl })`.
+The [authored linked-article guide](linked-article.md) covers native fallback, page-owned request lifecycle, strict deterministic transport, and the immutable archive for the retired automatic Linker.
 
 ## Build artifacts
 
@@ -448,12 +438,7 @@ pnpm build:mcp
 
 The App build creates `demos/mcp/app/dist/mcp-app.html`.
 
-The Linker build creates:
-
-- `demos/linker/dist/sefaria-linker.js`
-- `demos/linker/dist/bookmarklet.txt`
-- `demos/linker/dist/index.html`
-- `demos/linker/dist/bookmarklet-demo.html`
+The linked-article build creates `examples/linked-article/dist`.
 
 If a required input file is missing, staging stops.
 
