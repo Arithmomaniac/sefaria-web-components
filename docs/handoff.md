@@ -34,7 +34,7 @@ The Reader is one composition of the reusable contracts, not the whole product. 
 | `packages/text-transform` | Pure sanitization, vocalization, footnotes, and connected-text previews |
 | `packages/web-components` | Component request types, view models, pure/async factories, reader session/controller, and request-free elements |
 | `examples/explorer` | Authored component states and live developer diagnostics |
-| `examples/reader`, `examples/linked-article`, `demos/mcp`, `demos/showcase` | Distinct website, embedding, host-transport, and presentation examples |
+| `examples/reader`, `examples/linked-article`, `examples/mcp-app`, `demos/showcase` | Distinct website, embedding, host-transport, and presentation examples |
 | `docs/specs` | Intended behavior and acceptance rules |
 | `docs/evidence.md` | Upstream observations, deployed fixtures, captures, and provenance |
 

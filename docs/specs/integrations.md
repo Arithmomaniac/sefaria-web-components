@@ -28,7 +28,7 @@ Live examples call the deployed Sefaria API by default. Network, abort, contract
 
 Interactive demonstrations run in same-origin iframe viewports so resizing changes their actual CSS viewport width and container-query behavior. The frame scrolls independently, inherits the deck's resolved light/dark theme and font tokens, and stays mounted after its first visit. Unvisited examples make no request. Leaving a pending example aborts or supersedes its work; returning exposes retained completed content or an explicit interrupted state rather than retrying invisibly.
 
-The deck displays captured MCP Reader screenshots, but GitHub Pages does not run the Python MCP server. The gallery shows the initial stateful Reader, retained same-App hierarchy, and explicit nested-reference chat export. Screenshot galleries identify recorded evidence and do not imitate an interactive MCP host. Public assets include provenance and exclude authenticated, private, or unrelated browser content.
+The deck displays captured MCP Reader screenshots, but GitHub Pages does not run the Node MCP server or browser host. The gallery shows the initial stateful Reader, retained same-App hierarchy, and explicit nested-reference chat export. Screenshot galleries identify recorded evidence and do not imitate an interactive MCP host. Public assets include provenance and exclude authenticated, private, or unrelated browser content.
 
 The Pages artifact contains an allowlisted set of built browser demonstrations. The deck is the site root, and existing demonstrations remain under stable subpaths, including the authored linked article at the historical Linker route. Pull requests build and test the artifact without publishing; main publishes only after the normal checks and asset approval gates.
 
@@ -82,7 +82,7 @@ The App is a self-contained HTML resource. The MCP server can package it without
 
 The integrated reader keeps one `@sefaria/web-components/reader-controller` instance in the TypeScript App instance. Its first render constructs the controller from already validated source or connections content and performs zero requests. Later controller operations use an MCP-specific reader data source whose only transport is a supported host-proxied tool call. The browser-client `loadReaderController` path is not reachable from the MCP App.
 
-The Python tools remain stateless. Each tool result must carry the corrected payload plus effective request metadata sufficient to construct admitted reader content: source reference and edition selectors for text, or reference and resolved `with_text` coverage for links. The App validates both payload and metadata before controller admission. Python does not store reader history, controller snapshots, operation IDs, or expiration state.
+The Node tools remain stateless. Each tool result must carry the corrected payload plus effective request metadata sufficient to construct admitted reader content: source reference and edition selectors for text, or reference and resolved `with_text` coverage for links. The App validates both payload and metadata before controller admission. The server does not store reader history, controller snapshots, operation IDs, or expiration state.
 
 The qualified VS Code host advertises `serverTools`, omits `hostContext.toolInfo`, and routes bare `get_text` and `get_links_between_texts` App calls to the originating server. The first integrated reader therefore supports those two bare names only after the host advertises `serverTools`. It does not derive a namespace, list unrelated tools, send a chat message as a transport fallback, or call Sefaria directly. Another host must be qualified separately; unavailable, rejected, malformed, or mismatched tool results remain explicit reader or integration failures.
 
@@ -101,7 +101,7 @@ The current MCP server exposes `get_text`, which progressively enhances the offi
 
 The tool keeps the official MCP server's `source`, `english`, and `both` input vocabulary, but maps those choices to the source-card rendering roles. `source` sends one `version=primary` query value, `english` sends one `version=translation` query value, and `both` sends repeated `version=primary` and `version=translation` query values. It always sends `return_format=default`. This distinction matters for texts such as Kuzari, where the API's original-language `source` version is not necessarily the database's `isPrimary` version consumed by the source-card factory.
 
-The Python server owns the live request to `https://www.sefaria.org/api/v3/texts/{tref}`. The App does not request Sefaria.
+The Node server owns the live request to `https://www.sefaria.org/api/v3/texts/{tref}`. The App does not request Sefaria.
 
 One tool result serves both host capabilities:
 
@@ -252,20 +252,30 @@ For the same payload and deterministic inputs, each server-provided mode and its
 
 Server-provided mode does not send rendered component HTML. The repository defines no HTML server-rendering or hydration contract.
 
-## MCP resource contract
+## Node MCP resource contract
 
-| Item          | Value                                       |
-| ------------- | ------------------------------------------- |
-| Build command | `pnpm --filter @sefaria-demo/mcp-app build` |
-| Built file    | `demos/mcp/app/dist/mcp-app.html`           |
-| Resource URI  | `ui://sefaria/source-card.html`             |
-| MIME type     | `text/html;profile=mcp-app`                 |
+**Source authority:** this specification owns intended integration behavior; the corrected `@sefaria/client` schemas own transport payload validation; the MCP Apps 1.7.5 and MCP TypeScript SDK 1.30.0 APIs own protocol and host mechanics.
 
-The HTML file must not contain development-server URLs. It uses the host theme and supported host fonts with Sefaria token defaults.
+**Data owner:** the Node MCP server owns Sefaria requests, decoded-response bounds, corrected payload validation, tool metadata, and textual summaries. Each initialized MCP protocol server instance owns its negotiated client capabilities. The App owns boundary validation and Reader admission. The local browser host owns MCP client transport, AppBridge, sandbox isolation, and host-mediated tool calls; it does not own Reader history.
 
-## FastMCP demonstration server
+**Exact failure replaced:** the former Python/FastMCP runtime could not provide the approved Node-only stdio and Streamable HTTP package, and a process-global Apps flag could make an omitted `with_text` value depend on another client's initialization.
 
-The demonstration server remains small and additive. It proves the live requests, capability resolution, resource, tool-result, package-data, and unknown-JSON boundaries.
+**Executable red counterexample:** initialize one Apps-capable HTTP session and one plain HTTP session, interleave omitted-`with_text` calls, and require `"1"` and `"0"` respectively while explicit values still win. A shared mutable capability flag fails this sequence. Independently, a browser test must invoke the real HTTP server through the host, load the `ui://` resource through AppBridge in a separately served sandbox origin, admit a text seed without a duplicate source call, and observe exactly one links continuation; a static preview or protocol-only client cannot satisfy that scenario.
+
+| Item          | Value                                          |
+| ------------- | ---------------------------------------------- |
+| Build command | `pnpm --filter @sefaria-example/mcp-app build` |
+| Built file    | `examples/mcp-app/dist/app/mcp-app.html`       |
+| Resource URI  | `ui://sefaria/source-card.html`                |
+| MIME type     | `text/html;profile=mcp-app`                    |
+
+The private example compiles a Node server with stdio and Streamable HTTP entry modes and packages the App as one self-contained HTML file. The same tool implementation is registered into a fresh protocol server for stdio and into one protocol server per initialized HTTP session. Opening or closing a transport does not create shared Reader history.
+
+The HTML file must not contain development-server URLs. It uses the host theme and supported host fonts with Sefaria token defaults. It requests Sefaria data only through host-mediated tools and never calls Sefaria directly.
+
+## Node demonstration server
+
+The demonstration server remains small and additive. It proves the live requests, per-client capability resolution, resource, tool-result, package-data, and unknown-JSON boundaries.
 
 The server contains:
 
@@ -275,19 +285,36 @@ The server contains:
 - the self-contained App
 - validation with the generated TypeScript validator
 - in-memory integration tests with a mocked HTTP transport
-- installed-wheel package-data tests
+- compiled-package resource tests
+- official MCP Inspector stdio qualification
+- deterministic stdio and Streamable HTTP protocol tests
 
 The server does not contain copied Sefaria API logic, a response cache, retry policy, fallback payload, metrics, OAuth routes, Docker configuration, or unrelated tools.
 
-Repository checks make no live request. Python tests mock the Sefaria transport with representative corrected payloads and documented error payloads.
+Repository checks make no live request. TypeScript tests inject deterministic Sefaria transports with representative corrected payloads and documented error payloads.
 
 A `ui://` resource is an MCP resource, not an HTTP route. MCP handles `resources/read`.
 
-The server rejects a successful payload with more than 400 text leaves before it enters `structuredContent`. This bounds synchronous source-card projection and rendering; callers must request a narrower reference.
+The server rejects a successful payload with more than 400 text leaves before it enters `structuredContent`. This bounds synchronous source-card projection and rendering; callers must request a narrower reference. It also rejects a decoded links body larger than 5 MiB or a successful links array larger than 10,000 entries. Textual links summaries may cover at most 20 entries and 8,000 characters, but accepted `structuredContent` is never truncated.
+
+## Local reference host and fixture preview
+
+One local command starts the loopback-only Streamable HTTP server, a host origin, and a distinct sandbox origin, then opens a reference browser host that uses the official Apps `AppBridge` and sandbox handshake. The MCP HTTP server validates its loopback Host header and accepts browser requests only from that run's host origin. The sandbox CSP is delivered through an HTTP `Content-Security-Policy` header; malformed optional CSP metadata falls back to the restrictive default instead of terminating the local process. The host reads the registered MCP resource and sends its HTML through the bridge; it does not implement a private replacement protocol.
+
+The deterministic browser acceptance transport rejects every unexpected request and records the exact tool sequence. It proves:
+
+- a text-seeded admission performs zero duplicate source calls and then one links continuation
+- a links-seeded admission performs no continuation
+- opening a connection performs bounded source qualification and one links call
+- Back, retained breadcrumb activation, category changes, paging, and covered-preview changes remain local
+- malformed or partial metadata and payloads report structured paths before projection
+- cancellation, stale completion, and failed or denied tool calls cannot update a newer admitted result
+
+A separate static fixture preview is labeled as fixture-driven rendering only. It is useful for visual inspection but is not protocol, resource, AppBridge, sandbox, or request-count evidence.
 
 ## MCP host acceptance
 
-Core acceptance uses VS Code Copilot Chat as the named MCP Apps-compatible host for rendering, host-proxied same-App tool calls, retained reader history, local interaction, and explicit chat export. The App attempts `ui/message` only after explicit chat-export activation, even when the host omits the optional text-message capability advertisement, because the qualified VS Code host accepts that request and places its content in the composer.
+Optional local qualification uses VS Code Copilot Chat as the named MCP Apps-compatible host for rendering, host-proxied same-App tool calls, retained reader history, local interaction, and explicit chat export. It is not a CI prerequisite. The App attempts `ui/message` only after explicit chat-export activation, even when the host omits the optional text-message capability advertisement, because the qualified VS Code host accepts that request and places its content in the composer.
 
 Record:
 
@@ -309,7 +336,7 @@ The acceptance harness extends the existing isolated Playwright/CDP flow into on
 
 The harness tracks one initial App frame and requires all later reader stages to remain in that frame. Micah 6:8 must expose a second category, at least one category with more than 20 links, and two navigable connection hops for the live hierarchy stages; missing prerequisites fail with a concrete diagnostic instead of being skipped. Deterministic fixtures remain the authority for stable multi-category, multi-page, failure, cancellation, and metadata-only preview behavior. Genesis 1:1 is reserved for explicitly identified high-volume tests rather than ordinary examples.
 
-Each successful stage records a screenshot, and the run writes a machine-readable result with stages, selected references, host versions, artifacts, and any failure. A partial walkthrough exits nonzero. `capture:mcp:vscode` and `demo:mcp:vscode` execute the same assertions; the demo command additionally retains its current post-capture interactive relaunch.
+The walkthrough writes a machine-readable result with stages, selected references, host versions, artifacts, and any failure. A partial walkthrough exits nonzero. `walkthrough:mcp:vscode` runs the assertions without publishing screenshots. `capture:mcp:vscode` runs the same complete walkthrough, stages only the initial Reader, retained hierarchy, and explicit chat-export screenshots, and publishes those three files only after every stage succeeds. `launch:mcp:vscode` is a separate minimized launch-only path with no debugging port, smoke-test driver, CDP attachment, UI automation, prompt submission, or tool call.
 
 ## MCP acceptance criteria
 
@@ -325,10 +352,10 @@ Each successful stage records a screenshot, and the run writes a machine-readabl
 - The element receives only immutable `ReaderViewModel` replacements and visual or interaction properties.
 - The first render makes zero requests.
 - A source seed schedules one host-proxied links continuation; a connections-only seed schedules none.
-- A wheel test reads every packaged runtime artifact.
+- A compiled-package resource test reads every packaged runtime artifact.
 - Automated tests make no network request.
 - A successful payload larger than the source-card render limit fails as a tool error.
-- VS Code Copilot Chat renders the packaged reader from one initial `get_text` result.
+- The optional VS Code Copilot Chat qualification renders the packaged reader from one initial `get_text` result.
 - The connections tool resolves omitted `with_text` from the initialized client's Apps capability and preserves explicit `"0"` and `"1"` overrides.
 - One connections invocation performs one links request and returns the unchanged validated response inside the specified object envelope.
 - A successful links response larger than 5 MiB decoded or 10,000 entries fails explicitly without partial projection.

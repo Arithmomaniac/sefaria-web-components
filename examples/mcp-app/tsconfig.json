@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true
+  },
+  "include": [
+    "src/app.ts",
+    "src/main.ts",
+    "src/host/**/*.ts",
+    "scripts/**/*.ts",
+    "vite.config.ts",
+    "vite.host.config.ts"
+  ]
+}

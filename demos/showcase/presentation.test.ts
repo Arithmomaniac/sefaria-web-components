@@ -206,8 +206,8 @@ describe("showcase reader presentation", () => {
       readFile(
         path.join(
           repository,
-          "demos",
-          "mcp",
+          "examples",
+          "mcp-app",
           "scripts",
           "capture-vscode-host.ts",
         ),
@@ -225,7 +225,7 @@ describe("showcase reader presentation", () => {
     expect(main).toContain("mouseWheel: false");
     expect(video.byteLength).toBeGreaterThan(1_000_000);
     expect(capture).toContain(
-      "`Show me ${CONNECTIONS_REFERENCE} in Hebrew and English as an interactive Sefaria reader.`",
+      "`Use the sefaria-components-demo get_text tool to show ${CONNECTIONS_REFERENCE} in both languages.`",
     );
     expect(index.replace(/\s+/g, " ")).toContain(
       "recorded acceptance video from VS Code with Copilot Chat",
@@ -249,7 +249,7 @@ describe("showcase reader presentation", () => {
 
   it("allows the MCP reader to use a wide side-by-side surface", async () => {
     const app = await readFile(
-      path.join(repository, "demos", "mcp", "app", "mcp-app.html"),
+      path.join(repository, "examples", "mcp-app", "mcp-app.html"),
       "utf8",
     );
 

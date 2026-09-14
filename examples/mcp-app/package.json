@@ -1,0 +1,30 @@
+{
+  "name": "@sefaria-example/mcp-app",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@modelcontextprotocol/ext-apps": "1.7.5",
+    "@modelcontextprotocol/sdk": "1.30.0",
+    "@sefaria/client": "workspace:*",
+    "@sefaria/web-components": "workspace:*",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/inspector": "1.0.2"
+  },
+  "scripts": {
+    "build": "pnpm build:app && pnpm build:host && pnpm build:server",
+    "build:app": "vite build",
+    "build:host": "vite build --config vite.host.config.ts",
+    "build:server": "tsc -p tsconfig.server.json",
+    "demo": "node dist/server/demo.js",
+    "dev": "pnpm build && node dist/server/local.js",
+    "inspect:stdio": "mcp-inspector --cli node dist/server/stdio.js --method tools/list",
+    "preview:fixture": "pnpm build:app && vite preview --outDir dist/app --open /mcp-app.html?fixture=1",
+    "start:http": "node dist/server/http.js",
+    "start:stdio": "node dist/server/stdio.js",
+    "test:protocol": "vitest run src/server",
+    "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.server.json"
+  }
+}

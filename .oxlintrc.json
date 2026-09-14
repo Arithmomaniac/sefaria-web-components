@@ -12,8 +12,6 @@
   "plugins": ["typescript"],
   "ignorePatterns": [
     "**/dist/**",
-    "**/.pytest_cache/**",
-    "**/.venv/**",
     "**/node_modules/**",
     "**/src/generated/**",
     "coverage/**",

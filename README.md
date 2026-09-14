@@ -34,13 +34,13 @@ pnpm dev
 
 Open the local URL printed by Vite. The explorer separates deterministic authored states from live pages that use the production client, factory, and element path. Loading the explorer does not start every live request.
 
-The [development guide](docs/development.md) covers Corepack, the Python fixture, and the full contributor setup.
+The [development guide](docs/development.md) covers Corepack and the full contributor setup.
 
 ## What is available?
 
 The client, text transforms, text segment, bilingual segment, reference label, selectable source card, connections panel, request-free popup, contextual connections reader, DOM-free reader session and controller, controlled reader surface, authored linked-article example, and Core MCP App are implemented on the [documented implementation baseline](docs/development.md#implemented-on-this-baseline). A source card handles both a single segment and a collection of text from one response.
 
-Run `pnpm dev:reader` for the supported stateful Reader and lower-level spatial website demonstrations, `pnpm dev:connections` for the contextual diagnostic page in the explorer, or `pnpm dev:linked-article` for the progressively enhanced article. Run `pnpm demo:mcp:vscode` to open the isolated VS Code capture layout with fullscreen maximized Chat, only the Sefaria demo tools selected, and an empty composer; the [MCP App demonstration](docs/mcp-app-demo.md) covers the optional one-time sign-in and interactive workflow. The launcher does not type, submit a prompt, or call a tool. The MCP Reader has completed an authenticated walkthrough covering same-App connections, nested navigation, retained breadcrumbs, and explicit chat export. [Development](docs/development.md) separates current behavior, superseded plans, and remaining work.
+Run `pnpm dev:reader` for the supported stateful Reader and lower-level spatial website demonstrations, `pnpm dev:connections` for the contextual diagnostic page in the explorer, or `pnpm dev:linked-article` for the progressively enhanced article. Run `pnpm launch:mcp:vscode` to open the isolated VS Code environment minimized; the [MCP App demonstration](docs/mcp-app-demo.md) covers the optional one-time sign-in and interactive workflow. The launcher does not enable CDP, type, submit a prompt, or call a tool. The MCP Reader has completed an authenticated walkthrough covering same-App connections, nested navigation, retained breadcrumbs, and explicit chat export. [Development](docs/development.md) separates current behavior, superseded plans, and remaining work.
 
 ## License and ownership
 

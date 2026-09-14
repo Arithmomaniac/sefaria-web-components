@@ -15,6 +15,7 @@ packages/.sefaria-client-refresh-*/
 packages/client/test/.fixture-candidate-stage-*/
 
 # Test and coverage output
+.artifacts/
 coverage/
 .nyc_output/
 playwright-report/

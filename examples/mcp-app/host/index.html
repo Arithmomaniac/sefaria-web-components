@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sefaria MCP Apps reference host</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        font-family: system-ui, sans-serif;
+      }
+      body {
+        margin: 0;
+        padding: 1rem;
+      }
+      form {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        align-items: end;
+        margin-block-end: 1rem;
+      }
+      label {
+        display: grid;
+        gap: 0.25rem;
+      }
+      input,
+      select,
+      button {
+        font: inherit;
+        padding: 0.5rem;
+      }
+      iframe {
+        width: 100%;
+        min-height: 42rem;
+        border: 1px solid GrayText;
+      }
+      pre {
+        max-height: 14rem;
+        overflow: auto;
+        white-space: pre-wrap;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Sefaria MCP Apps reference host</h1>
+    <p>
+      This local host uses the official MCP Apps AppBridge and a separate
+      sandbox origin. It does not use an LLM account.
+    </p>
+    <form id="tool-form">
+      <label>
+        Tool
+        <select id="tool-name">
+          <option value="get_text">get_text</option>
+          <option value="get_links_between_texts">
+            get_links_between_texts
+          </option>
+        </select>
+      </label>
+      <label>
+        Reference
+        <input id="reference" value="Micah 6:8" />
+      </label>
+      <button type="submit">Call tool</button>
+    </form>
+    <p id="status" role="status">Connecting to the local MCP server.</p>
+    <iframe id="sandbox" title="Sandboxed Sefaria MCP App"></iframe>
+    <details>
+      <summary>Transport log</summary>
+      <pre id="log"></pre>
+    </details>
+    <script type="module" src="../src/host/main.ts"></script>
+  </body>
+</html>

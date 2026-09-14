@@ -22,13 +22,7 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
-      - uses: astral-sh/setup-uv@v10.0.1
-        with:
-          version: "0.11.23"
-          enable-cache: true
-          cache-dependency-glob: demos/mcp/fixture-server/requirements.lock
       - run: pnpm install --frozen-lockfile
-      - run: pnpm install:python
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm check
       - run: pnpm build:pages:bundles

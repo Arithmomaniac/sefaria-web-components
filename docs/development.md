@@ -39,7 +39,7 @@ For reader-oriented explanations, use the friendly guides rather than the archiv
 | `examples/reader` | Demonstrates a regular website host with viewport-height spatial panes over the lower-level reader session and shared browser data source, plus an interactive host that uses `loadReaderController` and `bindReaderController` with the supported `<sefaria-reader>` component. |
 | `examples/vanilla-vite` | Exercises installed public client, source-card factory, and custom-element registration paths with a deterministic validated `Micah 6:8` response. |
 | `examples/linked-article` | Progressively enhances authored Sefaria anchors with the public popup factory while preserving native navigation, page-owned cancellation, visible failures, and request-free rendering. |
-| `demos/mcp` | Exposes live `get_text` and adaptive `get_links_between_texts` tools, packages a single-file App, validates corrected payloads and metadata, seeds one stateful reader with zero initial requests, continues through host-proxied same-App tool calls, retains local breadcrumbs, and provides an authenticated isolated VS Code hierarchy walkthrough with separate explicit chat export. |
+| `examples/mcp-app` | Exposes compiled Node stdio and Streamable HTTP `get_text` and adaptive `get_links_between_texts` tools, packages a single-file App, validates corrected payloads and metadata, includes a separate-origin AppBridge reference host and deterministic request-count proof, and retains the optional authenticated isolated VS Code hierarchy walkthrough with separate explicit chat export. |
 | `demos/showcase` | Presents the supported controller-backed Reader, a separate manually composed side-by-side source/connections workflow, the authored linked article, and captured integrated MCP Reader evidence in the Reveal.js GitHub Pages deck. |
 | `tests/compatibility` | Delivers focused pinned client and transform comparisons, a composed v3 validate-to-transform smoke case, and grouped qualification output without network access. The evidence is representative and non-exhaustive. |
 
@@ -67,17 +67,16 @@ The client, text-transform foundations, current components, controlled reader, c
 
 ## Technology
 
-| Area                   | Technology                         |
-| ---------------------- | ---------------------------------- |
-| Workspace              | pnpm 11                            |
-| Language               | TypeScript 7                       |
-| Components             | Lit 3                              |
-| Browser builds         | Vite 8                             |
-| TypeScript tests       | Vitest 4 and Playwright            |
-| Python MCP server      | Python 3.10 or later and FastMCP 3 |
-| Python environment     | uv                                 |
-| Python checks          | Ruff, mypy, and pytest             |
-| Continuous integration | GitHub Actions                     |
+| Area                   | Technology                                       |
+| ---------------------- | ------------------------------------------------ |
+| Workspace              | pnpm 11                                          |
+| Language               | TypeScript 7                                     |
+| Components             | Lit 3                                            |
+| Browser builds         | Vite 8                                           |
+| TypeScript tests       | Vitest 4 and Playwright                          |
+| MCP server and App     | MCP TypeScript SDK 1.30.0 and MCP Apps SDK 1.7.5 |
+| MCP protocol inspector | MCP Inspector 1.0.2 on the compatible SDK 1 line |
+| Continuous integration | GitHub Actions                                   |
 
 TypeScript emits reusable ES modules. Vite builds the browser demonstrations and the single-file MCP App.
 
@@ -106,7 +105,7 @@ The generated `dist/pages` directory puts the deck at the site root, the consoli
 
 `pnpm build:pages` typechecks each included demo before bundling it so the command remains safe to run independently. CI runs `pnpm build:pages:bundles` only after `pnpm check` has already completed the workspace typecheck; that command rebuilds the Pages bundles with their publication-specific base URLs without repeating TypeScript compilation.
 
-Public screenshots live under `demos/showcase/public/media` with `manifest.json` provenance. The MCP slide displays the recorded stateful Reader, retained hierarchy, and explicit chat export from named-host acceptance; GitHub Pages does not run the Python MCP server. Confirm quotation permission and every public asset before enabling the Pages deployment.
+Public screenshots live under `demos/showcase/public/media` with `manifest.json` provenance. The MCP slide displays the recorded stateful Reader, retained hierarchy, and explicit chat export from named-host acceptance; GitHub Pages does not run the Node MCP server or browser host. Confirm quotation permission and every public asset before enabling the Pages deployment.
 
 ## Workspace
 
@@ -117,7 +116,7 @@ Public screenshots live under `demos/showcase/public/media` with `manifest.json`
 | `packages/web-components` | Non-DOM component factories and request-free Lit elements |
 | `tests/compatibility` | Pinned compatibility evidence for retained pure behavior |
 | `examples/explorer` | Request-free authored states and opt-in live diagnostics for component primitives and contextual connections |
-| `demos/mcp` | Corrected-payload MCP boundary, live FastMCP server, self-contained App, and isolated VS Code acceptance tooling |
+| `examples/mcp-app` | Corrected-payload Node MCP boundary, compiled stdio and Streamable HTTP servers, self-contained App, separate-origin AppBridge reference host, static fixture preview, and isolated VS Code qualification tooling |
 | `examples/linked-article` | Authored native citation navigation and page-owned popup integration |
 | `examples/reader` | Interactive multi-pane website host and controlled `<sefaria-reader>` host over the DOM-free reader session |
 | `examples/vanilla-vite` | Minimal deterministic public-package consumption path |
@@ -134,13 +133,7 @@ Running the browser demos requires:
 
 Browser tests also require Chromium through Playwright.
 
-Full `pnpm check` and MCP fixture checks also require:
-
-- uv 0.11.23
-- Python 3.10 or later
-- The locked Python dependencies, including FastMCP 3, installed by `pnpm install:python`
-
-An MCP Apps-compatible host is optional for local App development and required for host acceptance.
+The local deterministic browser acceptance uses the Playwright Chromium installation. An external MCP Apps-compatible host is optional for local App development and named-host qualification.
 
 ## Install the workspace
 
@@ -152,23 +145,11 @@ pnpm install
 pnpm exec playwright install chromium
 ```
 
-Before running the full check or Python/MCP fixture checks, also install the pinned Python fixture environment:
-
-```powershell
-pnpm install:python
-```
-
 If Corepack is unavailable, use the pinned fallback:
 
 ```powershell
 npx --yes pnpm@11.22.0 install
 npx --yes pnpm@11.22.0 exec playwright install chromium
-```
-
-For the full Python fixture setup with the fallback, run:
-
-```powershell
-npx --yes pnpm@11.22.0 install:python
 ```
 
 ## Current complete check
@@ -177,9 +158,9 @@ npx --yes pnpm@11.22.0 install:python
 pnpm check
 ```
 
-The current command checks stale OpenAPI output, then runs Prettier, Oxlint, Python static checks, TypeScript checks, freshly emitted API-documentation checks, tests, the offline focused compatibility qualification, builds, MCP staging, and Python tests. It prints the elapsed time and result of every completed stage, including the first failed stage, so a slow local run can be attributed without rerunning the complete gate. The qualification prints grouped pass, failure, unavailable-source, and intentional-difference results. It does not refresh network fixtures.
+The current command checks stale OpenAPI output, then runs Prettier, Oxlint, workspace builds, official Inspector stdio qualification, deterministic real HTTP/AppBridge browser acceptance, TypeScript checks, freshly emitted API-documentation checks, tests, the offline focused compatibility qualification, private tarball consumption, and changeset rehearsal. It prints the elapsed time and result of every completed stage, including the first failed stage, so a slow local run can be attributed without rerunning the complete gate. The qualification prints grouped pass, failure, unavailable-source, and intentional-difference results. It does not refresh network fixtures or contact Sefaria.
 
-The full check requires the Python fixture environment and includes MCP staging. Python formatting, linting, and typechecking run before the TypeScript gate so inexpensive Python failures stop early; tests that inspect the staged App remain at the end. Browser-only TypeScript demos do not require that Python setup. TypeScript projects use ignored incremental build-information files, which reduce repeated local typecheck and build work without changing emitted artifacts.
+The MCP acceptance transport rejects unexpected requests and uses the compiled Node server, registered resource, separate host and sandbox origins, and packaged App. TypeScript projects use ignored incremental build-information files, which reduce repeated local typecheck and build work without changing emitted artifacts.
 
 ## Current focused checks
 
@@ -203,13 +184,18 @@ Run the compatibility tests, including output semantics and network denial:
 pnpm exec vitest run tests/compatibility
 ```
 
-Run the Python checks:
+Run the official Inspector against the compiled stdio server:
 
 ```powershell
-pnpm check:python
+pnpm build:mcp
+pnpm --filter @sefaria-example/mcp-app inspect:stdio
 ```
 
-The Python command builds and stages the current MCP App before it runs Python checks.
+Run the deterministic stdio, Streamable HTTP, resource, AppBridge, sandbox, and browser acceptance:
+
+```powershell
+pnpm --filter @sefaria-example/mcp-app demo
+```
 
 ## OpenAPI workflow
 
@@ -336,27 +322,21 @@ pnpm dev:mcp
 
 The current command:
 
-1. Builds the single-file MCP App.
-2. Stages the App.
-3. Starts the FastMCP server over standard input and output.
+1. Builds the single-file MCP App, reference host, sandbox, and Node server.
+2. Starts the compiled Streamable HTTP server plus separate host and sandbox origins.
+3. Opens the reference browser host.
 
 The server exposes `get_text(reference, version_language="both")`. It requests the deployed Sefaria v3 texts endpoint and returns one progressive result: plain text for every host, corrected API-shaped `structuredContent`, request/status metadata, and the App resource. The public `source`, `english`, and `both` choices select the source-card primary and translation roles through `version=primary`, `version=translation`, or both repeated values. The App bundles the generated validator and source-card factory into the staged HTML; no separate validator or payload fixture is staged.
 
-VS Code reads the checked-in `.vscode/mcp.json`. It starts the server through `uv` with `${workspaceFolder}`, so the configuration stays portable across worktrees.
+VS Code reads the checked-in `.vscode/mcp.json`. It starts the compiled Node stdio server with `${workspaceFolder}`, so the configuration stays portable across worktrees.
 
 ```json
 {
   "servers": {
     "sefaria-components-demo": {
       "type": "stdio",
-      "command": "uv",
-      "args": [
-        "run",
-        "--no-sync",
-        "--directory",
-        "${workspaceFolder}/demos/mcp/fixture-server",
-        "sefaria-mcp-app-fixture"
-      ]
+      "command": "node",
+      "args": ["${workspaceFolder}/examples/mcp-app/dist/server/stdio.js"]
     }
   }
 }
@@ -380,37 +360,43 @@ Prepare the persistent isolated VS Code environment before the first automated r
 pnpm setup:mcp:vscode
 ```
 
-The command builds and stages the App, creates dedicated user-data, extensions, Copilot home, shared-data, and process-home directories under `%LOCALAPPDATA%\SefariaMcpDemo`, writes deterministic user settings, writes empty VS Code and Agent Host MCP configurations, clears stale chat and MCP tool caches without deleting authentication state, and opens the worktree in that environment. The profile disables MCP discovery, MCP gallery browsing, plugins, and Settings Sync; ignores extension recommendations; and uses the empty extensions directory so no user-installed extensions are loaded. `COPILOT_HOME`, `HOME`, and `USERPROFILE` point at dedicated directories so Agent Host and customization discovery do not load servers, settings, plugins, agents, or other state from the standard user home. The explicit shared-data directory prevents VS Code from reading application state from the machine-wide `.vscode-shared` directory. VS Code's bundled Copilot and core built-in extensions remain available.
+The command builds the App and Node server, creates dedicated user-data, extensions, Copilot home, shared-data, and process-home directories under `%LOCALAPPDATA%\SefariaMcpDemo`, writes deterministic user settings, writes empty VS Code and Agent Host MCP configurations, clears stale chat and MCP tool caches without deleting authentication state, and opens the worktree in that environment. The profile disables MCP discovery, MCP gallery browsing, plugins, and Settings Sync; ignores extension recommendations; and uses the empty extensions directory so no user-installed extensions are loaded. `COPILOT_HOME`, `HOME`, and `USERPROFILE` point at dedicated directories so Agent Host and customization discovery do not load servers, settings, plugins, agents, or other state from the standard user home. The explicit shared-data directory prevents VS Code from reading application state from the machine-wide `.vscode-shared` directory. VS Code's bundled Copilot and core built-in extensions remain available.
 
-The isolated Copilot permission file records approval only for the `sefaria-components-demo` MCP server for this worktree. VS Code `1.136.1` still presents its normal host approval control for the tool call, so the acceptance harness clicks **Allow in this Session**. It does not enable bypass permissions, broad MCP auto-approval, writes, terminal commands, URLs, or any other server.
+The isolated Copilot permission file records approval only for the `sefaria-components-demo` MCP server for this worktree. VS Code `1.137.0` still presents its normal host approval control for the tool call, so the acceptance harness clicks **Allow in this Session**. It does not enable bypass permissions, broad MCP auto-approval, writes, terminal commands, URLs, or any other server.
 
 Sign in to GitHub Copilot once in that window, confirm the `sefaria-components-demo` workspace server when prompted, and close the window. Authentication remains in the dedicated user-data directory and is not committed.
 
-The Playwright acceptance harness then launches a fresh VS Code process with that same user-data and extensions pair, connects over a reserved CDP port, accepts the narrow session approval, and runs the integrated Reader walkthrough. Screenshots remain in a temporary staging directory until every stage passes; then it publishes the screenshots and `docs/images/mcp-app-vscode-walkthrough.json`. A failed walkthrough preserves the previous outputs and reports its temporary diagnostic directory.
+The Playwright acceptance harness then launches a fresh VS Code process with that same user-data and extensions pair, connects over a reserved CDP port, accepts the narrow session approval, and runs the integrated Reader walkthrough. Screenshots remain under the ignored repository-local `.artifacts/vscode-mcp` staging area until every stage passes; then capture mode publishes the three maintained screenshots and `docs/images/mcp-app-vscode-walkthrough.json`. A failed walkthrough preserves the previous outputs and reports its diagnostic directory.
+
+```powershell
+pnpm walkthrough:mcp:vscode
+```
+
+The walkthrough writes its machine-readable result to `.artifacts/vscode-mcp/walkthrough.json` and publishes no screenshots. To run the same full walkthrough and, only after complete success, publish the three maintained initial Reader, retained hierarchy, and explicit chat-export screenshots plus `docs/images/mcp-app-vscode-walkthrough.json`:
 
 ```powershell
 pnpm capture:mcp:vscode
 ```
 
-To capture the Reader and keep the controlled VS Code window open for continued manual use:
+To open the prepared isolated workspace without automation:
 
 ```powershell
-pnpm demo:mcp:vscode
+pnpm launch:mcp:vscode
 ```
 
-On Windows, a small Python launcher uses the native minimized startup flag so automation does not take foreground focus while the user is typing elsewhere. The harness follows VS Code's own Playwright/CDP Chat smoke-test pattern and enables the built-in smoke-test driver only for the capture process. Data navigation stays in one App through host-proxied tools. Explicit chat export fills the real composer through `ui/message`; the harness verifies that text without submitting it and records `host-message`. After a successful `demo:mcp:vscode` capture, it closes that process and relaunches the same isolated workspace minimized without a debugging port or smoke-test driver. The demo command stays attached until the replacement VS Code window closes; restore it from the taskbar for continued manual use. `VSCODE_MCP_PROFILE_ROOT` overrides the default profile root. `VSCODE_USER_DATA_DIR`, `VSCODE_EXTENSIONS_DIR`, `VSCODE_EXECUTABLE_PATH`, `VSCODE_DEMO_PYTHON`, and `VSCODE_MCP_SCREENSHOT` override their individual paths. An unsigned profile fails with an explicit authentication message and retains diagnostics under the system temporary directory.
+On Windows, the Node commands use a narrow PowerShell native-process helper that calls `CreateProcessW` with `SW_SHOWMINIMIZED`, `CREATE_NEW_PROCESS_GROUP`, an exact quoted argument vector, the isolated environment, and the requested working directory. The helper returns the created process PID; cleanup closes that window and then terminates the exact remaining process tree if necessary. Only walkthrough and capture enable the smoke-test driver and a reserved debugging port. Launch-only does not attach CDP, drive the UI, submit a prompt, or call a tool. Data navigation during walkthrough remains in one App through host-proxied tools. Explicit chat export fills the real composer through `ui/message`; the harness verifies that text without submitting it and records `host-message`.
 
-For presentation capture, set `VSCODE_MCP_SHOWCASE=1` and an explicit `VSCODE_MCP_SCREENSHOT` path outside the public media directory. This selects the natural-language prompt, resets the configured zoom, enters fullscreen, and centers Chat before the same walkthrough. The isolated profile hides session history and sticky prompts. Native CDP screenshots avoid Electron zoom clipping, and bounded host-list scrolling keeps the Reader header visible. Inspect the initial, hierarchy, and export images before promoting those three files into the gallery; the result remains labeled `showcase-capture`, not a separate host qualification.
+`VSCODE_MCP_PROFILE_ROOT` overrides the default profile root. `VSCODE_USER_DATA_DIR`, `VSCODE_EXTENSIONS_DIR`, `VSCODE_EXECUTABLE_PATH`, `VSCODE_MCP_SCREENSHOT`, and `VSCODE_MCP_RESULT` override their individual paths. Failed walkthrough diagnostics remain under `.artifacts/vscode-mcp` and do not replace maintained screenshots or the maintained result.
 
 The dedicated user-data, shared-data, Copilot home, and process-home directories are intentionally separate from the standard VS Code and Agent Host profiles. This guarantees a distinct Electron process, makes the CDP port reliable even while normal VS Code windows are open, excludes standard-profile MCP servers and shared application state, and avoids copying authentication or secret-storage files. A normal named profile can share standard-profile authentication, but it does not provide the same process or Agent Host configuration isolation.
 
-Preview the current App without an MCP host:
+Preview a clearly labeled static fixture without an MCP host:
 
 ```powershell
-pnpm --filter @sefaria-demo/mcp-app dev
+pnpm --filter @sefaria-example/mcp-app preview:fixture
 ```
 
-The development URL uses `?standalone=1` and explains that a host tool result is required. Browser tests exercise successful, invalid-payload, and documented-error rendering without a host.
+This preview proves fixture-driven rendering only. It is not protocol, resource, AppBridge, sandbox, or request-count evidence.
 
 ## Run the authored linked article
 
@@ -430,13 +416,13 @@ Build all packages and demonstrations:
 pnpm build
 ```
 
-Build and stage only the current MCP App:
+Build only the current MCP App, host, sandbox, and Node server:
 
 ```powershell
 pnpm build:mcp
 ```
 
-The App build creates `demos/mcp/app/dist/mcp-app.html`.
+The App build creates `examples/mcp-app/dist/app/mcp-app.html`; compiled server entries are under `examples/mcp-app/dist/server`, and host assets are under `examples/mcp-app/dist/host`.
 
 The linked-article build creates `examples/linked-article/dist`.
 
@@ -464,28 +450,13 @@ Run `pnpm changeset:rehearse` to exercise the pinned private fixed group in a di
 
 ## Package index configuration
 
-Keep package-index configuration outside the repository.
-
-The Python lock is `demos/mcp/fixture-server/requirements.lock`. It contains exact versions and artifact hashes without a registry URL.
-
-After a change to `pyproject.toml`, refresh the portable lock:
-
-```powershell
-uv lock --directory demos/mcp/fixture-server
-uv export --directory demos/mcp/fixture-server --format requirements-txt --all-groups --no-header --output-file requirements.lock
-```
-
-Make sure that the generated file contains no private registry URL.
-
-pnpm can record mirror-specific tarball URLs. Make sure that `pnpm-lock.yaml` contains no private registry URL before a commit.
+Keep package-index configuration outside the repository. pnpm can record mirror-specific tarball URLs. Make sure that `pnpm-lock.yaml` contains no private registry URL before a commit.
 
 ## Tool boundaries
 
 Vite builds browser artifacts. TypeScript builds reusable ES modules.
 
-Vitest runs TypeScript unit tests. Vitest Browser Mode and Playwright run Lit tests in Chromium.
-
-pytest and the FastMCP in-memory client run Python integration tests.
+Vitest runs TypeScript unit and protocol tests. Vitest Browser Mode and Playwright run Lit tests in Chromium. The official MCP Inspector qualifies the compiled stdio server, and the deterministic local harness exercises the compiled stdio and Streamable HTTP transports through the real AppBridge host and packaged App.
 
 ### Why this repository uses Oxlint
 
