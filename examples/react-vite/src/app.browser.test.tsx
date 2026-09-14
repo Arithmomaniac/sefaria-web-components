@@ -263,6 +263,15 @@ test("shows thrown and local validation failures without a success fallback", as
   expect(container.querySelector("#request-count")?.textContent).toContain("1");
 
   await act(async () => {
+    setTextInput(container, 'input[name="tref"]', "   ");
+  });
+  await act(async () => click(container, "#load-live"));
+  expect(container.querySelector("#load-error")?.textContent).toBe(
+    "Enter a non-blank Sefaria reference.",
+  );
+  expect(fetch).toHaveBeenCalledOnce();
+
+  await act(async () => {
     root?.unmount();
   });
   root = createRoot(container);

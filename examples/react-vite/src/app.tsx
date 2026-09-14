@@ -232,7 +232,7 @@ export function ReactSourceCardExample({
 
       {loadFailure === undefined && inputFailure === undefined ? null : (
         <p id="load-error" className="failure" role="alert">
-          {loadFailure ?? inputFailure}
+          {inputFailure ?? loadFailure}
         </p>
       )}
 
