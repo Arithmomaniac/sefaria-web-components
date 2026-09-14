@@ -4,6 +4,7 @@ import type { SefariaSourceCard } from "@sefaria/web-components";
 import { loadSourceCardViewModel } from "@sefaria/web-components/source-card";
 
 import payload from "./micah-6-8.json";
+import { createMicahFixtureFetch } from "./fixture-transport.js";
 import "./style.css";
 
 const status = document.querySelector<HTMLElement>("#status");
@@ -16,9 +17,9 @@ let requestCount = 0;
 const client = createSefariaClient({
   baseUrl: "https://example.invalid",
   cache: false,
-  fetch: async () => {
+  fetch: async (input, init) => {
     requestCount += 1;
-    return Response.json(payload);
+    return createMicahFixtureFetch(payload)(input, init);
   },
 });
 

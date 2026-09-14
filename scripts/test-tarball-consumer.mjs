@@ -3,11 +3,13 @@ import {
   access,
   cp,
   mkdir,
+  mkdtemp,
   readFile,
   realpath,
   rm,
   writeFile,
 } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import path from "node:path";
 import process from "node:process";
 import { setTimeout as delay } from "node:timers/promises";
@@ -17,8 +19,17 @@ import { chromium } from "playwright";
 import { preview } from "vite";
 import YAML from "yaml";
 
+import {
+  isPathWithin,
+  validateConsumerLockfile,
+  validateInstalledPath,
+  validatePackedPackage,
+} from "./tarball-consumer-validation.mjs";
+
 const repository = path.resolve(import.meta.dirname, "..");
-const root = path.join(repository, ".toolchain", "tarball-consumer");
+const root = await mkdtemp(
+  path.join(tmpdir(), "sefaria-toolkit-tarball-consumer-"),
+);
 const tarballs = path.join(root, "tarballs");
 const consumer = path.join(root, "consumer");
 const packageDefinitions = [
@@ -26,44 +37,75 @@ const packageDefinitions = [
     name: "@sefaria/client",
     directory: "client",
     filename: "sefaria-client-0.0.0.tgz",
+    subpaths: [
+      ".",
+      "./client",
+      "./contracts",
+      "./errors",
+      "./schemas",
+      "./validation",
+      "./validators",
+    ],
   },
   {
     name: "@sefaria/text-transform",
     directory: "text-transform",
     filename: "sefaria-text-transform-0.0.0.tgz",
+    subpaths: ["."],
   },
   {
     name: "@sefaria/web-components",
     directory: "web-components",
     filename: "sefaria-web-components-0.0.0.tgz",
+    subpaths: [
+      ".",
+      "./bilingual-segment",
+      "./connections-panel",
+      "./popup",
+      "./reader",
+      "./reader-controller",
+      "./reader-session",
+      "./ref-label",
+      "./source-card",
+      "./text-segment",
+    ],
   },
 ];
 
-await rm(root, { force: true, recursive: true });
-await mkdir(tarballs, { recursive: true });
-for (const packageDefinition of packageDefinitions) {
-  run("pnpm", [
-    "--filter",
-    packageDefinition.name,
-    "pack",
-    "--pack-destination",
-    tarballs,
-  ]);
-  await inspectTarball(packageDefinition);
+if (isPathWithin(repository, root) || root === repository) {
+  throw new Error(
+    "Tarball consumer must be staged outside the producer repository.",
+  );
 }
 
-await stageConsumer();
-run("pnpm", ["install", "--lockfile-only"], consumer);
-run("pnpm", ["install", "--frozen-lockfile"], consumer);
-await inspectConsumerResolution();
+try {
+  await mkdir(tarballs, { recursive: true });
+  for (const packageDefinition of packageDefinitions) {
+    run("pnpm", [
+      "--filter",
+      packageDefinition.name,
+      "pack",
+      "--pack-destination",
+      tarballs,
+    ]);
+    await inspectTarball(packageDefinition);
+  }
 
-await rm(tarballs, { force: true, recursive: true });
-run("pnpm", ["build"], consumer);
-await smokeChromium();
+  await stageConsumer();
+  run("pnpm", ["install", "--lockfile-only"], consumer);
+  run("pnpm", ["install", "--frozen-lockfile"], consumer);
+  await inspectConsumerResolution();
 
-process.stdout.write(
-  "Tarball consumer: manifests, contents, resolution, build, Node paths, and Chromium smoke passed.\n",
-);
+  await rm(tarballs, { force: true, recursive: true });
+  run("pnpm", ["build"], consumer);
+  await smokeChromium();
+
+  process.stdout.write(
+    "Tarball consumer: manifests, contents, resolution, all exports, build, Node paths, and Chromium smoke passed.\n",
+  );
+} finally {
+  await rm(root, { force: true, recursive: true });
+}
 
 async function inspectTarball(packageDefinition) {
   const tarball = path.join(tarballs, packageDefinition.filename);
@@ -71,73 +113,21 @@ async function inspectTarball(packageDefinition) {
   const manifest = JSON.parse(
     capture("tar", ["-xOf", tarball, "package/package.json"]),
   );
-  if (manifest.name !== packageDefinition.name || manifest.private !== true) {
-    throw new Error(`${packageDefinition.name} packed manifest is incorrect.`);
-  }
-  if (
-    packageDefinition.name === "@sefaria/web-components" &&
-    (manifest.dependencies?.["@sefaria/client"] !== "0.0.0" ||
-      manifest.dependencies?.["@sefaria/text-transform"] !== "0.0.0")
-  ) {
-    throw new Error(
-      "@sefaria/web-components internal dependency versions were not packed exactly.",
-    );
-  }
   const contents = new Set(
     capture("tar", ["-tf", tarball]).split(/\r?\n/u).filter(Boolean),
   );
-  if ([...contents].some((entry) => entry.startsWith("package/src/"))) {
-    throw new Error(
-      `${packageDefinition.name} tarball contains producer source.`,
-    );
-  }
-  if (
-    [...contents].some((entry) =>
-      /\.test\.(?:js|d\.ts)(?:\.map)?$/u.test(entry),
-    )
-  ) {
-    throw new Error(`${packageDefinition.name} tarball contains test output.`);
-  }
-  if ([...contents].some((entry) => entry.endsWith(".tsbuildinfo"))) {
-    throw new Error(
-      `${packageDefinition.name} tarball contains TypeScript build state.`,
-    );
-  }
-  if (
-    [...contents].some(
-      (entry) => entry.endsWith(".js.map") || entry.endsWith(".d.ts.map"),
-    )
-  ) {
-    throw new Error(
-      `${packageDefinition.name} tarball contains maps for excluded source files.`,
-    );
-  }
-  if (packageDefinition.name === "@sefaria/web-components") {
-    const customElements = JSON.parse(
-      capture("tar", ["-xOf", tarball, "package/custom-elements.json"]),
-    );
-    for (const modulePath of collectModulePaths(customElements)) {
-      if (!contents.has(`package/${modulePath.replace(/^\.\//u, "")}`)) {
-        throw new Error(
-          `Custom-elements metadata references missing ${modulePath}.`,
-        );
-      }
-    }
-  }
-  const exports =
-    typeof manifest.exports === "string"
-      ? { ".": { import: manifest.exports, types: manifest.exports } }
-      : manifest.exports;
-  for (const target of Object.values(exports)) {
-    for (const filename of [target.import, target.types]) {
-      const archivePath = `package/${filename.replace(/^\.\//u, "")}`;
-      if (!contents.has(archivePath)) {
-        throw new Error(
-          `${packageDefinition.name} tarball is missing ${archivePath}.`,
-        );
-      }
-    }
-  }
+  const customElements =
+    packageDefinition.name === "@sefaria/web-components"
+      ? JSON.parse(
+          capture("tar", ["-xOf", tarball, "package/custom-elements.json"]),
+        )
+      : undefined;
+  validatePackedPackage({
+    definition: packageDefinition,
+    manifest,
+    contents,
+    customElements,
+  });
 }
 
 async function stageConsumer() {
@@ -196,21 +186,7 @@ async function stageConsumer() {
 async function inspectConsumerResolution() {
   const lockfilePath = path.join(consumer, "pnpm-lock.yaml");
   const lockfile = await readFile(lockfilePath, "utf8");
-  if (/\b(?:link|workspace):/u.test(lockfile)) {
-    throw new Error("Consumer lockfile resolved toolkit workspace source.");
-  }
-  for (const packageDefinition of packageDefinitions) {
-    if (!lockfile.includes(`file:../tarballs/${packageDefinition.filename}`)) {
-      throw new Error(
-        `Consumer lockfile does not resolve ${packageDefinition.name} from its tarball.`,
-      );
-    }
-  }
-  if (/https?:[^\n]*@sefaria/u.test(lockfile)) {
-    throw new Error(
-      "Consumer lockfile resolved a toolkit package from a registry.",
-    );
-  }
+  validateConsumerLockfile(lockfile, packageDefinitions);
 
   for (const packageDefinition of packageDefinitions) {
     const resolved = capture(
@@ -223,65 +199,106 @@ async function inspectConsumerResolution() {
       consumer,
     ).trim();
     const installedPath = await realpath(fileURLToPath(resolved));
-    if (
-      !installedPath.startsWith(path.join(consumer, "node_modules")) ||
-      installedPath.startsWith(path.join(repository, "packages"))
-    ) {
-      throw new Error(
-        `${packageDefinition.name} resolves outside the isolated consumer.`,
-      );
-    }
+    validateInstalledPath({
+      packageName: packageDefinition.name,
+      installedPath,
+      consumer,
+      repository,
+    });
   }
 
+  const allNodeSafeImports = [
+    "@sefaria/client",
+    "@sefaria/client/client",
+    "@sefaria/client/contracts",
+    "@sefaria/client/errors",
+    "@sefaria/client/schemas",
+    "@sefaria/client/validation",
+    "@sefaria/client/validators",
+    "@sefaria/text-transform",
+    "@sefaria/web-components/bilingual-segment",
+    "@sefaria/web-components/connections-panel",
+    "@sefaria/web-components/popup",
+    "@sefaria/web-components/reader",
+    "@sefaria/web-components/reader-controller",
+    "@sefaria/web-components/reader-session",
+    "@sefaria/web-components/ref-label",
+    "@sefaria/web-components/source-card",
+    "@sefaria/web-components/text-segment",
+  ];
   capture(
     "node",
     [
       "--input-type=module",
       "-e",
       [
-        "await Promise.all([",
-        "import('@sefaria/client'),",
-        "import('@sefaria/text-transform'),",
-        "import('@sefaria/web-components/source-card'),",
-        "import('@sefaria/web-components/reader'),",
-        "import('@sefaria/web-components/reader-controller'),",
-        "import('@sefaria/web-components/reader-session')",
-        "]);",
+        `await Promise.all(${JSON.stringify(allNodeSafeImports)}.map((specifier) => import(specifier)));`,
         "if ('customElements' in globalThis) throw new Error('DOM registration leaked into Node-safe imports');",
       ].join(""),
     ],
     consumer,
   );
+
+  const transitiveClient = capture(
+    "node",
+    [
+      "--input-type=module",
+      "-e",
+      "console.log(import.meta.resolve('@sefaria/client', import.meta.resolve('@sefaria/web-components/source-card')))",
+    ],
+    consumer,
+  ).trim();
+  validateInstalledPath({
+    packageName: "@sefaria/web-components transitive @sefaria/client",
+    installedPath: await realpath(fileURLToPath(transitiveClient)),
+    consumer,
+    repository,
+  });
 }
 
 async function smokeChromium() {
-  const port = 4178;
   const server = await preview({
     root: consumer,
     preview: {
       host: "127.0.0.1",
-      port,
-      strictPort: true,
+      port: 0,
     },
   });
   try {
-    await waitForServer(`http://127.0.0.1:${port}/`);
+    const address = server.httpServer.address();
+    if (!address || typeof address === "string") {
+      throw new Error("Vite preview did not expose its assigned address.");
+    }
+    const url = `http://127.0.0.1:${address.port}/`;
+    await waitForServer(url);
     const browser = await chromium.launch({ headless: true });
     try {
       const page = await browser.newPage();
-      await page.goto(`http://127.0.0.1:${port}/`);
+      await page.goto(url);
       await page.locator("#status[data-request-count='1']").waitFor();
       const result = await page.evaluate(() => {
         const card = globalThis.document.querySelector("sefaria-source-card");
         return {
           registered:
             globalThis.customElements.get("sefaria-source-card") !== undefined,
+          registeredTags: [
+            "sefaria-bilingual-segment",
+            "sefaria-connections-panel",
+            "sefaria-popup",
+            "sefaria-reader",
+            "sefaria-ref-label",
+            "sefaria-source-card",
+            "sefaria-text-segment",
+          ].filter(
+            (tagName) => globalThis.customElements.get(tagName) !== undefined,
+          ),
           state: card?.viewModel?.state,
           text: card?.shadowRoot?.textContent,
         };
       });
       if (
         !result.registered ||
+        result.registeredTags.length !== 7 ||
         result.state !== "data" ||
         !result.text?.includes("Micah 6:8")
       ) {
@@ -345,20 +362,4 @@ function commandSpec(command, args) {
     executable: process.env.ComSpec ?? "cmd.exe",
     args: ["/d", "/s", "/c", `pnpm ${args.join(" ")}`],
   };
-}
-
-function collectModulePaths(value, paths = new Set()) {
-  if (Array.isArray(value)) {
-    for (const entry of value) collectModulePaths(entry, paths);
-    return paths;
-  }
-  if (!value || typeof value !== "object") return paths;
-  for (const [key, entry] of Object.entries(value)) {
-    if ((key === "path" || key === "module") && typeof entry === "string") {
-      paths.add(entry);
-    } else {
-      collectModulePaths(entry, paths);
-    }
-  }
-  return paths;
 }
