@@ -57,6 +57,7 @@
     "vite": "^8.2.1",
     "vite-plugin-singlefile": "^2.3.3",
     "vitest": "^4.1.10",
-    "vitest-browser-lit": "^1.0.1"
+    "vitest-browser-lit": "^1.0.1",
+    "yaml": "2.9.0"
   }
 }
