@@ -82,7 +82,7 @@ The App is a self-contained HTML resource. The MCP server can package it without
 
 The integrated reader keeps one `@sefaria/web-components/reader-controller` instance in the TypeScript App instance. Its first render constructs the controller from already validated source or connections content and performs zero requests. Later controller operations use an MCP-specific reader data source whose only transport is a supported host-proxied tool call. The browser-client `loadReaderController` path is not reachable from the MCP App.
 
-The Python tools remain stateless. Each tool result must carry the corrected payload plus effective request metadata sufficient to construct admitted reader content: source reference and edition selectors for text, or reference and resolved `with_text` coverage for links. The App validates both payload and metadata before controller admission. Python does not store reader history, controller snapshots, operation IDs, or expiration state.
+The Node tools remain stateless. Each tool result must carry the corrected payload plus effective request metadata sufficient to construct admitted reader content: source reference and edition selectors for text, or reference and resolved `with_text` coverage for links. The App validates both payload and metadata before controller admission. The server does not store reader history, controller snapshots, operation IDs, or expiration state.
 
 The qualified VS Code host advertises `serverTools`, omits `hostContext.toolInfo`, and routes bare `get_text` and `get_links_between_texts` App calls to the originating server. The first integrated reader therefore supports those two bare names only after the host advertises `serverTools`. It does not derive a namespace, list unrelated tools, send a chat message as a transport fallback, or call Sefaria directly. Another host must be qualified separately; unavailable, rejected, malformed, or mismatched tool results remain explicit reader or integration failures.
 
@@ -101,7 +101,7 @@ The current MCP server exposes `get_text`, which progressively enhances the offi
 
 The tool keeps the official MCP server's `source`, `english`, and `both` input vocabulary, but maps those choices to the source-card rendering roles. `source` sends one `version=primary` query value, `english` sends one `version=translation` query value, and `both` sends repeated `version=primary` and `version=translation` query values. It always sends `return_format=default`. This distinction matters for texts such as Kuzari, where the API's original-language `source` version is not necessarily the database's `isPrimary` version consumed by the source-card factory.
 
-The Python server owns the live request to `https://www.sefaria.org/api/v3/texts/{tref}`. The App does not request Sefaria.
+The Node server owns the live request to `https://www.sefaria.org/api/v3/texts/{tref}`. The App does not request Sefaria.
 
 One tool result serves both host capabilities:
 
@@ -299,7 +299,7 @@ The server rejects a successful payload with more than 400 text leaves before it
 
 ## Local reference host and fixture preview
 
-One local command starts the loopback-only Streamable HTTP server, a host origin, and a distinct sandbox origin, then opens a reference browser host that uses the official Apps `AppBridge` and sandbox handshake. The MCP HTTP server validates its loopback Host header, accepts browser requests only from that run's host origin, and closes idle sessions after five minutes. The sandbox CSP is delivered through an HTTP `Content-Security-Policy` header; malformed optional CSP metadata falls back to the restrictive default instead of terminating the local process. The host reads the registered MCP resource and sends its HTML through the bridge; it does not implement a private replacement protocol.
+One local command starts the loopback-only Streamable HTTP server, a host origin, and a distinct sandbox origin, then opens a reference browser host that uses the official Apps `AppBridge` and sandbox handshake. The MCP HTTP server validates its loopback Host header and accepts browser requests only from that run's host origin. The sandbox CSP is delivered through an HTTP `Content-Security-Policy` header; malformed optional CSP metadata falls back to the restrictive default instead of terminating the local process. The host reads the registered MCP resource and sends its HTML through the bridge; it does not implement a private replacement protocol.
 
 The deterministic browser acceptance transport rejects every unexpected request and records the exact tool sequence. It proves:
 
@@ -352,7 +352,7 @@ The walkthrough writes a machine-readable result with stages, selected reference
 - The element receives only immutable `ReaderViewModel` replacements and visual or interaction properties.
 - The first render makes zero requests.
 - A source seed schedules one host-proxied links continuation; a connections-only seed schedules none.
-- A wheel test reads every packaged runtime artifact.
+- A compiled-package resource test reads every packaged runtime artifact.
 - Automated tests make no network request.
 - A successful payload larger than the source-card render limit fails as a tool error.
 - The optional VS Code Copilot Chat qualification renders the packaged reader from one initial `get_text` result.

@@ -18,7 +18,6 @@ export interface StartedHttpServer {
 interface HttpServerOptions extends ServerOptions {
   readonly allowedOrigins?: readonly string[];
   readonly port?: number;
-  readonly sessionIdleMs?: number;
 }
 
 export async function startMcpHttpServer(
@@ -26,9 +25,7 @@ export async function startMcpHttpServer(
 ): Promise<StartedHttpServer> {
   const transports = new Map<string, StreamableHTTPServerTransport>();
   const servers = new Map<string, ReturnType<typeof createMcpServer>>();
-  const sessionTimers = new Map<string, NodeJS.Timeout>();
   const allowedOrigins = new Set(options.allowedOrigins ?? []);
-  const sessionIdleMs = options.sessionIdleMs ?? 5 * 60 * 1_000;
   const listener = createServer(async (request, response) => {
     const origin = singleHeader(request, "origin");
     const expectedHost = `127.0.0.1:${request.socket.localPort}`;
@@ -65,7 +62,6 @@ export async function startMcpHttpServer(
           onsessioninitialized: (createdSessionId) => {
             transports.set(createdSessionId, transport!);
             servers.set(createdSessionId, protocolServer);
-            touchSession(createdSessionId);
           },
         });
         transport.onclose = () => {
@@ -84,7 +80,6 @@ export async function startMcpHttpServer(
         });
         return;
       }
-      if (sessionId) touchSession(sessionId);
       await transport.handleRequest(request, response, body);
     } catch (error) {
       if (!response.headersSent) {
@@ -110,8 +105,6 @@ export async function startMcpHttpServer(
   return {
     url: new URL(`http://127.0.0.1:${address.port}/mcp`),
     close: async () => {
-      for (const timer of sessionTimers.values()) clearTimeout(timer);
-      sessionTimers.clear();
       await Promise.all([...transports.values()].map((item) => item.close()));
       await new Promise<void>((resolve, reject) =>
         listener.close((error) => (error ? reject(error) : resolve())),
@@ -119,22 +112,7 @@ export async function startMcpHttpServer(
     },
   };
 
-  function touchSession(sessionId: string): void {
-    const current = sessionTimers.get(sessionId);
-    if (current) clearTimeout(current);
-    const timer = setTimeout(() => {
-      const transport = transports.get(sessionId);
-      deleteSession(sessionId);
-      void transport?.close().catch(() => undefined);
-    }, sessionIdleMs);
-    timer.unref();
-    sessionTimers.set(sessionId, timer);
-  }
-
   function deleteSession(sessionId: string): void {
-    const timer = sessionTimers.get(sessionId);
-    if (timer) clearTimeout(timer);
-    sessionTimers.delete(sessionId);
     transports.delete(sessionId);
     servers.delete(sessionId);
   }

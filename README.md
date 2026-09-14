@@ -34,7 +34,7 @@ pnpm dev
 
 Open the local URL printed by Vite. The explorer separates deterministic authored states from live pages that use the production client, factory, and element path. Loading the explorer does not start every live request.
 
-The [development guide](docs/development.md) covers Corepack, the Python fixture, and the full contributor setup.
+The [development guide](docs/development.md) covers Corepack and the full contributor setup.
 
 ## What is available?
 
