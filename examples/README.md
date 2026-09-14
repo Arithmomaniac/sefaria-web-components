@@ -45,7 +45,7 @@ The [React Vite example](react-vite/README.md) demonstrates custom host integrat
 
 The [authored linked article](linked-article/) progressively enhances ordinary Micah 6:8 Sefaria anchors with a request-free popup while preserving JavaScript-disabled and modifier-key navigation. The page owns its cache-disabled client and factory calls, cancellation, stale suppression, visible failures, and cleanup; its [README](linked-article/README.md) identifies the public subpaths and runnable source.
 
-The private [MCP App example](mcp-app/README.md) packages the Reader as a self-contained MCP App served by compiled stdio or Streamable HTTP transports. Run `pnpm dev:mcp` for the real local reference host and sandbox; the maintained [App](mcp-app/src/app.ts), [host](mcp-app/src/host/), and [server](mcp-app/src/server/) sources keep tool requests host-mediated and transport logic separate from Reader state.
+The private [MCP App guide](../docs/mcp-app-demo.md) packages the Reader as a self-contained MCP App served by compiled stdio or Streamable HTTP transports. Run `pnpm dev:mcp` for the real local reference host and sandbox; the maintained [App](mcp-app/src/app.ts), [host](mcp-app/src/host/), and [server](mcp-app/src/server/) sources keep tool requests host-mediated and transport logic separate from Reader state.
 
 ## Curation disposition
 
