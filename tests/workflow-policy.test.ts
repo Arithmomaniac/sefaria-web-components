@@ -87,10 +87,11 @@ function policyIssues(workflowValue: RecordValue) {
     issues.push("unsafe default permissions");
   }
 
-  if (
-    !isRecord(jobs) ||
-    JSON.stringify(Object.keys(jobs)) !== JSON.stringify(["check"])
-  ) {
+  if (!isRecord(jobs) || !Object.prototype.hasOwnProperty.call(jobs, "check")) {
+    issues.push("missing check job");
+    return issues;
+  }
+  if (Object.keys(jobs).length !== 1) {
     issues.push("unexpected jobs");
     return issues;
   }
@@ -122,7 +123,7 @@ function policyIssues(workflowValue: RecordValue) {
       }
     }
     if (typeof step.run === "string") {
-      if (/\b(pnpm|npm|changeset) publish\b|\brelease\b/i.test(step.run)) {
+      if (/\b(pnpm|npm|changeset)\b.*\bpublish\b|\brelease\b/i.test(step.run)) {
         issues.push("publication or release command");
       }
       if (step.run === "pnpm check") {
@@ -131,7 +132,7 @@ function policyIssues(workflowValue: RecordValue) {
     }
     if (
       typeof step.uses === "string" &&
-      /(deploy-pages|upload-pages-artifact|release)/i.test(step.uses)
+      /(deploy-pages|upload-pages-artifact|publish|release)/i.test(step.uses)
     ) {
       issues.push("deployment or release action");
     }
@@ -183,20 +184,40 @@ describe("integration workflow policy", () => {
   });
 
   it("rejects each unsafe job, action, step, and filter mutation independently", () => {
-    const mutations: Array<[string, string]> = [
+    const mutations: Array<[string, string, string]> = [
       [
         "deploy job",
         workflow.replace(
           "jobs:",
           "jobs:\n  deploy:\n    runs-on: ubuntu-latest\n    steps:\n      - run: pnpm publish",
         ),
+        "unexpected jobs",
+      ],
+      [
+        "default permissions",
+        workflow.replace("  contents: read", "  contents: write"),
+        "unsafe default permissions",
+      ],
+      [
+        "job permissions",
+        workflow.replace(
+          "    runs-on: ubuntu-latest",
+          "    permissions:\n      contents: write\n    runs-on: ubuntu-latest",
+        ),
+        "unsupported check job field: permissions",
+      ],
+      [
+        "missing check job",
+        workflow.replace("  check:", "  validation:"),
+        "missing check job",
       ],
       [
         "named publication step",
         workflow.replace(
           "- run: pnpm check",
-          "- name: Publish\n        run: pnpm publish",
+          "- name: Publish\n        run: pnpm --filter @sefaria/client publish\n      - run: pnpm check",
         ),
+        "publication or release command",
       ],
       [
         "named deployment step",
@@ -204,6 +225,31 @@ describe("integration workflow policy", () => {
           "- run: pnpm check",
           "- name: Deploy\n        uses: actions/deploy-pages@v5\n      - run: pnpm check",
         ),
+        "deployment or release action",
+      ],
+      [
+        "named publication action",
+        workflow.replace(
+          "- run: pnpm check",
+          "- name: Publish\n        uses: JS-DevTools/npm-publish@v3\n      - run: pnpm check",
+        ),
+        "deployment or release action",
+      ],
+      [
+        "job if",
+        workflow.replace(
+          "    runs-on: ubuntu-latest",
+          "    if: false\n    runs-on: ubuntu-latest",
+        ),
+        "unsupported check job field: if",
+      ],
+      [
+        "job continue-on-error",
+        workflow.replace(
+          "    runs-on: ubuntu-latest",
+          "    continue-on-error: true\n    runs-on: ubuntu-latest",
+        ),
+        "unsupported check job field: continue-on-error",
       ],
       [
         "conditional validation step",
@@ -211,6 +257,7 @@ describe("integration workflow policy", () => {
           "- run: pnpm check",
           "- if: false\n        run: pnpm check",
         ),
+        "unsupported check step field: if",
       ],
       [
         "continue-on-error validation step",
@@ -218,6 +265,7 @@ describe("integration workflow policy", () => {
           "- run: pnpm check",
           "- continue-on-error: true\n        run: pnpm check",
         ),
+        "unsupported check step field: continue-on-error",
       ],
       [
         "pull request paths filter",
@@ -225,11 +273,14 @@ describe("integration workflow policy", () => {
           "    branches:",
           "    paths:\n      - '**/*.ts'\n    branches:",
         ),
+        "unsupported pull_request filters",
       ],
     ];
 
-    for (const [name, candidate] of mutations) {
-      expect(policyIssues(parseWorkflow(candidate)), name).not.toEqual([]);
+    for (const [name, candidate, expectedIssue] of mutations) {
+      expect(policyIssues(parseWorkflow(candidate)), name).toContain(
+        expectedIssue,
+      );
     }
   });
 
