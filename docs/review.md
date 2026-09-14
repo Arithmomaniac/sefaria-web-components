@@ -244,15 +244,15 @@ Review the initial corrections for:
 - [ ] Remove the alternate private wire format in that change.
 - [ ] No dual-reader compatibility path remains.
 
-## Linker integration
+## Authored linked-article integration
 
-- [ ] The built embed and bookmarklet load the same classic script.
-- [ ] Detection makes one POST and bounded GET polls with no tracking metadata.
-- [ ] Generic async task output is validated as a find-refs result before use.
-- [ ] Existing links, excluded elements, and foreign DOM remain untouched.
-- [ ] Inline citation fragments preserve their host elements and listeners.
-- [ ] Unicode code-point offsets are converted before DOM ranges are created.
-- [ ] Rescan and destroy remove only Linker-owned wrappers and abort stale work.
+- [ ] The authored citation retains native navigation with JavaScript disabled.
+- [ ] Eligible primary activation performs one popup factory request with the client cache disabled.
+- [ ] Modifier, alternate-target, download, and non-primary activation remains native.
+- [ ] Unknown fixture JSON passes through the public client validation boundary.
+- [ ] Host and popup styles remain isolated.
+- [ ] Close, supersession, and destroy abort owned work and reject late completion.
+- [ ] Destroy removes only owned listeners, popup state, and accessibility attributes.
 - [ ] Each popup activation makes one v3 request; the popup element makes none.
 - [ ] CSP, mixed-content, CORS, and restricted-page limitations are documented.
 

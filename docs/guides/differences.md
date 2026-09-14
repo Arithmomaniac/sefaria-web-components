@@ -67,16 +67,16 @@ The local bilingual component names its sides `primary` and `translation`, keeps
 
 These choices preserve data ownership and work when the primary side is left-to-right as well as right-to-left. They intentionally avoid copying private Sefaria Web layout mechanics or claiming identical geometry. The evidence supports CSS-based alignment without measurement scripts, but the local element remains free to use its own shadow-DOM layout. See [Bilingual segment contract](../specs/components.md#bilingual-segment-contract-current), [Source card contract](../specs/components.md#source-card-contract-current), and [Bilingual layout and alignment](../evidence.md#bilingual-layout-and-alignment).
 
-## The local Linker fixes dated deployed-Linker limitations
+## The authored linked article avoids dated deployed-Linker limitations
 
-The current local popup and Linker demonstration implement:
+The current local popup and authored linked-article example implement:
 
 - shadow-root isolation so popup rules and fonts do not leak into the host page;
 - host-overridable theme tokens with light and dark defaults;
 - an accessible close control, Escape handling, focus restoration, and a real Tab and Shift+Tab focus cycle; and
-- cancellation and stale-result suppression for article scans and popup requests.
+- cancellation and stale-result suppression for popup requests without scanning or rewriting article text.
 
-The recorded August 2026 observations explain the intentional difference: the inspected deployed Linker leaked popup styles, used a fixed light theme, and suppressed Tab without moving focus. Those are dated upstream observations, not claims about every current Linker deployment or the local implementation. Public hosting and broader live-site qualification for the local demonstration remain external. See [Linker demonstration](../linker-demo.md), [Integration specification](../specs/integrations.md#popup-behavior), [Linker style isolation](../evidence.md#linker-style-isolation), [Linker theme behavior](../evidence.md#linker-theme-behavior), and [Linker keyboard behavior](../evidence.md#linker-keyboard-behavior).
+The recorded August 2026 observations explain the intentional difference: the inspected deployed Linker leaked popup styles, used a fixed light theme, and suppressed Tab without moving focus. Those are dated upstream observations, not claims about every current Linker deployment or the local implementation. The maintained example now requires authored anchors and preserves native navigation rather than distributing automatic detection. See [Authored linked article](../linked-article.md), [Integration specification](../specs/integrations.md#popup-behavior), [Linker style isolation](../evidence.md#linker-style-isolation), [Linker theme behavior](../evidence.md#linker-theme-behavior), and [Linker keyboard behavior](../evidence.md#linker-keyboard-behavior).
 
 ## Upstream behavior we preserve rather than fix
 
