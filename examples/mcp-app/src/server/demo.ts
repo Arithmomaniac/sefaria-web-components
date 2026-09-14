@@ -23,6 +23,17 @@ interface ReaderState {
   readonly targetRefs: readonly string[];
 }
 
+interface AppGeometry {
+  readonly scenario: string;
+  readonly viewportWidth: number;
+  readonly outerSandboxHeight: number;
+  readonly proxyViewportHeight: number;
+  readonly innerAppFrameHeight: number;
+  readonly appViewportHeight: number;
+  readonly appBodyHeight: number;
+  readonly readerHeight: number;
+}
+
 const linksFixture = JSON.parse(
   await readFile(
     new URL(
@@ -64,6 +75,7 @@ const result = {
     host: environment.hostUrl.origin,
     sandbox: environment.sandboxUrl.origin,
   },
+  geometry: [] as AppGeometry[],
   stages: [] as Array<{
     readonly name: string;
     readonly requests: readonly RecordedRequest[];
@@ -73,7 +85,9 @@ const result = {
 try {
   await verifyCompiledStdio();
   result.stages.push({ name: "compiled stdio protocol", requests: [] });
-  const page = await browser.newPage();
+  const page = await browser.newPage({
+    viewport: { width: 1_280, height: 900 },
+  });
   page.on("console", (message) => {
     if (message.type() === "error" || message.type() === "warning") {
       browserDiagnostics.push(`${message.type()}: ${message.text()}`);
@@ -90,6 +104,12 @@ try {
     ["/api/v3/texts/Micah%206%3A8", null],
     ["/api/links/Micah%206%3A8", "1"],
   ]);
+  result.geometry.push(await assertAppGeometry(page, app, "text seed desktop"));
+  const beforeTextResize = requests.length;
+  await page.setViewportSize({ width: 480, height: 900 });
+  result.geometry.push(await assertAppGeometry(page, app, "text seed narrow"));
+  assertNoRequestSince(beforeTextResize, "Text-seeded viewport resize");
+  await page.setViewportSize({ width: 1_280, height: 900 });
   record("text seed and continuation", 0);
 
   const beforeLocal = requests.length;
@@ -235,6 +255,17 @@ try {
   assertSequence(requests.slice(beforeLinksSeed), [
     ["/api/links/Micah%206%3A8", "1"],
   ]);
+  const linksApp = await waitForAppFrame(page);
+  result.geometry.push(
+    await assertAppGeometry(page, linksApp, "links seed desktop"),
+  );
+  const beforeLinksResize = requests.length;
+  await page.setViewportSize({ width: 480, height: 900 });
+  result.geometry.push(
+    await assertAppGeometry(page, linksApp, "links seed narrow"),
+  );
+  assertNoRequestSince(beforeLinksResize, "Links-seeded viewport resize");
+  await page.setViewportSize({ width: 1_280, height: 900 });
   record("links seed without continuation", beforeLinksSeed);
 
   const artifacts = path.resolve(".artifacts", "mcp-app");
@@ -305,6 +336,69 @@ async function waitForAppFrame(page: Page): Promise<Frame> {
   throw new Error(
     `The packaged App did not initialize in the sandbox. Status: ${status}. Frames: ${JSON.stringify(frames)}. Bodies: ${JSON.stringify(bodies)}. ${browserDiagnostics.join(" | ")}`,
   );
+}
+
+async function assertAppGeometry(
+  page: Page,
+  app: Frame,
+  scenario: string,
+): Promise<AppGeometry> {
+  await page.waitForTimeout(50);
+  const proxy = app.parentFrame();
+  if (!proxy || proxy === page.mainFrame()) {
+    throw new Error(`${scenario} did not render through the sandbox proxy.`);
+  }
+  const outerSandbox = await (await proxy.frameElement()).boundingBox();
+  const innerAppFrame = await (await app.frameElement()).boundingBox();
+  if (!outerSandbox || !innerAppFrame) {
+    throw new Error(`${scenario} iframe geometry is unavailable.`);
+  }
+  const proxyViewportHeight = await proxy.evaluate(() => window.innerHeight);
+  const appMetrics = await app.locator("sefaria-reader").evaluate((reader) => {
+    const readerBounds = reader.getBoundingClientRect();
+    const heading = reader.shadowRoot?.querySelector(
+      '[data-current-heading="true"]',
+    );
+    const headingBounds = heading?.getBoundingClientRect();
+    return {
+      viewportWidth: window.innerWidth,
+      viewportHeight: window.innerHeight,
+      bodyHeight: document.body.scrollHeight,
+      readerHeight: readerBounds.height,
+      headingVisible:
+        headingBounds !== undefined &&
+        headingBounds.bottom > 0 &&
+        headingBounds.top < window.innerHeight,
+    };
+  });
+  const minimumUsefulHeight = Math.min(appMetrics.bodyHeight, 600);
+  if (
+    innerAppFrame.height < outerSandbox.height - 4 ||
+    appMetrics.viewportHeight < innerAppFrame.height - 4 ||
+    appMetrics.viewportHeight < minimumUsefulHeight ||
+    appMetrics.readerHeight <= 0 ||
+    !appMetrics.headingVisible
+  ) {
+    throw new Error(
+      `${scenario} is clipped: ${JSON.stringify({
+        outerSandbox,
+        proxyViewportHeight,
+        innerAppFrame,
+        appMetrics,
+        minimumUsefulHeight,
+      })}.`,
+    );
+  }
+  return {
+    scenario,
+    viewportWidth: appMetrics.viewportWidth,
+    outerSandboxHeight: outerSandbox.height,
+    proxyViewportHeight,
+    innerAppFrameHeight: innerAppFrame.height,
+    appViewportHeight: appMetrics.viewportHeight,
+    appBodyHeight: appMetrics.bodyHeight,
+    readerHeight: appMetrics.readerHeight,
+  };
 }
 
 async function dispatchReaderEvent(
@@ -598,7 +692,7 @@ async function verifyDeterministicFetchRejectsUnexpectedRequests(
   > = [
     ["method", text, { method: "POST" }],
     ["origin", text.replace("www.sefaria.org", "example.test"), undefined],
-    ["reference", textUrl("Genesis 1:1"), undefined],
+    ["reference", textUrl("Nahum 1:7"), undefined],
     [
       "text query",
       "https://www.sefaria.org/api/v3/texts/Micah%206%3A8?version=primary&return_format=default",
