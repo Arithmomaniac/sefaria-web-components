@@ -29,6 +29,7 @@
     "dev:linker": "pnpm --filter @sefaria-demo/linker dev",
     "dev:mcp": "pnpm build:mcp && uv run --no-sync --directory demos/mcp/fixture-server sefaria-mcp-app-fixture",
     "dev:reader": "pnpm --filter @sefaria-example/reader dev",
+    "dev:react": "pnpm --filter @sefaria-example/react-vite dev",
     "dev:ref-label": "pnpm build && vite . --open /examples/explorer/ref-label.html",
     "dev:text-segment": "pnpm build && vite . --open /examples/explorer/text-segment.html",
     "format": "prettier --write .",

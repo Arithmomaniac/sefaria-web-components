@@ -32,7 +32,10 @@ const root = await mkdtemp(
   path.join(tmpdir(), "sefaria-toolkit-tarball-consumer-"),
 );
 const tarballs = path.join(root, "tarballs");
-const consumer = path.join(root, "consumer");
+const consumers = {
+  vanilla: path.join(root, "vanilla-consumer"),
+  react: path.join(root, "react-consumer"),
+};
 const packageDefinitions = [
   {
     name: "@sefaria/client",
@@ -92,17 +95,30 @@ try {
     await inspectTarball(packageDefinition);
   }
 
-  await stageConsumer();
-  run("pnpm", ["install", "--lockfile-only"], consumer);
-  run("pnpm", ["install", "--frozen-lockfile"], consumer);
-  await inspectConsumerResolution();
+  await stageConsumer({
+    consumer: consumers.vanilla,
+    example: "vanilla-vite",
+    name: "sefaria-toolkit-tarball-vanilla-consumer",
+  });
+  await stageConsumer({
+    consumer: consumers.react,
+    example: "react-vite",
+    name: "sefaria-toolkit-tarball-react-consumer",
+  });
+  for (const consumer of Object.values(consumers)) {
+    run("pnpm", ["install", "--lockfile-only"], consumer);
+    run("pnpm", ["install", "--frozen-lockfile"], consumer);
+    await inspectConsumerResolution(consumer);
+  }
 
   await rm(tarballs, { force: true, recursive: true });
-  run("pnpm", ["build"], consumer);
-  await smokeChromium();
+  run("pnpm", ["build"], consumers.vanilla);
+  run("pnpm", ["build"], consumers.react);
+  await smokeVanillaChromium();
+  await smokeReactChromium();
 
   process.stdout.write(
-    "Tarball consumer: manifests, contents, resolution, all exports, build, Node paths, and Chromium smoke passed.\n",
+    "Tarball consumers: manifests, contents, resolution, all exports, vanilla and React builds, Node paths, and Chromium smokes passed.\n",
   );
 } finally {
   await rm(root, { force: true, recursive: true });
@@ -131,22 +147,36 @@ async function inspectTarball(packageDefinition) {
   });
 }
 
-async function stageConsumer() {
+async function stageConsumer({ consumer, example, name }) {
   await mkdir(path.join(consumer, "src"), { recursive: true });
   for (const filename of ["index.html", "tsconfig.json"]) {
     await cp(
-      path.join(repository, "examples", "vanilla-vite", filename),
+      path.join(repository, "examples", example, filename),
       path.join(consumer, filename),
     );
   }
   await cp(
-    path.join(repository, "examples", "vanilla-vite", "src"),
+    path.join(repository, "examples", example, "src"),
     path.join(consumer, "src"),
     { recursive: true },
   );
   const fileDependency = (filename) => `file:../tarballs/${filename}`;
+  const exampleManifest = JSON.parse(
+    await readFile(
+      path.join(repository, "examples", example, "package.json"),
+      "utf8",
+    ),
+  );
+  const toolkitNames = new Set(
+    packageDefinitions.map((definition) => definition.name),
+  );
+  const thirdPartyDependencies = Object.fromEntries(
+    Object.entries(exampleManifest.dependencies ?? {}).filter(
+      ([dependency]) => !toolkitNames.has(dependency),
+    ),
+  );
   const packageJson = {
-    name: "sefaria-toolkit-tarball-consumer",
+    name,
     version: "0.0.0",
     private: true,
     type: "module",
@@ -154,13 +184,17 @@ async function stageConsumer() {
       build: "tsc -p tsconfig.json && vite build",
       preview: "vite preview",
     },
-    dependencies: Object.fromEntries(
-      packageDefinitions.map((entry) => [
-        entry.name,
-        fileDependency(entry.filename),
-      ]),
-    ),
+    dependencies: {
+      ...thirdPartyDependencies,
+      ...Object.fromEntries(
+        packageDefinitions.map((entry) => [
+          entry.name,
+          fileDependency(entry.filename),
+        ]),
+      ),
+    },
     devDependencies: {
+      ...(exampleManifest.devDependencies ?? {}),
       typescript: "7.0.2",
       vite: "^8.2.1",
     },
@@ -184,7 +218,7 @@ async function stageConsumer() {
   );
 }
 
-async function inspectConsumerResolution() {
+async function inspectConsumerResolution(consumer) {
   const lockfilePath = path.join(consumer, "pnpm-lock.yaml");
   const lockfile = await readFile(lockfilePath, "utf8");
   validateConsumerLockfile(lockfile, packageDefinitions);
@@ -262,9 +296,9 @@ async function inspectConsumerResolution() {
   });
 }
 
-async function smokeChromium() {
+async function smokeVanillaChromium() {
   const server = await preview({
-    root: consumer,
+    root: consumers.vanilla,
     preview: {
       host: "127.0.0.1",
       port: 0,
@@ -310,6 +344,150 @@ async function smokeChromium() {
       ) {
         throw new Error(
           `Unexpected Chromium result: ${JSON.stringify(result)}`,
+        );
+      }
+    } finally {
+      await browser.close();
+    }
+  } finally {
+    await server.close();
+  }
+}
+
+async function smokeReactChromium() {
+  const consumer = consumers.react;
+  const fixture = JSON.parse(
+    await readFile(path.join(consumer, "src", "micah-6-8.json"), "utf8"),
+  );
+  const server = await preview({
+    root: consumer,
+    preview: {
+      host: "127.0.0.1",
+      port: 0,
+    },
+  });
+  try {
+    const address = server.httpServer.address();
+    if (!address || typeof address === "string") {
+      throw new Error(
+        "React Vite preview did not expose its assigned address.",
+      );
+    }
+    const url = `http://127.0.0.1:${address.port}/`;
+    await waitForServer(url);
+    const browser = await chromium.launch({ headless: true });
+    try {
+      const page = await browser.newPage();
+      let requestCount = 0;
+      await page.route(
+        "https://www.sefaria.org/api/v3/texts/**",
+        async (route) => {
+          const request = route.request();
+          const requestUrl = new globalThis.URL(request.url());
+          const expectedQuery = [
+            ["version", "primary"],
+            ["version", "translation"],
+            ["return_format", "default"],
+          ];
+          if (
+            request.method() !== "GET" ||
+            requestUrl.origin !== "https://www.sefaria.org" ||
+            decodeURIComponent(requestUrl.pathname) !==
+              "/api/v3/texts/Micah 6:8" ||
+            JSON.stringify([...requestUrl.searchParams.entries()]) !==
+              JSON.stringify(expectedQuery)
+          ) {
+            throw new Error(
+              `Unexpected packed React request: ${request.method()} ${requestUrl}`,
+            );
+          }
+          requestCount += 1;
+          await route.fulfill({ json: fixture });
+        },
+      );
+      await page.goto(url);
+      await page.locator("sefaria-source-card").waitFor();
+      const initial = await page.evaluate(() => {
+        const card = globalThis.document.querySelector("sefaria-source-card");
+        Object.assign(globalThis, { __packedReactCard: card });
+        return {
+          registered:
+            globalThis.customElements.get("sefaria-source-card") !== undefined,
+          state: card?.viewModel?.state,
+          serialized: card?.getAttribute("viewModel"),
+          status:
+            globalThis.document.querySelector("#request-status")?.textContent,
+        };
+      });
+      if (
+        !initial.registered ||
+        initial.state !== "data" ||
+        initial.serialized !== null ||
+        !initial.status?.includes("No request") ||
+        requestCount !== 0
+      ) {
+        throw new Error(
+          `Unexpected packed React initial state: ${JSON.stringify(initial)}`,
+        );
+      }
+
+      await page.locator("#theme-toggle").click();
+      await page.locator("#preview-width").fill("520");
+      const visual = await page.evaluate(() => ({
+        stable:
+          globalThis.document.querySelector("sefaria-source-card") ===
+          globalThis.__packedReactCard,
+        theme: globalThis.document.querySelector("#preview")?.dataset.theme,
+      }));
+      if (!visual.stable || visual.theme !== "dark" || requestCount !== 0) {
+        throw new Error(
+          `Packed React visual controls changed request ownership: ${JSON.stringify(visual)}`,
+        );
+      }
+
+      await page.locator("#load-live").click();
+      await page
+        .locator("#request-status")
+        .filter({ hasText: "Loaded Micah 6:8" })
+        .waitFor();
+      await page.evaluate(async () => {
+        const card = globalThis.document.querySelector("sefaria-source-card");
+        if (!card) throw new Error("Packed React source card is missing.");
+        await card.updateComplete;
+        const button = card.shadowRoot?.querySelector(
+          'button[aria-label="Show connections for Micah 6:8"]',
+        );
+        if (!(button instanceof globalThis.HTMLButtonElement)) {
+          throw new Error("Packed React selection control is missing.");
+        }
+        button.click();
+      });
+      await page
+        .locator("#selected-ref")
+        .filter({ hasText: "React received selection: Micah 6:8" })
+        .waitFor();
+      const loaded = await page.evaluate(() => {
+        const card = globalThis.document.querySelector("sefaria-source-card");
+        return {
+          stable: card === globalThis.__packedReactCard,
+          state: card?.viewModel?.state,
+          selected: card?.selectedPosition,
+          eventText:
+            globalThis.document.querySelector("#selected-ref")?.textContent,
+          requestText:
+            globalThis.document.querySelector("#request-count")?.textContent,
+        };
+      });
+      if (
+        requestCount !== 1 ||
+        !loaded.stable ||
+        loaded.state !== "data" ||
+        JSON.stringify(loaded.selected) !== "[]" ||
+        !loaded.eventText?.includes("React received selection: Micah 6:8") ||
+        !loaded.requestText?.includes("1")
+      ) {
+        throw new Error(
+          `Unexpected packed React live result: ${JSON.stringify(loaded)}`,
         );
       }
     } finally {
