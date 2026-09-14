@@ -346,7 +346,7 @@ test("clears an invalid deep-link warning when a control rewrites the URL", asyn
   if (!shadow) throw new Error("The component lab shadow root is missing.");
   expect(shadow.querySelector('[role="alert"]')).not.toBeNull();
 
-  changeSelect(shadow, "#theme-select", "dark");
+  changeRange(shadow, "#width-control", "480");
   await lab.updateComplete;
 
   expect(shadow.querySelector('[role="alert"]')).toBeNull();

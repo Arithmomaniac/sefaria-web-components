@@ -64,6 +64,7 @@ export function ReactSourceCardExample({
   const [requestStatus, setRequestStatus] = useState(
     "Supplied data rendered. No request has run.",
   );
+  const [inputFailure, setInputFailure] = useState<string>();
   const [loadFailure, setLoadFailure] = useState<string>();
   const cardRef = useRef<SefariaSourceCard>(null);
   const controller = useRef<AbortController | undefined>(undefined);
@@ -104,18 +105,18 @@ export function ReactSourceCardExample({
   }
 
   const loadLive = useCallback(async (): Promise<void> => {
+    const normalized = tref.trim();
+    if (normalized.length === 0) {
+      setInputFailure("Enter a non-blank Sefaria reference.");
+      return;
+    }
     controller.current?.abort();
     const currentController = new AbortController();
     controller.current = currentController;
     const currentOperation = ++operation.current;
-    const normalized = tref.trim();
-    if (normalized.length === 0) {
-      setLoadFailure("Enter a non-blank Sefaria reference.");
-      setRequestStatus("No request was made.");
-      return;
-    }
     setRequestCount((count) => count + 1);
     setSelected(undefined);
+    setInputFailure(undefined);
     setLoadFailure(undefined);
     setViewModel(loadingViewModel);
     setRequestStatus(`Loading ${normalized} through the public factory.`);
@@ -229,9 +230,9 @@ export function ReactSourceCardExample({
         Host request count: {requestCount}
       </p>
 
-      {loadFailure === undefined ? null : (
+      {loadFailure === undefined && inputFailure === undefined ? null : (
         <p id="load-error" className="failure" role="alert">
-          {loadFailure}
+          {loadFailure ?? inputFailure}
         </p>
       )}
 
@@ -239,12 +240,10 @@ export function ReactSourceCardExample({
         id="preview"
         className="preview"
         data-theme={theme}
+        hidden={loadFailure !== undefined}
         style={{ maxWidth: `${previewWidth}px` }}
       >
-        <sefaria-source-card
-          ref={setCardRef}
-          hidden={loadFailure !== undefined}
-        />
+        <sefaria-source-card ref={setCardRef} />
       </section>
 
       <p id="selected-ref" className="event-state" aria-live="polite">

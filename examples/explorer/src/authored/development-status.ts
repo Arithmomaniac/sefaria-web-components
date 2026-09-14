@@ -607,6 +607,7 @@ class SefariaDevelopmentStatus extends SefariaElement {
 
   #commitWidth = (): void => {
     this.#updateUrl();
+    this.requestUpdate();
   };
 
   #changeDiagnostics = (event: Event): void => {

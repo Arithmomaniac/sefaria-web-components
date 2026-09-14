@@ -127,6 +127,54 @@ test("loads only on explicit actions and rejects stale overlapping results", asy
   expect(container.querySelector("#request-count")?.textContent).toContain("2");
 });
 
+test("blank validation does not cancel an admitted request", async () => {
+  let resolveRequest!: (response: Response) => void;
+  let requestSignal: AbortSignal | undefined;
+  const fetch = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+    const request = new Request(input, init);
+    requestSignal = request.signal;
+    return await new Promise<Response>((resolve) => {
+      resolveRequest = resolve;
+    });
+  });
+  const container = document.createElement("div");
+  document.body.append(container);
+  root = createRoot(container);
+
+  await act(async () => {
+    root?.render(
+      <ReactSourceCardExample
+        client={createSefariaClient({
+          baseUrl: "https://example.invalid",
+          cache: false,
+          fetch,
+        })}
+      />,
+    );
+  });
+  await act(async () => click(container, "#load-live"));
+  await vi.waitFor(() => expect(fetch).toHaveBeenCalledOnce());
+  await act(async () => {
+    setTextInput(container, 'input[name="tref"]', "   ");
+  });
+  await act(async () => click(container, "#load-live"));
+
+  expect(container.querySelector("#load-error")?.textContent).toBe(
+    "Enter a non-blank Sefaria reference.",
+  );
+  expect(fetch).toHaveBeenCalledOnce();
+  expect(requestSignal?.aborted).toBe(false);
+
+  await act(async () => {
+    resolveRequest(Response.json(fixture));
+    await waitForReact();
+  });
+  expect(requireCard(container).viewModel.state).toBe("data");
+  expect(container.querySelector("#request-status")?.textContent).toContain(
+    "Loaded Micah 6:8",
+  );
+});
+
 test("StrictMode does not request on mount and unmount removes listeners and aborts work", async () => {
   let resolveRequest!: (response: Response) => void;
   let requestSignal: AbortSignal | undefined;
@@ -207,7 +255,10 @@ test("shows thrown and local validation failures without a success fallback", as
   expect(container.querySelector("#load-error")?.textContent).toBe(
     "Network unavailable.",
   );
-  expect(requireCard(container).hidden).toBe(true);
+  const failedPreview = container.querySelector<HTMLElement>("#preview");
+  if (!failedPreview) throw new Error("The React preview is missing.");
+  expect(failedPreview.hidden).toBe(true);
+  expect(getComputedStyle(failedPreview).display).toBe("none");
   expect(fetch).toHaveBeenCalledOnce();
   expect(container.querySelector("#request-count")?.textContent).toContain("1");
 
@@ -266,6 +317,22 @@ function setRange(
   setValue.call(input, value);
   input.dispatchEvent(new Event("input", { bubbles: true }));
   input.dispatchEvent(new Event("change", { bubbles: true }));
+}
+
+function setTextInput(
+  rootElement: ParentNode,
+  selector: string,
+  value: string,
+): void {
+  const input = rootElement.querySelector<HTMLInputElement>(selector);
+  if (!input) throw new Error(`${selector} is missing.`);
+  const setValue = Object.getOwnPropertyDescriptor(
+    HTMLInputElement.prototype,
+    "value",
+  )?.set;
+  if (!setValue) throw new Error("The native input value setter is missing.");
+  setValue.call(input, value);
+  input.dispatchEvent(new Event("input", { bubbles: true }));
 }
 
 async function waitForReact(): Promise<void> {
