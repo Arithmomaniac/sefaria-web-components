@@ -38,9 +38,14 @@ export function startSourceCardLiveDemo(
   const displayForm = requireElement<HTMLFormElement>(root, "#display-form");
   const requestState = requireElement<HTMLElement>(root, "#request-state");
   const hostError = requireElement<HTMLElement>(root, "#host-error");
+  const resultContent = requireElement<HTMLElement>(
+    root,
+    "#source-card-content",
+  );
   const result = requireElement<SefariaSourceCard>(root, "#source-card-result");
   let activeController: AbortController | undefined;
   let activeOperation = 0;
+  let committedViewModel: SourceCardViewModel | undefined;
 
   const applyDisplaySettings = (): void => {
     const values = new FormData(displayForm);
@@ -59,7 +64,7 @@ export function startSourceCardLiveDemo(
       primaryTitleInput.value,
       translationTitleInput.value,
     );
-
+    resultContent.hidden = false;
     result.viewModel = {
       state: "loading",
       message: `Loading ${request.tref}.`,
@@ -76,6 +81,7 @@ export function startSourceCardLiveDemo(
         return;
       }
       result.viewModel = viewModel;
+      committedViewModel = viewModel;
       requestState.dataset.state = viewModel.state;
       requestState.textContent =
         viewModel.state === "data"
@@ -87,6 +93,11 @@ export function startSourceCardLiveDemo(
       }
       requestState.dataset.state = "error";
       requestState.textContent = `${request.tref} could not complete.`;
+      if (committedViewModel === undefined) {
+        resultContent.hidden = true;
+      } else {
+        result.viewModel = committedViewModel;
+      }
       hostError.hidden = false;
       hostError.textContent =
         error instanceof Error ? error.message : String(error);
@@ -102,6 +113,17 @@ export function startSourceCardLiveDemo(
     void loadCurrentRequest();
   });
   displayForm.addEventListener("change", applyDisplaySettings);
+  result.selectable = true;
+  result.addEventListener("sefaria-source-select", (event) => {
+    const detail = (
+      event as CustomEvent<{
+        readonly position: readonly number[];
+        readonly ref: string;
+      }>
+    ).detail;
+    requestState.dataset.state = "selected";
+    requestState.textContent = `Selected ${detail.ref} at [${detail.position.join(", ")}].`;
+  });
   applyDisplaySettings();
 
   for (const preset of root.querySelectorAll<HTMLButtonElement>(

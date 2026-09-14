@@ -9,6 +9,8 @@ export const CHECK_STAGES = [
   { name: "Formatting", args: ["format:check"] },
   { name: "Oxlint", args: ["lint"] },
   { name: "Workspace builds", args: ["build"] },
+  { name: "Documentation site", args: ["build:site:bundles"] },
+  { name: "Documentation site browser acceptance", args: ["test:site"] },
   {
     name: "MCP Inspector stdio acceptance",
     args: ["--filter", "@sefaria-example/mcp-app", "inspect:stdio"],

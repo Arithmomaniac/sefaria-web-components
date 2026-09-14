@@ -1,49 +1,67 @@
-> Created/edited by GitHub Copilot with human review/feedback by Avi Levin.
+> Created/edited by GitHub Copilot; pending human review.
 
 # Sefaria Frontend Toolkit
 
-Build Sefaria reading surfaces without bringing along the Sefaria website. Use validated transport, pure text processing, component-specific factories, and request-free Web Components as individual pieces or as a packaged Reader.
+Build Sefaria reading surfaces from validated transport data, pure text processing, component-specific factories, and request-free Web Components. Use the complete Reader, individual components, or the headless packages without bringing along the Sefaria website.
 
-The existing `main` website remains available through the interactive [Sefaria Web Components showcase](https://arithmomaniac.github.io/sefaria-web-components/). This unpublished toolkit branch is developed and qualified independently; it is not deployed or published.
+> **Experimental and unpublished.** This public source repository is a development project with no support or stability guarantee. It is not an official Sefaria product, and its private packages are not available from a public registry or CDN.
 
-> **Experimental.** This Microsoft Global Hackathon 2026 project has no support or stability guarantee. It is not an official Sefaria product. Packages are currently private workspace packages, not a published installation offering.
+## First run
 
-## Start here
-
-| I want to... | Read |
-| --- | --- |
-| Review the delivered source and stewardship boundaries | [Source handoff](docs/handoff.md) |
-| Try the components or display a passage | [Render text](docs/guides/render-text.md) |
-| Understand the client, view models, and Web Components | [How the pieces fit together](docs/guides/data-flow.md) |
-| Enhance authored citations with popups | [Authored linked article](docs/linked-article.md) |
-| Run the MCP App in VS Code Copilot Chat | [MCP App demonstration](docs/mcp-app-demo.md) |
-| Understand HTML tags inside Sefaria text | [Text markup, with examples](docs/guides/text-markup.md) |
-| Know where this project deliberately differs from Sefaria | [Intentional differences](docs/guides/differences.md) |
-| Contribute, understand changed plans, or see what remains | [Development](docs/development.md) |
-
-The [documentation home](docs/README.md) also leads to specifications, upstream concepts, source evidence, and review guidance.
-
-## Explore the components
-
-With Node.js 22.12 or later and pnpm 11.22.0 installed, run these commands from the repository root:
+With Node.js 22.12 or later, pnpm 11.22.0, and Chromium:
 
 ```powershell
+corepack enable
 pnpm install
-pnpm dev
+pnpm dev:site
 ```
 
-Open the local URL printed by Vite. The explorer separates deterministic authored states from live pages that use the production client, factory, and element path. Loading the explorer does not start every live request.
+The command builds the maintained private examples and opens the local documentation source in development mode. It does not deploy anything or contact Sefaria until you explicitly use a live example action.
 
-The [development guide](docs/development.md) covers Corepack and the full contributor setup.
+If you want the shortest component proof instead of the documentation site:
 
-## What is available?
+```powershell
+pnpm dev:vanilla
+```
 
-The client, text transforms, text segment, bilingual segment, reference label, selectable source card, connections panel, request-free popup, contextual connections reader, DOM-free reader session and controller, controlled reader surface, authored linked-article example, and Core MCP App are implemented on the [documented implementation baseline](docs/development.md#implemented-on-this-baseline). A source card handles both a single segment and a collection of text from one response.
+That example validates a supplied `Micah 6:8` payload, projects it through the public pure factory, and renders it with zero requests. Its explicit button then exercises the public client and async factory with one injected offline response. [Local tarball setup](docs/learn/02-supplied-data.md#try-it) covers an external consumer that cannot resolve workspace source.
 
-Run `pnpm dev:reader` for the supported stateful Reader and lower-level spatial website demonstrations, `pnpm dev:connections` for the contextual diagnostic page in the explorer, or `pnpm dev:linked-article` for the progressively enhanced article. Run `pnpm launch:mcp:vscode` to open the isolated VS Code environment minimized; the [MCP App demonstration](docs/mcp-app-demo.md) covers the optional one-time sign-in and interactive workflow. The launcher does not enable CDP, type, submit a prompt, or call a tool. The MCP Reader has completed an authenticated walkthrough covering same-App connections, nested navigation, retained breadcrumbs, and explicit chat export. [Development](docs/development.md) separates current behavior, superseded plans, and remaining work.
+## Choose a path
 
-## License and ownership
+| Goal | Start here |
+| --- | --- |
+| Learn step by step | [Web Components and ownership](docs/learn/01-web-components.md) |
+| Use the prebuilt Reader | [Controlled Reader or custom composition](docs/learn/04-reader.md) |
+| Explore components and states | [Example catalog](examples/README.md) |
+| Customize display or build a host | [Customization and headless APIs](docs/learn/05-customization.md) |
+| Use React | [React integration path](docs/learn/react.md) and [`examples/react-vite`](examples/react-vite/README.md) |
+| Enhance an authored article | [Linked article guide](docs/linked-article.md) |
+| Integrate through MCP | [MCP App guide](docs/mcp-app-demo.md) |
+| Contribute or run all checks | [Development](docs/development.md) |
 
-This repository uses the [GPL-3.0 license](LICENSE). The license follows the Sefaria codebases that informed this work.
+The [documentation home](docs/README.md) is the repository-native index for guides, specifications, generated reference, evidence, and review guidance. The local VitePress site presents the same maintained Markdown and embeds isolated builds of the existing examples; it is not a separate wiki or documentation source.
 
-This project uses the Microsoft Hack for Good agreement. Sefaria owns the resulting work, and Microsoft receives a license back. Ownership does not mean that Sefaria endorses or supports the project.
+## Architecture in one minute
+
+1. `@sefaria/client` calls reviewed API operations and validates every JSON response.
+2. `@sefaria/text-transform` performs pure sanitization, vocalization, and footnote work.
+3. non-DOM `@sefaria/web-components/*` factories project validated payloads into component-specific view models.
+4. browser elements render those view models and emit events; they never receive clients, references, raw payloads, or `fetch`.
+5. the host owns input, loading, cancellation, stale-result rejection, and composition.
+
+Read [How the pieces fit together](docs/guides/data-flow.md) for the complete boundary and failure model.
+
+## Current examples
+
+- `examples/vanilla-vite`: zero-request supplied-data render plus an explicit injected-client action.
+- `examples/react-vite`: typed property assignment, real event binding, explicit live loading, stable element identity, cancellation, and StrictMode cleanup.
+- `examples/explorer`: authored zero-request states plus explicit live component pages.
+- `examples/reader`: supported controlled Reader and a distinct lower-level spatial composition.
+- `examples/linked-article`: progressively enhanced native citation links.
+- `examples/mcp-app`: compiled Node transports, AppBridge reference host, request-free first render, and a deterministic static fixture preview.
+
+Run `pnpm build:site` and `pnpm preview:site` to inspect the clean production documentation artifact under `dist/site`. The existing website deployed from `main` is a historical independent showcase and is not replaced or redeployed by this branch.
+
+## License and attribution
+
+This repository uses the [GPL-3.0 license](LICENSE). It builds on public Sefaria APIs and source evidence documented in [`docs/evidence.md`](docs/evidence.md). Repository work, license inheritance, or historical collaboration context does not imply official Sefaria ownership, maintenance, endorsement, or support.

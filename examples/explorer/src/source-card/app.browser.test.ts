@@ -27,7 +27,9 @@ beforeEach(() => {
     </form>
     <p id="request-state"></p>
     <p id="host-error" hidden></p>
-    <sefaria-source-card id="source-card-result"></sefaria-source-card>
+    <div id="source-card-content">
+      <sefaria-source-card id="source-card-result"></sefaria-source-card>
+    </div>
   `;
 });
 
@@ -79,6 +81,64 @@ test("applies display settings without requesting", () => {
   expect(resultElement().layout).toBe("stacked");
   expect(resultElement().sideOrder).toBe("translation-first");
   expect(loader).not.toHaveBeenCalled();
+});
+
+test("enables selection and reports the real component event", () => {
+  const loader = vi.fn<SourceCardLoader>(async () => FIRST_RESULT);
+  startSourceCardLiveDemo(document, loader);
+  const result = resultElement();
+
+  expect(result.selectable).toBe(true);
+  result.dispatchEvent(
+    new CustomEvent("sefaria-source-select", {
+      detail: { position: [2, 1], ref: "Micah 6:8" },
+    }),
+  );
+
+  expect(requestState().dataset.state).toBe("selected");
+  expect(requestState().textContent).toContain("Selected Micah 6:8");
+  expect(loader).not.toHaveBeenCalled();
+});
+
+test("restores committed content after a transport failure", async () => {
+  let rejectSecond!: (reason: unknown) => void;
+  const loader = vi.fn<SourceCardLoader>(async () => {
+    if (loader.mock.calls.length === 1) return FIRST_RESULT;
+    return await new Promise<SourceCardViewModel>((_resolve, reject) => {
+      rejectSecond = reject;
+    });
+  });
+  const demo = startSourceCardLiveDemo(document, loader);
+  const result = resultElement();
+
+  await demo.loadCurrentRequest();
+  const failedLoad = demo.loadCurrentRequest();
+  await vi.waitFor(() => expect(loader).toHaveBeenCalledTimes(2));
+  rejectSecond(new Error("Network unavailable."));
+  await failedLoad;
+
+  expect(result.viewModel).toBe(FIRST_RESULT);
+  expect(requestState().dataset.state).toBe("error");
+  expect(document.querySelector<HTMLElement>("#host-error")?.textContent).toBe(
+    "Network unavailable.",
+  );
+});
+
+test("hides an initial loading placeholder after a transport failure", async () => {
+  const loader = vi.fn<SourceCardLoader>(async () => {
+    throw new Error("Network unavailable.");
+  });
+  const demo = startSourceCardLiveDemo(document, loader);
+
+  await demo.loadCurrentRequest();
+
+  const resultContent = document.querySelector<HTMLElement>(
+    "#source-card-content",
+  );
+  if (!resultContent) throw new Error("The source-card content is missing.");
+  expect(resultContent.hidden).toBe(true);
+  expect(getComputedStyle(resultContent).display).toBe("none");
+  expect(requestState().dataset.state).toBe("error");
 });
 
 test("aborts the old operation and ignores its stale result", async () => {

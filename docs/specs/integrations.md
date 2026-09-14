@@ -1,4 +1,4 @@
-> Created/edited by GitHub Copilot with human review/feedback by Avi Levin.
+> Created/edited by GitHub Copilot; pending human review.
 
 # Integration specification
 
@@ -16,21 +16,17 @@ An integration must not give a reference, raw payload, client, host, or `fetch` 
 
 Unknown JSON must pass a generated `@sefaria/client` validator before component projection. Validation failures report structured paths.
 
-## Public showcase deck [Current]
+## Local documentation site [Current]
 
-The GitHub Pages showcase is a static Reveal.js host for project explanation, live browser demonstrations, and captured named-host evidence. It owns presentation state, reference inputs, client creation, cancellation, stale-result suppression, and assignment of factory results to persistent request-free elements.
+The VitePress site presents the canonical Markdown learning path and embeds isolated production builds of the maintained browser examples. It does not import DOM-dependent toolkit registration into VitePress server rendering, render toolkit component HTML on the server, or hydrate toolkit elements.
 
-The deck defines a minimum supported top-level CSS viewport and blocks presentation below either required dimension with an explicit larger-window message. Resizing back into the supported range preserves the active slide, screenshot position, and mounted demonstrations. Wheel gestures navigate the deck in both directions except inside deliberately scrollable code, output, component, and iframe surfaces. The MCP screenshot gallery participates in that sequence: wheel navigation traverses its finite recorded states before moving to the adjacent slide.
+The site build includes the explorer, controlled and spatial Reader, vanilla consumer, React consumer, authored linked article, and static MCP App fixture preview. Each example keeps its own request ownership, cancellation, stale-result handling, element lifecycle, and tests. No example imports another example at runtime.
 
-The React examples bind existing component factories or the supported reader controller to existing Web Components. The Reader slide calls `loadReaderController` with a starting reference and binds the result to one persistent `<sefaria-reader>`. The following interaction slide deliberately demonstrates the lower-level alternative: the host places separate source-card and connections-panel elements in side-by-side columns and owns their session transitions. Theme, font, viewport width, code-tab, and slide-navigation changes do not recreate a mounted element or run a request after settled content.
+Landing pages and authored-state previews are deterministic and make no unsolicited Sefaria request. Live factory actions remain explicit, preserve network, abort, contract-validation, documented HTTP, projection, partial, and empty distinctions, and do not substitute fixture success after a failure.
 
-Live examples call the deployed Sefaria API by default. Network, abort, contract-validation, documented HTTP, projection, partial, and empty outcomes remain distinct. The showcase does not silently replace a failed live request with fixture data. Deterministic tests can inject dated payloads through the existing client boundary without making fixture mode part of the public demonstration.
+The static MCP App route is labeled fixture-driven rendering evidence. It does not claim a tool call, transport, AppBridge, sandbox, request-count, or named-host proof. The compiled local Node reference host remains the protocol acceptance path.
 
-Interactive demonstrations run in same-origin iframe viewports so resizing changes their actual CSS viewport width and container-query behavior. The frame scrolls independently, inherits the deck's resolved light/dark theme and font tokens, and stays mounted after its first visit. Unvisited examples make no request. Leaving a pending example aborts or supersedes its work; returning exposes retained completed content or an explicit interrupted state rather than retrying invisibly.
-
-The deck displays captured MCP Reader screenshots, but GitHub Pages does not run the Node MCP server or browser host. The gallery shows the initial stateful Reader, retained same-App hierarchy, and explicit nested-reference chat export. Screenshot galleries identify recorded evidence and do not imitate an interactive MCP host. Public assets include provenance and exclude authenticated, private, or unrelated browser content.
-
-The Pages artifact contains an allowlisted set of built browser demonstrations. The deck is the site root, and existing demonstrations remain under stable subpaths, including the authored linked article at the historical Linker route. Pull requests build and test the artifact without publishing; main publishes only after the normal checks and asset approval gates.
+The local site artifact contains an allowlisted set of real built files. Source links point to actual files on the toolkit integration branch rather than same-origin source-looking paths that can resolve to an HTML fallback. Pull requests build and test the artifact without deploying it. The independent `main` website and its Pages deployment remain unchanged.
 
 ## Interaction task flow
 

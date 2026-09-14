@@ -57,4 +57,6 @@ The private [MCP App guide](../docs/mcp-app-demo.md) packages the Reader as a se
 | Linker detection and bookmarklet demos | Replaced by the maintained authored linked article; the historical Pages route remains available for existing links. |
 | Showcase payload → view model → element explanation | Consolidated into maintained source/diagnostic panels and public-package descriptions without copying slide lifecycle code. |
 | Showcase React property/factory bindings | Backfilled into `react-vite` with production-path browser tests, real events, and cleanup; no runtime import from the showcase remains. |
-| Showcase theme and large-slide resize mechanics | The reusable theme/width teaching is retained in maintained examples. Reveal navigation, iframe activation messaging, video handling, and presentation media remain presentation-only and stay in place for the later documentation slice. |
+| Showcase theme and large-slide resize mechanics | The reusable theme/width teaching remains in the authored, Reader, and React examples. Reveal navigation, iframe activation messaging, booth-loop timing, QR generation, video handling, and presentation-only media were retired from active source. |
+
+The removed presentation remains available at the immutable [`d7e2d59645ebf7427dcff2cbdd78073e2e7df58c`](https://github.com/Arithmomaniac/sefaria-web-components/tree/d7e2d59645ebf7427dcff2cbdd78073e2e7df58c/demos/showcase) revision. The current local documentation site assembles these maintained examples without cross-example runtime imports.

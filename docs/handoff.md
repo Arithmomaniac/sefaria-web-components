@@ -1,4 +1,4 @@
-> Created/edited by GitHub Copilot with human review/feedback by avilevin.
+> Created/edited by GitHub Copilot; pending human review.
 
 # Source handoff
 
@@ -17,24 +17,25 @@ The same pieces support both packaged and host-specific compositions:
 
 | Capability | Example |
 | --- | --- |
-| Text, bilingual, reference, source-card, and connections primitives | [Developer explorer](../examples/explorer/index.html) |
+| Text, bilingual, reference, source-card, and connections primitives | [Developer explorer source](https://github.com/Arithmomaniac/sefaria-web-components/tree/feature/avilevin/frontend-toolkit-alpha/examples/explorer) |
 | Supported packaged Reader | `examples/reader/controlled.html` |
 | Custom host-owned spatial reading workflow | `examples/reader/index.html` |
 | Reading surfaces embedded in an ordinary page | [Authored linked article](linked-article.md) |
 | The Reader delivered through an MCP App | [MCP App demonstration](mcp-app-demo.md) |
-| Guided explanation of the complete story | [Public showcase](https://arithmomaniac.github.io/sefaria-web-components/) |
+| Guided explanation of the complete story | [Step-by-step learning path](learn/01-web-components.md) and local `pnpm dev:site` presentation |
 
 The Reader is one composition of the reusable contracts, not the whole product. The spatial workspace deliberately demonstrates that a host can use lower-level session and component contracts when the packaged composition does not fit its interaction model.
 
-## What Sefaria would maintain
+## Maintainer responsibility map
 
-| Owner | Maintained responsibility |
+| Source area | Maintained responsibility |
 | --- | --- |
 | `packages/client` | Pinned upstream OpenAPI input, guarded corrections, generated contracts and validators, thin client, and bounded per-client response cache |
 | `packages/text-transform` | Pure sanitization, vocalization, footnotes, and connected-text previews |
 | `packages/web-components` | Component request types, view models, pure/async factories, reader session/controller, and request-free elements |
 | `examples/explorer` | Authored component states and live developer diagnostics |
-| `examples/reader`, `examples/linked-article`, `examples/mcp-app`, `demos/showcase` | Distinct website, embedding, host-transport, and presentation examples |
+| `examples/reader`, `examples/linked-article`, `examples/mcp-app` | Distinct website, embedding, and host-transport examples |
+| `docs/.vitepress`, `scripts/build-site.mjs` | Local presentation of canonical Markdown and isolated maintained examples |
 | `docs/specs` | Intended behavior and acceptance rules |
 | `docs/evidence.md` | Upstream observations, deployed fixtures, captures, and provenance |
 
@@ -54,7 +55,7 @@ The implementation deliberately differs from Sefaria in a small number of docume
 
 ## Delivery limits
 
-- All packages are private `0.0.0` workspace packages whose exports point to TypeScript source. This is a source handoff, not an npm or CDN distribution.
+- All packages are private `0.0.0` workspace packages with built JavaScript and declaration exports. They can be packed and consumed as local tarballs, but this remains a source handoff rather than an npm or CDN distribution.
 - The project is experimental and has no support or stability guarantee.
 - Compatibility evidence is focused and representative, not exhaustive across the Sefaria corpus.
 - Linker public hosting and broad third-party-site qualification are outside this source delivery.
@@ -67,4 +68,4 @@ The implementation deliberately differs from Sefaria in a small number of docume
 2. Open `pnpm dev` for authored and live component exploration.
 3. Run `pnpm dev:reader` to compare the supported Reader with the custom spatial composition.
 4. Read [How the pieces fit together](guides/data-flow.md), then inspect one component subpath from request through view model and element.
-5. Use the specifications and evidence record for contract review rather than reconstructing intent from Git history or the showcase.
+5. Use the specifications and evidence record for contract review rather than reconstructing intent from Git history or a historical presentation.

@@ -20,3 +20,20 @@ h1,
 p {
   margin: 0;
 }
+
+button {
+  width: fit-content;
+  min-height: 2.5rem;
+  border: 1px solid currentColor;
+  border-radius: 0.5rem;
+  padding: 0.45rem 0.75rem;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}

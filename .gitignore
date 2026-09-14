@@ -32,6 +32,10 @@ __pycache__/
 .eslintcache
 .turbo/
 .vite/
+docs/.vitepress/cache/
+docs/.vitepress/dist/
+.vitepress/cache/
+.vitepress/dist/
 .toolchain/
 
 # Logs
