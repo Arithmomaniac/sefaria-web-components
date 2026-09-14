@@ -80,10 +80,8 @@
       </section>
     </main>
     <script type="module">
-      if (import.meta.env.DEV) {
-        for (const link of document.querySelectorAll("[data-local-target]")) {
-          link.href = link.dataset.localTarget;
-        }
+      for (const link of document.querySelectorAll("[data-local-target]")) {
+        link.href = link.dataset.localTarget;
       }
     </script>
   </body>

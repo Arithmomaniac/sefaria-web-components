@@ -1,62 +1,63 @@
-> Created/edited by GitHub Copilot with human review/feedback by avilevin.
+> Created/edited by GitHub Copilot; pending human review.
 
 # Documentation
 
-Sefaria supplies texts and their metadata. This project supplies a small client, pure text processing, and reusable components for displaying that data. Start with the task you want to accomplish; you do not need to read the specifications first.
+Sefaria supplies texts and metadata. This project supplies a validated client, pure text processing, component-specific factories, request-free Web Components, and a controlled Reader. Start with the task you need; the specifications are reference material, not a prerequisite.
 
-The public [interactive showcase](https://arithmomaniac.github.io/sefaria-web-components/) walks through the repository as a Reveal.js presentation and keeps the standalone browser demonstrations available at linked subpaths.
+This Markdown page is the repository-native documentation home. `pnpm dev:site` presents the same maintained files through a local VitePress site with isolated interactive examples. The site is unpublished and is not required to use the source.
 
-Sefaria reviewers and incoming maintainers should begin with the [source handoff](handoff.md). Developers can run the consolidated component explorer with `pnpm dev`.
+## Learn step by step
 
-## Use the components
+1. [Understand Web Components and toolkit ownership](learn/01-web-components.md): registration, properties versus attributes, events, encapsulation, and `client -> factory -> view model -> element`.
+2. [Set up and render supplied data](learn/02-supplied-data.md): private workspace and local-tarball setup, validation, pure projection, and a zero-request Micah 6:8 render.
+3. [Load data and handle interaction](learn/03-live-data.md): explicit async factory calls, loading, visible failures, component selection events, cancellation, and stale-result rejection.
+4. [Use the Reader or compose a custom host](learn/04-reader.md): the supported controlled Reader and the extra responsibilities of spatial composition.
+5. [Customize presentation and use headless APIs](learn/05-customization.md): theme, width, side visibility/order, layout, client, factories, and text transforms.
+6. [Integrate an authored article or MCP host](learn/06-host-integration.md): native-link enhancement, server-provided data, host-proxied tools, and static-preview limits.
 
-1. [Render text](guides/render-text.md): run a demo, choose a component, and put a source card in a browser app.
-2. [How the pieces fit together](guides/data-flow.md): understand the client, factories, view models, and elements, including the already-fetched-data path.
-3. [Authored linked article](linked-article.md): preserve ordinary citation navigation while a page-owned enhancement loads request-free popups.
-4. [MCP App demonstration](mcp-app-demo.md): run the stateful reader in VS Code Copilot Chat and inspect same-App connection navigation, retained breadcrumbs, and explicit chat export.
-5. [Text markup, with examples](guides/text-markup.md): recognize footnotes, commentary markers, Masorah spans, links, and other HTML inside a passage.
-6. [Intentional differences](guides/differences.md): understand which Sefaria behaviors we preserve and which we deliberately change.
-7. [Reader navigation, illustrated](guides/reader-navigation.md): compare the multi-pane and supported-controller website demos, Sefaria navigation ownership, and the current DOM-free reader session, controller, controlled surface, and integrated MCP consumer.
+React users can branch from steps 2 and 3 into [Use the Web Components from React](learn/react.md). It uses the same packages and elements; there is no React wrapper package.
 
-**Current** means available on the documented repository baseline. **Planned** means an intended contract that is not yet delivered there. **Observed** describes evidence from a named source or capture, not a universal promise about every Sefaria text.
+## Start from a complete solution
 
-## Sefaria concepts
+You do not need to finish the tutorial before using the toolkit:
 
-The guides use Sefaria's vocabulary rather than defining another reference system:
+| Need | Destination |
+| --- | --- |
+| Prebuilt stateful reading surface | [Controlled Reader lesson](learn/04-reader.md) and [`examples/reader/controlled.html`](https://github.com/Arithmomaniac/sefaria-web-components/blob/feature/avilevin/frontend-toolkit-alpha/examples/reader/controlled.html) |
+| Component states and live diagnostics | [Example catalog](https://github.com/Arithmomaniac/sefaria-web-components/blob/feature/avilevin/frontend-toolkit-alpha/examples/README.md) |
+| A passage card in a browser app | [Render text](guides/render-text.md) |
+| Authored citation popups | [Linked article](linked-article.md) |
+| Reader in an MCP Apps host | [MCP App demonstration](mcp-app-demo.md) |
 
-| Term | Meaning here | Upstream introduction |
-| --- | --- | --- |
-| Reference, or `ref`/`tref` | A citation identifying a book, section, segment, or range; it is not the text or an HTML element | [Text references](https://developers.sefaria.org/docs/text-references) |
-| Index | Metadata and the structural description of a work | [Index and versions](https://developers.sefaria.org/docs/index-and-versions) |
-| Version or edition | A particular source text or translation of a work | [Index and versions](https://developers.sefaria.org/docs/index-and-versions) |
-| Segment | A leaf text unit within the work's structure | [Structure of a book](https://developers.sefaria.org/docs/the-structure-of-a-text-on-sefaria) |
-| Text markup | HTML inside a returned text string, not syntax in the reference | [Sefaria formatting](https://developers.sefaria.org/docs/text-formatting-beyond-the-segment-level) and [our illustrated guide](guides/text-markup.md) |
+## Understand the design
 
-Sefaria's [API introduction](https://developers.sefaria.org/reference/getting-started) explains its broader API. Our client covers the eight GET and POST operations in the [client specification](specs/client.md), with reviewed schema corrections. Upstream documentation is useful context; it does not override this project's intentional differences.
+- [How the pieces fit together](guides/data-flow.md)
+- [Text markup, with examples](guides/text-markup.md)
+- [Intentional differences from Sefaria](guides/differences.md)
+- [Reader navigation and host boundaries](guides/reader-navigation.md)
+- [Stable ownership and dependency boundaries](design.md)
+- [Observed source evidence and provenance](evidence.md)
 
-## Contribute and investigate
+**Current** means delivered on the documented repository baseline. **Planned** means intended but not delivered. **Observed** identifies evidence from a named source or capture, not a universal promise about every Sefaria text.
+
+## Reference and contribution
 
 | Goal | Document |
 | --- | --- |
-| Set up the repository; distinguish changed plans from unfinished work | [Development](development.md) |
-| Understand stable ownership and dependency boundaries | [Design](design.md) |
-| Find the source, fixture, or historical decision behind a behavior | [Evidence](evidence.md) |
+| Set up the repository and run local/site checks | [Development](development.md) |
 | Review a change at the right depth | [Review](review.md) |
-| Use text transforms without components | [`@sefaria/text-transform`](../packages/text-transform/README.md) |
-| Use the validated transport package | [`@sefaria/client`](../packages/client/README.md) |
-| Choose component and Reader entry points | [`@sefaria/web-components`](../packages/web-components/README.md) |
-| Inspect generated component metadata | [Custom elements](reference/custom-elements.md) |
+| Use the validated transport package | [`@sefaria/client`](https://github.com/Arithmomaniac/sefaria-web-components/blob/feature/avilevin/frontend-toolkit-alpha/packages/client/README.md) |
+| Use text transforms without components | [`@sefaria/text-transform`](https://github.com/Arithmomaniac/sefaria-web-components/blob/feature/avilevin/frontend-toolkit-alpha/packages/text-transform/README.md) |
+| Choose component and Reader subpaths | [`@sefaria/web-components`](https://github.com/Arithmomaniac/sefaria-web-components/blob/feature/avilevin/frontend-toolkit-alpha/packages/web-components/README.md) |
+| Inspect generated element metadata | [Custom elements](reference/custom-elements.md) |
 | Inspect declaration-derived package exports | [Public package exports](reference/public-exports.md) |
+| Find historical removed material | [Documentation archive](archive/README.md) |
 
-## Detailed reference
+## Specifications
 
-Guides explain use. Specifications own intended behavior and acceptance rules. Generated declarations own field-level transport definitions; component subpaths define rendering types.
+Specifications own intended behavior and acceptance rules. Generated declarations own field-level transport definitions; component subpaths define rendering types.
 
-| Reference | Scope |
-| --- | --- |
-| [Client specification](specs/client.md) | Pinned OpenAPI, corrections, eight GET and POST operations, validation, and failure contracts |
-| [Text-processing specification](specs/text-processing.md) | Exact sanitizer allowlists, vocalization, and footnote rules |
-| [Component specification](specs/components.md) | Requests, view models, factories, elements, connections, popup behavior, and composition |
-| [Integration specification](specs/integrations.md) | Current connections-reader, linked-article, and MCP boundaries, including host acceptance |
-
-The [archive index](archive/README.md) points to the exact Git revision containing the pre-rewrite documents and demo captures. It is not a second checked-in set of current instructions.
+- [Client specification](specs/client.md)
+- [Text-processing specification](specs/text-processing.md)
+- [Component specification](specs/components.md)
+- [Integration specification](specs/integrations.md)

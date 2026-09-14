@@ -1,4 +1,4 @@
-> Created/edited by GitHub Copilot with human review/feedback by Avi Levin.
+> Created/edited by GitHub Copilot; pending human review.
 
 # Development
 
@@ -16,7 +16,7 @@ Run the deterministic workflow-policy regression with:
 pnpm test -- tests/workflow-policy.test.ts
 ```
 
-The maintained bootstrap handoff is [IMPLEMENTATION-PLAN.md](../IMPLEMENTATION-PLAN.md). Its archive links point to the immutable pre-bootstrap baseline; it is an execution handoff, not a normative component or transport specification.
+The maintained bootstrap handoff is [`IMPLEMENTATION-PLAN.md`](https://github.com/Arithmomaniac/sefaria-web-components/blob/feature/avilevin/frontend-toolkit-alpha/IMPLEMENTATION-PLAN.md). Its archive links point to the immutable pre-bootstrap baseline; it is an execution handoff, not a normative component or transport specification.
 
 ## Contributor guides
 
@@ -40,7 +40,7 @@ For reader-oriented explanations, use the friendly guides rather than the archiv
 | `examples/vanilla-vite` | Exercises installed public client, source-card factory, and custom-element registration paths with a deterministic validated `Micah 6:8` response. |
 | `examples/linked-article` | Progressively enhances authored Sefaria anchors with the public popup factory while preserving native navigation, page-owned cancellation, visible failures, and request-free rendering. |
 | `examples/mcp-app` | Exposes compiled Node stdio and Streamable HTTP `get_text` and adaptive `get_links_between_texts` tools, packages a single-file App, validates corrected payloads and metadata, includes a separate-origin AppBridge reference host and deterministic request-count proof, and retains the optional authenticated isolated VS Code hierarchy walkthrough with separate explicit chat export. |
-| `demos/showcase` | Presents the supported controller-backed Reader, a separate manually composed side-by-side source/connections workflow, the authored linked article, and captured integrated MCP Reader evidence in the Reveal.js GitHub Pages deck. |
+| `docs/` and `dist/site` | Provide one GitHub-readable learning sequence and a local VitePress presentation that embeds isolated builds of the maintained examples. |
 | `tests/compatibility` | Delivers focused pinned client and transform comparisons, a composed v3 validate-to-transform smoke case, and grouped qualification output without network access. The evidence is representative and non-exhaustive. |
 
 ## What changed from earlier plans
@@ -80,32 +80,28 @@ The client, text-transform foundations, current components, controlled reader, c
 
 TypeScript emits reusable ES modules. Vite builds the browser demonstrations and the single-file MCP App.
 
-## Showcase and GitHub Pages
+## Local documentation site
 
-Run the interactive deck locally:
-
-```powershell
-pnpm dev:showcase
-```
-
-The separate developer-focused booth loop is available at `/loop.html`. Open `/loop.html?paused=1` for local review with arrow-key navigation before publishing. Its eight screens total 150 seconds and use bundled screenshots rather than live requests. The loop has its own copy and styles; revising it does not change the narrated deck at `/`.
-
-The deck calls the deployed Sefaria API. Network, CORS, contract, and documented HTTP failures remain visible; there is no automatic fixture fallback.
-
-The top-level presentation requires a browser content viewport of at least 1440 by 900 CSS pixels. Below either dimension it replaces the deck with a blocking larger-window message; enlarging the viewport restores the same slide and mounted demonstrations. The mouse wheel moves forward and backward through the deck. On the MCP slide it traverses the three recorded screenshots before leaving the slide in either direction. Scrollable code, JSON, component panes, and live iframe demonstrations retain their native scrolling rather than advancing the deck.
-
-Build the exact allowlisted Pages artifact:
+Run the development site:
 
 ```powershell
-pnpm build:pages
-pnpm preview:pages
+pnpm dev:site
 ```
 
-The generated `dist/pages` directory puts the deck at the site root, the consolidated developer explorer under `demos/explorer/`, the packaged and spatial Reader pages under `demos/reader-workspace/`, compatibility redirects at the other legacy demo subpaths, and the authored linked article under the stable `demos/linker/` route. The retained source packages live under `examples/`; the temporary Pages routes remain compatible with the existing website.
+The command first builds isolated copies of the maintained browser examples, then starts VitePress over the canonical Markdown in `docs/`. The examples remain independent workspace projects and do not import one another at runtime. The site is local-only and does not add or change a deployment.
 
-`pnpm build:pages` typechecks each included demo before bundling it so the command remains safe to run independently. CI runs `pnpm build:pages:bundles` only after `pnpm check` has already completed the workspace typecheck; that command rebuilds the Pages bundles with their publication-specific base URLs without repeating TypeScript compilation.
+Build and preview the production artifact:
 
-Public screenshots live under `demos/showcase/public/media` with `manifest.json` provenance. The MCP slide displays the recorded stateful Reader, retained hierarchy, and explicit chat export from named-host acceptance; GitHub Pages does not run the Node MCP server or browser host. Confirm quotation permission and every public asset before enabling the Pages deployment.
+```powershell
+pnpm build:site
+pnpm preview:site
+```
+
+The generated `dist/site` directory contains the VitePress pages plus allowlisted example routes under `examples/`: explorer, Reader, vanilla, React, linked article, and the static MCP App fixture preview. The MCP preview is rendering evidence only; `pnpm dev:mcp` remains the protocol and AppBridge proof.
+
+`pnpm build:site` typechecks each included example before bundling it. `pnpm build:site:bundles` skips those repeated typechecks and is used inside `pnpm check` after workspace builds. Both commands verify required output files and reject a same-origin authored-source fallback.
+
+The previous Reveal.js showcase, booth loop, Pages assembly, QR assets, presentation media, and presentation-only tests are no longer active on this branch. They remain available through the full-SHA links in the [documentation archive](archive/README.md#september-14-2026-presentation-snapshot). The independently deployed `main` website remains unchanged.
 
 ## Workspace
 
@@ -120,9 +116,9 @@ Public screenshots live under `demos/showcase/public/media` with `manifest.json`
 | `examples/linked-article` | Authored native citation navigation and page-owned popup integration |
 | `examples/reader` | Interactive multi-pane website host and controlled `<sefaria-reader>` host over the DOM-free reader session |
 | `examples/vanilla-vite` | Minimal deterministic public-package consumption path |
-| `demos/showcase` | Reveal.js GitHub Pages showcase, React factory bindings, resizable preview viewports, and static Pages assembly |
+| `docs/.vitepress` and `scripts/build-site.mjs` | Local documentation presentation, navigation, styling, and isolated example assembly |
 
-Workspace dependencies use `workspace:*`. All workspace packages remain private during the hackathon.
+Workspace dependencies use `workspace:*`. All workspace packages remain private during this unpublished development phase.
 
 ## Required tools
 
@@ -145,12 +141,7 @@ pnpm install
 pnpm exec playwright install chromium
 ```
 
-If Corepack is unavailable, use the pinned fallback:
-
-```powershell
-npx --yes pnpm@11.22.0 install
-npx --yes pnpm@11.22.0 exec playwright install chromium
-```
+If Corepack is unavailable, install the pinned pnpm release through your approved package-management path, then run the same commands. Do not let a transient executor download an unpinned tool.
 
 ## Current complete check
 
@@ -158,7 +149,7 @@ npx --yes pnpm@11.22.0 exec playwright install chromium
 pnpm check
 ```
 
-The current command checks stale OpenAPI output, then runs Prettier, Oxlint, workspace builds, official Inspector stdio qualification, deterministic real HTTP/AppBridge browser acceptance, TypeScript checks, freshly emitted API-documentation checks, tests, the offline focused compatibility qualification, private tarball consumption, and changeset rehearsal. It prints the elapsed time and result of every completed stage, including the first failed stage, so a slow local run can be attributed without rerunning the complete gate. The qualification prints grouped pass, failure, unavailable-source, and intentional-difference results. It does not refresh network fixtures or contact Sefaria.
+The current command checks stale OpenAPI output, then runs Prettier, Oxlint, workspace builds, the production local-site assembly and browser acceptance, official Inspector stdio qualification, deterministic real HTTP/AppBridge browser acceptance, TypeScript checks, freshly emitted API-documentation checks, tests, the offline focused compatibility qualification, private tarball consumption, and changeset rehearsal. It prints the elapsed time and result of every completed stage, including the first failed stage, so a slow local run can be attributed without rerunning the complete gate. The qualification prints grouped pass, failure, unavailable-source, and intentional-difference results. It does not refresh network fixtures or contact Sefaria.
 
 The MCP acceptance transport rejects unexpected requests and uses the compiled Node server, registered resource, separate host and sandbox origins, and packaged App. TypeScript projects use ignored incremental build-information files, which reduce repeated local typecheck and build work without changing emitted artifacts.
 

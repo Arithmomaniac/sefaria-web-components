@@ -15,7 +15,7 @@ flowchart TB
     API["Sefaria API"]
     SITE["Regular website<br/>@sefaria/client + async factory"]
     LINKER["Linker integration<br/>detection + popup async factory"]
-    MCP["MCP App<br/>structuredContent + validation<br/>(planned)"]
+    MCP["MCP App<br/>structuredContent + validation"]
     FACTORY["Component factory<br/>API payload → rendering data"]
     VM["Component view model"]
     ELEMENT["Request-free Web Component"]
@@ -49,7 +49,7 @@ The linked-article and MCP lanes are current. The [design diagram](../design.md#
 
 | Thing | Example | What it means |
 | --- | --- | --- |
-| Component request | `{ tref: "Genesis 1:1-3" }` for a source card | What the host wants to obtain and project; it goes to a factory, never to an element |
+| Component request | `{ tref: "Micah 6:8" }` for a source card | What the host wants to obtain and project; it goes to a factory, never to an element |
 | API payload | A validated v3 text response containing versions and recursive text | What Sefaria returned; its shape follows the corrected generated API contract |
 | View model | A `SourceCardViewModel` with a `state`, and a header and items when it has data | Render-ready data for one component, not another transport or generalized Sefaria model |
 | Web Component | `<sefaria-source-card>` | The browser element that displays a view model and manages presentation |
@@ -71,7 +71,7 @@ The [render-text guide](render-text.md#put-a-source-card-in-a-browser-app) imple
 
 | Owner | Responsibility | Not its responsibility |
 | --- | --- | --- |
-| `@sefaria/client` | Generated operations, API contracts, response validation, configurable API origin and `fetch` | Component methods, rendering, caching, or retry policy |
+| `@sefaria/client` | Generated operations, API contracts, response validation, configurable API origin and `fetch`, and the bounded per-client response cache | Component methods, rendering, retries, or request coalescing |
 | `@sefaria/text-transform` | Pure processing of HTML and Hebrew text | Fetching, component state, or DOM rendering |
 | `@sefaria/web-components/source-card`, `@sefaria/web-components/popup`, and other non-DOM subpaths | Component request types, view-model unions, pure and async factories | Browser elements or the host's active selection |
 | `@sefaria/web-components` browser exports | Registered Lit elements, layout, theme, accessibility, and rendering | Fetching or interpreting raw API payloads |
@@ -103,7 +103,7 @@ This example handles a v3 **success payload**, not an arbitrary HTTP response. T
 
 No client is created here and no request occurs. Supply a request whose reference and edition selection match the captured payload; the factory is not an offline reference parser or a service for finding another passage in unrelated data.
 
-This path returns a view model, **not server-rendered component HTML**. The planned MCP integration uses this same validation-and-projection pattern, but the complete MCP workflow is [still planned](../development.md).
+This path returns a view model, **not server-rendered component HTML**. The current MCP App uses the same validation-and-projection pattern for `structuredContent`; its first render does not repeat the server's source request.
 
 ## A view model is not a bag of arbitrary HTML
 
