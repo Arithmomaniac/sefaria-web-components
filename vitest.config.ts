@@ -1,5 +1,13 @@
+import { relative } from "node:path";
+import { fileURLToPath } from "node:url";
 import { playwright } from "@vitest/browser-playwright";
 import { defineConfig } from "vitest/config";
+
+const mcpAppPackage = new URL("./examples/mcp-app/", import.meta.url);
+const mcpAppFromNodeModules = relative(
+  fileURLToPath(new URL("./node_modules/", import.meta.url)),
+  fileURLToPath(mcpAppPackage),
+);
 
 export default defineConfig({
   test: {
@@ -25,6 +33,11 @@ export default defineConfig({
         },
       },
       {
+        optimizeDeps: {
+          include: [
+            `${mcpAppFromNodeModules} > @modelcontextprotocol/ext-apps`,
+          ],
+        },
         test: {
           name: "browser",
           include: ["**/*.browser.test.ts", "**/*.browser.test.tsx"],
