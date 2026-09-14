@@ -3,7 +3,7 @@ import type {
   ReaderViewModel,
   SefariaReader,
   SefariaSourceCard,
-} from "@sefaria/components";
+} from "@sefaria/web-components";
 import { beforeEach, expect, test, vi } from "vitest";
 
 import capturedLinks from "../../../../packages/client/test/fixtures/links-connections-preview-2026-09-06.json";

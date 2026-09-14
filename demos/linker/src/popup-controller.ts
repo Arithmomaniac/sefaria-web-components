@@ -1,7 +1,10 @@
 import { createSefariaClient, type SefariaClient } from "@sefaria/client";
-import "@sefaria/components";
-import type { PopupLoadingViewModel, SefariaPopup } from "@sefaria/components";
-import { loadPopupViewModel } from "@sefaria/components/popup";
+import "@sefaria/web-components";
+import type {
+  PopupLoadingViewModel,
+  SefariaPopup,
+} from "@sefaria/web-components";
+import { loadPopupViewModel } from "@sefaria/web-components/popup";
 
 import type { CitationTarget } from "./types.js";
 

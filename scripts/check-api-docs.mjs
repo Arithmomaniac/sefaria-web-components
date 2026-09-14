@@ -13,7 +13,7 @@ const maximumBytes = 5 * 1024 * 1024;
 const requiredOutputPrefixes = [
   "packages/client/scripts/",
   "packages/client/src/",
-  "packages/components/src/",
+  "packages/web-components/src/",
   "packages/text-transform/src/",
 ];
 

@@ -44,7 +44,9 @@ Sefaria's [API introduction](https://developers.sefaria.org/reference/getting-st
 | Review a change at the right depth | [Review](review.md) |
 | Use text transforms without components | [`@sefaria/text-transform`](../packages/text-transform/README.md) |
 | Use the validated transport package | [`@sefaria/client`](../packages/client/README.md) |
-| Choose component and Reader entry points | [`@sefaria/components`](../packages/components/README.md) |
+| Choose component and Reader entry points | [`@sefaria/web-components`](../packages/web-components/README.md) |
+| Inspect generated component metadata | [Custom elements](reference/custom-elements.md) |
+| Inspect declaration-derived package exports | [Public package exports](reference/public-exports.md) |
 
 ## Detailed reference
 

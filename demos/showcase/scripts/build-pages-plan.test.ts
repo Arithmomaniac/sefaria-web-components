@@ -31,8 +31,8 @@ describe("Pages build plan", () => {
 
   it("builds one explorer and retains every previous public demo route", () => {
     expect(PAGE_DEMOS).toEqual([
-      ["explorer", "@sefaria-demo/explorer"],
-      ["reader-workspace", "@sefaria-demo/reader-workspace"],
+      ["explorer", "@sefaria-example/explorer"],
+      ["reader-workspace", "@sefaria-example/reader"],
     ]);
     expect(LEGACY_DEMO_REDIRECTS).toEqual([
       ["component-lab", "authored.html"],

@@ -2,7 +2,7 @@
 
 # Development
 
-This contributor guide describes the current source tree as of September 8, 2026. The repository's specifications define intended behavior; the implementation and tests establish what is currently delivered.
+This contributor guide describes the current source tree as of September 14, 2026. The repository's specifications define intended behavior; the implementation and tests establish what is currently delivered.
 
 The sections below separate delivered baseline behavior, changes from older plans, and work that remains intended. A runnable command is not proof that the corresponding integration is finished.
 
@@ -34,9 +34,10 @@ For reader-oriented explanations, use the friendly guides rather than the archiv
 | --- | --- |
 | `packages/client` | Delivers eight named Core GET and POST SDK functions, committed corrected TypeScript contracts, reusable Core schemas, Zod validators, and a status-aware fetch client with a bounded default-on per-client response cache. The corrected Core OpenAPI document is temporary generation output. |
 | `packages/text-transform` | Delivers DOM-free sanitization, Hebrew vocalization modes, structured footnote extraction, and bounded connected-text previews. |
-| `packages/components` | Delivers the current component-specific view models, pure and async factory subpaths, request-free elements for the current text, bilingual, reference-label, selectable source-card, connections-panel, popup, and controlled reader surfaces, plus the DOM-free bounded reader session and stateful reader controller. |
-| `demos/explorer` | Provides one developer surface for request-free authored states and opt-in live pages for reference labels, text segments, bilingual segments, source cards, and contextual connections. Loading the landing page does not start every live request. |
-| `demos/reader-workspace` | Demonstrates a regular website host with viewport-height spatial panes over the lower-level reader session and shared browser data source, plus an interactive host that uses `loadReaderController` and `bindReaderController` with the supported `<sefaria-reader>` component. |
+| `packages/web-components` | Delivers the current component-specific view models, pure and async factory subpaths, request-free elements for the current text, bilingual, reference-label, selectable source-card, connections-panel, popup, and controlled reader surfaces, plus the DOM-free bounded reader session and stateful reader controller. |
+| `examples/explorer` | Provides one developer surface for request-free authored states and opt-in live pages for reference labels, text segments, bilingual segments, source cards, and contextual connections. Loading the landing page does not start every live request. |
+| `examples/reader` | Demonstrates a regular website host with viewport-height spatial panes over the lower-level reader session and shared browser data source, plus an interactive host that uses `loadReaderController` and `bindReaderController` with the supported `<sefaria-reader>` component. |
+| `examples/vanilla-vite` | Exercises installed public client, source-card factory, and custom-element registration paths with a deterministic validated `Micah 6:8` response. |
 | `demos/mcp` | Exposes live `get_text` and adaptive `get_links_between_texts` tools, packages a single-file App, validates corrected payloads and metadata, seeds one stateful reader with zero initial requests, continues through host-proxied same-App tool calls, retains local breadcrumbs, and provides an authenticated isolated VS Code hierarchy walkthrough with separate explicit chat export. |
 | `demos/showcase` | Presents the supported controller-backed Reader, a separate manually composed side-by-side source/connections workflow, the Linker, and captured integrated MCP Reader evidence in the Reveal.js GitHub Pages deck. |
 | `demos/linker` | Builds an embeddable classic script, bookmarklet loader, automatic and no-autostart article pages, asynchronous citation detection, safe DOM linking, and request-free popups. Public hosting and broad live-site qualification remain external. |
@@ -102,7 +103,7 @@ pnpm build:pages
 pnpm preview:pages
 ```
 
-The generated `dist/pages` directory puts the deck at the site root, the consolidated developer explorer under `demos/explorer/`, the packaged and spatial Reader pages under `demos/reader-workspace/`, compatibility redirects at the former demo subpaths, and the Linker artifact under `demos/linker/`. In GitHub Actions, the build derives the public Linker URL from `GITHUB_REPOSITORY`. For another public location, set `SEFARIA_PAGES_URL` to the HTTPS site root before `pnpm build:pages`.
+The generated `dist/pages` directory puts the deck at the site root, the consolidated developer explorer under `demos/explorer/`, the packaged and spatial Reader pages under `demos/reader-workspace/`, compatibility redirects at the other legacy demo subpaths, and the Linker artifact under `demos/linker/`. The retained source packages live under `examples/`; the temporary Pages routes remain compatible with the existing website. In GitHub Actions, the build derives the public Linker URL from `GITHUB_REPOSITORY`. For another public location, set `SEFARIA_PAGES_URL` to the HTTPS site root before `pnpm build:pages`.
 
 `pnpm build:pages` typechecks each included demo before bundling it so the command remains safe to run independently. CI runs `pnpm build:pages:bundles` only after `pnpm check` has already completed the workspace typecheck; that command rebuilds the Pages bundles with their publication-specific base URLs without repeating TypeScript compilation.
 
@@ -114,12 +115,13 @@ Public screenshots live under `demos/showcase/public/media` with `manifest.json`
 | --- | --- |
 | `packages/client` | Pinned OpenAPI input, formal guarded overlay, generated contracts, Zod schemas, validators, and named SDK functions |
 | `packages/text-transform` | Pure sanitization, vocalization, and footnotes |
-| `packages/components` | Non-DOM component factories and request-free Lit elements |
+| `packages/web-components` | Non-DOM component factories and request-free Lit elements |
 | `tests/compatibility` | Pinned compatibility evidence for retained pure behavior |
-| `demos/explorer` | Request-free authored states and opt-in live diagnostics for component primitives and contextual connections |
+| `examples/explorer` | Request-free authored states and opt-in live diagnostics for component primitives and contextual connections |
 | `demos/mcp` | Corrected-payload MCP boundary, live FastMCP server, self-contained App, and isolated VS Code acceptance tooling |
 | `demos/linker` | Third-party citation detection, DOM linking, and popup integration |
-| `demos/reader-workspace` | Interactive multi-pane website host and controlled `<sefaria-reader>` host over the DOM-free reader session |
+| `examples/reader` | Interactive multi-pane website host and controlled `<sefaria-reader>` host over the DOM-free reader session |
+| `examples/vanilla-vite` | Minimal deterministic public-package consumption path |
 | `demos/showcase` | Reveal.js GitHub Pages showcase, React factory bindings, resizable preview viewports, and static Pages assembly |
 
 Workspace dependencies use `workspace:*`. All workspace packages remain private during the hackathon.
@@ -320,7 +322,7 @@ The host loads a connection target and its server-provided parent section when n
 ## Run the multi-pane website reader
 
 ```powershell
-pnpm dev:reader-workspace
+pnpm dev:reader
 ```
 
 The command serves two linked interactive pages. The root page is a realistic regular-website consumer rather than a component state gallery: its host uses one DOM-free reader session for semantic entries and capture retention, while demo-private state owns ordered pane IDs, parent relationships, compact selection, and the 20-visible-pane limit. Wide containers scroll horizontally across independently scrolling source and connections panes; compact containers show one selected pane and a path switch.
@@ -454,6 +456,26 @@ The Linker build creates:
 - `demos/linker/dist/bookmarklet-demo.html`
 
 If a required input file is missing, staging stops.
+
+### Build and pack the private libraries
+
+The normal build creates `dist` JavaScript and declarations before workspace consumers typecheck:
+
+```powershell
+pnpm install --frozen-lockfile
+pnpm build
+pnpm --filter @sefaria/client pack --pack-destination .toolchain/tarballs
+pnpm --filter @sefaria/text-transform pack --pack-destination .toolchain/tarballs
+pnpm --filter @sefaria/web-components pack --pack-destination .toolchain/tarballs
+```
+
+The packages remain private. There is no npm alpha installation command, publication workflow, tag, or release in this branch.
+
+Run `pnpm package:smoke` to create an isolated Vite consumer, inspect each unchanged packed manifest and file list, override all three internal toolkit dependencies to their exact `file:` tarballs, inspect the lockfile and installed real paths, remove the producer tarballs, build, import the Node-safe subpaths, and render the source-card path in Chromium. Consumer-side overrides are required for this local private-tarball topology because pnpm otherwise attempts registry resolution for a packed package's internal toolkit dependency.
+
+Run `pnpm metadata:generate` after changing a public export or element contract. `pnpm metadata:check` rejects stale `packages/web-components/custom-elements.json`, `packages/public-exports.json`, and their readable summaries under `docs/reference/`.
+
+Run `pnpm changeset:rehearse` to exercise the pinned private fixed group in a disposable fixture. The current rehearsal proves the observed `0.1.1-alpha.0` to `0.1.1-alpha.1` sequence from a `0.1.0` fixture, synchronized internal dependencies and changelogs, retained private flags, and no automatic commit or tag. It does not publish anything or promise that a future authorized release starts at those versions.
 
 ## Package index configuration
 

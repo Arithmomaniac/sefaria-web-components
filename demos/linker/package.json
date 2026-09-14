@@ -6,7 +6,7 @@
   "dependencies": {
     "@mozilla/readability": "^0.6.0",
     "@sefaria/client": "workspace:*",
-    "@sefaria/components": "workspace:*",
+    "@sefaria/web-components": "workspace:*",
     "lit": "^3.3.3"
   },
   "scripts": {

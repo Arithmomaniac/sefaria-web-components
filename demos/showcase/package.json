@@ -5,7 +5,7 @@
   "type": "module",
   "dependencies": {
     "@sefaria/client": "workspace:*",
-    "@sefaria/components": "workspace:*",
+    "@sefaria/web-components": "workspace:*",
     "prismjs": "1.30.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",

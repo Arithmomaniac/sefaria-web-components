@@ -10,26 +10,26 @@ import {
   SefariaReader,
   SefariaSourceCard,
   type SourceCardViewModel,
-} from "@sefaria/components";
+} from "@sefaria/web-components";
 import {
   type ConnectionsProjection,
   type ConnectionsRequest,
-} from "@sefaria/components/connections-panel";
+} from "@sefaria/web-components/connections-panel";
 import {
   createReaderController,
   ReaderControllerError,
   type ReaderController,
   type ReaderControllerDataSource,
   type ReaderControllerSnapshot,
-} from "@sefaria/components/reader-controller";
+} from "@sefaria/web-components/reader-controller";
 import {
   createReaderConnectionsContent,
   createReaderSourceContent,
   type ReaderConnectionsContent,
   type ReaderEntrySeed,
   type ReaderSourceContent,
-} from "@sefaria/components/reader-session";
-import type { SourceCardRequest } from "@sefaria/components/source-card";
+} from "@sefaria/web-components/reader-session";
+import type { SourceCardRequest } from "@sefaria/web-components/source-card";
 
 const SOURCE_CARD_META_KEY = "sefaria/source-card";
 const CONNECTIONS_META_KEY = "sefaria/connections";

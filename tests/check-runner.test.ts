@@ -16,12 +16,18 @@ describe("repository check runner", () => {
     expect(names.at(-1)).toBe("Python staged tests");
   });
 
-  it("checks emitted API documentation after TypeScript validation", () => {
+  it("builds workspace artifacts before TypeScript consumers resolve them", () => {
     const names = CHECK_STAGES.map((stage) => stage.name);
 
     expect(names).toContain("Oxlint");
+    expect(names.indexOf("Workspace builds")).toBeLessThan(
+      names.indexOf("TypeScript typecheck"),
+    );
     expect(names.indexOf("API documentation")).toBeGreaterThan(
       names.indexOf("TypeScript typecheck"),
+    );
+    expect(names.indexOf("Public metadata")).toBeGreaterThan(
+      names.indexOf("API documentation"),
     );
     expect(names.indexOf("API documentation")).toBeLessThan(
       names.indexOf("TypeScript and browser tests"),
@@ -64,7 +70,7 @@ describe("repository check runner", () => {
     const repository = path.resolve(import.meta.dirname, "..");
     const configs = [
       "packages/client/tsconfig.build.json",
-      "packages/components/tsconfig.build.json",
+      "packages/web-components/tsconfig.build.json",
       "packages/text-transform/tsconfig.build.json",
       "tests/compatibility/tsconfig.build.json",
     ];

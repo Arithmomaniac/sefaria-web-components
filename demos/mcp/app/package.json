@@ -6,7 +6,7 @@
   "dependencies": {
     "@modelcontextprotocol/ext-apps": "^1.7.5",
     "@sefaria/client": "workspace:*",
-    "@sefaria/components": "workspace:*"
+    "@sefaria/web-components": "workspace:*"
   },
   "scripts": {
     "build": "vite build",

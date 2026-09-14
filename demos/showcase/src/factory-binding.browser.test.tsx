@@ -1,10 +1,10 @@
 import { createSefariaClient } from "@sefaria/client";
-import "@sefaria/components";
+import "@sefaria/web-components";
 import type {
   SefariaTextSegment,
   TextSegmentRequest,
   TextSegmentViewModel,
-} from "@sefaria/components";
+} from "@sefaria/web-components";
 import { act, useRef } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, expect, test, vi } from "vitest";

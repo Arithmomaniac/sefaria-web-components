@@ -1,0 +1,17 @@
+{
+  "$schema": "https://unpkg.com/@changesets/config@3.1.2/schema.json",
+  "changelog": "@changesets/cli/changelog",
+  "commit": false,
+  "fixed": [
+    ["@sefaria/client", "@sefaria/text-transform", "@sefaria/web-components"]
+  ],
+  "linked": [],
+  "access": "restricted",
+  "baseBranch": "feature/avilevin/frontend-toolkit-alpha",
+  "updateInternalDependencies": "patch",
+  "ignore": [],
+  "privatePackages": {
+    "version": true,
+    "tag": false
+  }
+}

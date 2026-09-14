@@ -35,7 +35,7 @@ describe("showcase reader presentation", () => {
         path.join(
           repository,
           "packages",
-          "components",
+          "web-components",
           "src",
           "text-segment-element.ts",
         ),
@@ -113,7 +113,7 @@ describe("showcase reader presentation", () => {
     ]);
 
     expect(source).toContain('tref: "Micah 6:8"');
-    expect(source).toContain('import "@sefaria/components"');
+    expect(source).toContain('import "@sefaria/web-components"');
     expect(source).toContain(
       'const element = document.createElement("sefaria-text-segment")',
     );

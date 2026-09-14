@@ -3,13 +3,13 @@ import {
   getV3Texts,
   type CoreV3TextsResponse,
 } from "@sefaria/client";
-import "@sefaria/components";
+import "@sefaria/web-components";
 import type {
   SefariaTextSegment,
   TextSegmentRequest,
   TextSegmentViewModel,
-} from "@sefaria/components";
-import { createTextSegmentViewModel } from "@sefaria/components/text-segment";
+} from "@sefaria/web-components";
+import { createTextSegmentViewModel } from "@sefaria/web-components/text-segment";
 import Reveal from "reveal.js";
 import Notes from "reveal.js/plugin/notes/notes.esm.js";
 import {
@@ -189,7 +189,7 @@ function ComponentSource() {
   return (
     <div className="component-source-panel">
       <header>
-        <p>packages/components/src/text-segment-element.ts</p>
+        <p>packages/web-components/src/text-segment-element.ts</p>
         <strong>Selected delivered Lit implementation</strong>
       </header>
       <SyntaxCode source={textSegmentElementSource} language="typescript" />

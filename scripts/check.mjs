@@ -9,11 +9,14 @@ export const CHECK_STAGES = [
   { name: "Formatting", args: ["format:check"] },
   { name: "Oxlint", args: ["lint"] },
   { name: "Python static checks", args: ["check:python:static"] },
+  { name: "Workspace builds", args: ["build"] },
   { name: "TypeScript typecheck", args: ["typecheck"] },
   { name: "API documentation", args: ["check:api-docs"] },
+  { name: "Public metadata", args: ["metadata:check"] },
   { name: "TypeScript and browser tests", args: ["test"] },
   { name: "Compatibility qualification", args: ["compatibility:qualify"] },
-  { name: "Workspace builds", args: ["build"] },
+  { name: "Tarball consumer", args: ["package:smoke"] },
+  { name: "Changesets rehearsal", args: ["changeset:rehearse"] },
   { name: "Python staged tests", args: ["check:python:staged"] },
 ];
 

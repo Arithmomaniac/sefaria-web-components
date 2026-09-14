@@ -28,7 +28,7 @@ _Current UI, captured from the merged demo using committed text and links fixtur
 | Explorer connections host | Displayed section, active segment, captures, projection settings, cancellation, stale-result suppression | Back stack or breadcrumbs |
 | Stateful MCP App | Host-delivered source or links result validation, one reader controller, host-proxied source/connections operations, local category/page controls, retained breadcrumbs, explicit chat export | Direct Sefaria requests, Python-held history, durable restoration |
 
-The [browser host](../../demos/explorer/src/connections/app.ts) opens a target, obtains its server-provided context when needed, selects the first qualified segment, and loads that segment's connections. It makes at most two text operations and one links operation for that flow. Selecting another displayed segment needs only a links operation. Category/page changes project the current capture with zero requests; preview acquisition is a separate explicit action. See the [current interaction contract](../specs/integrations.md#standalone-connections-reader-current).
+The [browser host](../../examples/explorer/src/connections/app.ts) opens a target, obtains its server-provided context when needed, selects the first qualified segment, and loads that segment's connections. It makes at most two text operations and one links operation for that flow. Selecting another displayed segment needs only a links operation. Category/page changes project the current capture with zero requests; preview acquisition is a separate explicit action. See the [current interaction contract](../specs/integrations.md#standalone-connections-reader-current).
 
 The current MCP experience now uses the same supported reader controller and controlled surface:
 
@@ -67,7 +67,7 @@ _Runtime paths, showing the browser capture-and-project variant. An existing asy
 | Controlled reader surface | Navigation bar, pane layout, accessible controls, presentation state supplied by the host, composed action events | Fetching or interpreting API payloads |
 | Existing child elements | Render their existing component view models and emit their existing events | Knowledge of the reader session |
 
-"Headless" means usable without a DOM element. The immutable session lives at `@sefaria/components/reader-session`; the supported stateful coordinator lives at `@sefaria/components/reader-controller`. The current `@sefaria/components/reader` projection and `<sefaria-reader>` element remain a request-free visual composition.
+"Headless" means usable without a DOM element. The immutable session lives at `@sefaria/web-components/reader-session`; the supported stateful coordinator lives at `@sefaria/web-components/reader-controller`. The current `@sefaria/web-components/reader` projection and `<sefaria-reader>` element remain a request-free visual composition.
 
 ### Browser execution
 
