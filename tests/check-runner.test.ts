@@ -7,13 +7,21 @@ import { describe, expect, it, vi } from "vitest";
 import { CHECK_STAGES, isMainModule, runCheck } from "../scripts/check.mjs";
 
 describe("repository check runner", () => {
-  it("runs cheap Python static checks before TypeScript validation", () => {
+  it("replaces Python checks with the compiled MCP acceptance harness", () => {
     const names = CHECK_STAGES.map((stage) => stage.name);
 
-    expect(names.indexOf("Python static checks")).toBeLessThan(
+    expect(names).not.toContain("Python static checks");
+    expect(names).not.toContain("Python staged tests");
+    expect(names.indexOf("Workspace builds")).toBeLessThan(
+      names.indexOf("MCP Inspector stdio acceptance"),
+    );
+    expect(names.indexOf("MCP Inspector stdio acceptance")).toBeLessThan(
+      names.indexOf("MCP protocol and browser acceptance"),
+    );
+    expect(names.indexOf("MCP protocol and browser acceptance")).toBeLessThan(
       names.indexOf("TypeScript typecheck"),
     );
-    expect(names.at(-1)).toBe("Python staged tests");
+    expect(names.at(-1)).toBe("Changesets rehearsal");
   });
 
   it("builds workspace artifacts before TypeScript consumers resolve them", () => {

@@ -1,6 +1,6 @@
 ---
 description: "Rules for MCP and Linker integrations"
-applyTo: "demos/mcp/**,demos/linker/**,docs/specs/integrations.md"
+applyTo: "examples/mcp-app/**,demos/linker/**,docs/specs/integrations.md"
 ---
 
 # Integration Instructions

@@ -8,8 +8,15 @@ export const CHECK_STAGES = [
   { name: "OpenAPI contracts", args: ["openapi:check"] },
   { name: "Formatting", args: ["format:check"] },
   { name: "Oxlint", args: ["lint"] },
-  { name: "Python static checks", args: ["check:python:static"] },
   { name: "Workspace builds", args: ["build"] },
+  {
+    name: "MCP Inspector stdio acceptance",
+    args: ["--filter", "@sefaria-example/mcp-app", "inspect:stdio"],
+  },
+  {
+    name: "MCP protocol and browser acceptance",
+    args: ["--filter", "@sefaria-example/mcp-app", "demo"],
+  },
   { name: "TypeScript typecheck", args: ["typecheck"] },
   { name: "API documentation", args: ["check:api-docs"] },
   { name: "Public metadata", args: ["metadata:check"] },
@@ -17,7 +24,6 @@ export const CHECK_STAGES = [
   { name: "Compatibility qualification", args: ["compatibility:qualify"] },
   { name: "Tarball consumer", args: ["package:smoke"] },
   { name: "Changesets rehearsal", args: ["changeset:rehearse"] },
-  { name: "Python staged tests", args: ["check:python:staged"] },
 ];
 
 export async function runCheck({

@@ -1,5 +1,7 @@
 {
-  "status": "showcase-capture",
+  "status": "passed",
+  "mode": "capture",
+  "launch": { "pid": 83584, "minimized": true, "cdpAttached": true },
   "completedStages": [
     "reader-initial",
     "connections-category",
@@ -14,14 +16,8 @@
   "hierarchyReferences": ["Micah 6:8", "Agra DeKala, Balak 18", "Exodus 15:15"],
   "artifacts": {
     "reader-initial": "docs/images/mcp-app-vscode.png",
-    "connections": "docs/images/mcp-app-vscode-connections.png",
-    "connections-category": "docs/images/mcp-app-vscode-category.png",
-    "connections-page-2": "docs/images/mcp-app-vscode-page-2.png",
-    "connected-source": "docs/images/mcp-app-vscode-connected-source.png",
     "reader-hierarchy": "docs/images/mcp-app-vscode-reader-hierarchy.png",
-    "chat-export": "docs/images/mcp-app-vscode-chat-export.png",
-    "reader-breadcrumb-middle": "docs/images/mcp-app-vscode-breadcrumb-middle.png",
-    "reader-breadcrumb-root": "docs/images/mcp-app-vscode-breadcrumb-root.png"
+    "chat-export": "docs/images/mcp-app-vscode-chat-export.png"
   },
   "deliveryModes": {
     "connected-source": "same-app-tool",
@@ -29,5 +25,6 @@
     "chat-export": "host-message"
   },
   "executable": "Code.exe",
-  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.136.1 Chrome/148.0.7778.280 Electron/42.10.0 Safari/537.36"
+  "hostVersions": { "vscode": "1.137.0", "copilotChat": "0.65.0" },
+  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.137.0 Chrome/148.0.7778.280 Electron/42.10.0 Safari/537.36"
 }
