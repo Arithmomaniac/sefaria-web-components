@@ -130,6 +130,28 @@ importers:
         specifier: workspace:*
         version: link:../../packages/web-components
 
+  examples/react-vite:
+    dependencies:
+      '@sefaria/client':
+        specifier: workspace:*
+        version: link:../../packages/client
+      '@sefaria/web-components':
+        specifier: workspace:*
+        version: link:../../packages/web-components
+      react:
+        specifier: ^19.2.8
+        version: 19.2.8
+      react-dom:
+        specifier: ^19.2.8
+        version: 19.2.8(react@19.2.8)
+    devDependencies:
+      '@types/react':
+        specifier: ^19.2.18
+        version: 19.2.18
+      '@types/react-dom':
+        specifier: ^19.2.5
+        version: 19.2.5(@types/react@19.2.18)
+
   examples/reader:
     dependencies:
       '@sefaria/client':

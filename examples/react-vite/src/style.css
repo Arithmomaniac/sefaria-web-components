@@ -1,0 +1,193 @@
+:root {
+  color-scheme: light dark;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  background: light-dark(#efe9df, #151715);
+  color: light-dark(#27231f, #f5f0e8);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+button,
+input,
+select {
+  min-height: 2.5rem;
+  border: 1px solid light-dark(#b8aa98, #646b61);
+  border-radius: 0.5rem;
+  padding: 0.45rem 0.7rem;
+  color: inherit;
+  background: light-dark(#fffdf8, #282b27);
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+summary:focus-visible {
+  outline: 3px solid light-dark(#8e2449, #ff93b4);
+  outline-offset: 2px;
+}
+
+.react-example {
+  width: min(100% - 2rem, 76rem);
+  margin-inline: auto;
+  padding-block: clamp(1.5rem, 5vw, 4rem);
+}
+
+.intro {
+  max-width: 52rem;
+}
+
+.intro h1 {
+  margin-block: 0.25rem 1rem;
+  font-size: clamp(2rem, 6vw, 4.5rem);
+  line-height: 0.98;
+}
+
+.eyebrow {
+  margin: 0;
+  color: light-dark(#8e2449, #ff93b4);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.controls {
+  display: grid;
+  gap: 1rem;
+  margin-block: 2rem 1rem;
+  padding: 1rem;
+  border: 1px solid light-dark(#d5cabd, #4e554d);
+  border-radius: 1rem;
+  background: light-dark(#fffaf2, #222521);
+}
+
+.controls form,
+.display-controls,
+.controls label {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+.controls form input {
+  flex: 1 1 18rem;
+}
+
+.display-controls {
+  justify-content: space-between;
+}
+
+.status,
+.event-state {
+  margin-block: 0.4rem;
+}
+
+.failure {
+  padding: 0.85rem 1rem;
+  border: 1px solid light-dark(#a21d24, #ffaaa4);
+  border-radius: 0.75rem;
+  color: light-dark(#86171d, #ffbbb6);
+  background: light-dark(#fff0f0, #3b2020);
+}
+
+.preview {
+  margin-block: 1.5rem;
+  margin-inline: auto;
+  padding: clamp(0.75rem, 3vw, 1.5rem);
+  border: 1px solid light-dark(#cfc2b2, #555c53);
+  border-radius: 1rem;
+  background: var(--example-surface);
+  color: var(--example-text);
+  transition:
+    max-width 160ms ease,
+    background 160ms ease;
+}
+
+.preview[data-theme="light"] {
+  --example-surface: #fffdf8;
+  --example-text: #25231f;
+  --sefaria-surface: #fffdf8;
+  --sefaria-surface-muted: #f5f0e7;
+  --sefaria-fg: #25231f;
+  --sefaria-fg-muted: #6d675d;
+  --sefaria-border: #d8cfc0;
+  --sefaria-accent: #8e2449;
+  --sefaria-link: #7c1f40;
+}
+
+.preview[data-theme="dark"] {
+  --example-surface: #222521;
+  --example-text: #f1eee7;
+  --sefaria-surface: #292b28;
+  --sefaria-surface-muted: #222421;
+  --sefaria-fg: #f1eee7;
+  --sefaria-fg-muted: #bdb7ac;
+  --sefaria-border: #555b53;
+  --sefaria-accent: #ff93b4;
+  --sefaria-link: #ff9fbd;
+}
+
+.preview sefaria-source-card {
+  display: block;
+}
+
+.preview[hidden] {
+  display: none;
+}
+
+.diagnostics {
+  display: grid;
+  gap: 0.75rem;
+  margin-block-start: 2rem;
+}
+
+.diagnostics details {
+  border: 1px solid light-dark(#d5cabd, #4e554d);
+  border-radius: 0.75rem;
+  background: light-dark(#fffaf2, #222521);
+}
+
+.diagnostics summary {
+  cursor: pointer;
+  padding: 0.85rem 1rem;
+  font-weight: 700;
+}
+
+.diagnostics pre {
+  max-height: 28rem;
+  margin: 0;
+  overflow: auto;
+  padding: 1rem;
+  border-block-start: 1px solid light-dark(#d5cabd, #4e554d);
+  font-size: 0.82rem;
+  white-space: pre-wrap;
+}
+
+@media (max-width: 42rem) {
+  .react-example {
+    width: min(100% - 1rem, 76rem);
+  }
+
+  .controls form,
+  .display-controls,
+  .controls label {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .controls form input {
+    flex-basis: auto;
+    width: 100%;
+  }
+}

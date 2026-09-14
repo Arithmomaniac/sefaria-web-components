@@ -1,7 +1,9 @@
 ---
 description: "Rules for component factories, Lit elements, and browser demonstrations"
-applyTo: "packages/web-components/**,examples/explorer/src/authored/**,docs/specs/components.md"
+applyTo: "packages/web-components/**,examples/explorer/src/authored/**,examples/react-vite/**,examples/reader/**,docs/specs/components.md"
 ---
+
+> Created/edited by GitHub Copilot with human review/feedback by avilevin.
 
 # Component Instructions
 
