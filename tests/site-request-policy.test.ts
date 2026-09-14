@@ -21,7 +21,7 @@ describe("documentation site request policy", () => {
     ["POST", admitted],
     [
       "GET",
-      "https://www.sefaria.org/api/v3/texts/Genesis%201%3A1?version=primary&version=translation&return_format=default",
+      "https://www.sefaria.org/api/v3/texts/Nahum%201%3A7?version=primary&version=translation&return_format=default",
     ],
     [
       "GET",
