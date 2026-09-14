@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="A private authored-link example for the unpublished Sefaria Frontend Toolkit."
+    />
+    <title>Justice, mercy, and an authored source link</title>
+    <link rel="stylesheet" href="./src/style.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <strong>The Common Reader</strong>
+      <a href="#about">About this example</a>
+    </header>
+    <main>
+      <article>
+        <header>
+          <p class="eyebrow">Ideas · September 14, 2026</p>
+          <h1>Justice, mercy, and an authored source link</h1>
+          <p class="dek">
+            An ordinary article can keep its native links while adding a
+            request-free Sefaria source preview.
+          </p>
+        </header>
+        <p>
+          The prophet's compact instruction in
+          <a
+            href="https://www.sefaria.org/Micah.6.8"
+            data-sefaria-ref="Micah 6:8"
+            >Micah 6:8</a
+          >
+          joins public justice, steadfast kindness, and humility. The citation
+          is an authored anchor first: it still navigates when scripts are
+          unavailable, and this page enhances only an ordinary unmodified
+          activation.
+        </p>
+        <blockquote>
+          <p lang="he" dir="rtl">
+            הִגִּיד לְךָ אָדָם מַה טּוֹב וּמָה יְהוָה דּוֹרֵשׁ מִמְּךָ כִּי אִם
+            עֲשׂוֹת מִשְׁפָּט וְאַהֲבַת חֶסֶד וְהַצְנֵעַ לֶכֶת עִם אֱלֹהֶיךָ׃
+          </p>
+        </blockquote>
+        <p>
+          Authors decide where citations belong, what text readers see, and
+          which native destination remains available. The enhancement does not
+          inspect prose, infer references, rewrite the article, or install a
+          global script API.
+        </p>
+        <h2 id="about">What the page owns</h2>
+        <p>
+          The page creates the client, calls the public popup factory, cancels
+          obsolete work, rejects stale results, and removes its listeners on
+          cleanup. The Web Component receives only its view model, anchor, and
+          open state.
+        </p>
+      </article>
+      <aside class="example-note" aria-labelledby="example-note-title">
+        <h2 id="example-note-title">Try it</h2>
+        <p>Activate the Micah citation to preview the source.</p>
+        <p>
+          Use Ctrl-click, Command-click, or the context menu to keep native
+          navigation behavior.
+        </p>
+        <p data-linked-article-status role="status"></p>
+      </aside>
+    </main>
+    <footer>
+      Private, unpublished toolkit example. Live popup data comes from Sefaria.
+    </footer>
+    <script type="module" src="./src/main.ts"></script>
+  </body>
+</html>

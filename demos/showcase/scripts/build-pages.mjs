@@ -2,7 +2,6 @@ import { access, cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 import { spawnSync } from "node:child_process";
-import { URL } from "node:url";
 
 import {
   createBuildCommands,
@@ -13,18 +12,6 @@ import {
 const root = path.resolve(import.meta.dirname, "..", "..", "..");
 const pages = path.resolve(root, "dist", "pages");
 const skipTypecheck = process.argv.includes("--skip-typecheck");
-const repository = process.env.GITHUB_REPOSITORY?.split("/")[1];
-const owner = process.env.GITHUB_REPOSITORY?.split("/")[0];
-const publicBase =
-  process.env.SEFARIA_PAGES_URL ??
-  (owner && repository
-    ? `https://${owner.toLowerCase()}.github.io/${repository}/`
-    : undefined);
-const linkerUrl =
-  publicBase === undefined
-    ? "http://localhost:4173/sefaria-linker.js"
-    : new URL("demos/linker/sefaria-linker.js", publicBase).href;
-
 function run(command, args, environment = {}) {
   const windows = process.platform === "win32";
   const executable = windows ? process.env.ComSpec : command;
@@ -46,7 +33,7 @@ function run(command, args, environment = {}) {
 await rm(pages, { recursive: true, force: true });
 await mkdir(path.join(pages, "demos"), { recursive: true });
 
-const buildCommands = createBuildCommands({ linkerUrl, skipTypecheck });
+const buildCommands = createBuildCommands({ skipTypecheck });
 for (const buildCommand of buildCommands) {
   run("pnpm", buildCommand.args, buildCommand.environment);
 }
@@ -71,12 +58,6 @@ for (const [route, explorerPage] of LEGACY_DEMO_REDIRECTS) {
 await cp(path.resolve(root, "demos", "showcase", "dist"), pages, {
   recursive: true,
 });
-await cp(
-  path.resolve(root, "demos", "linker", "dist"),
-  path.join(pages, "demos", "linker"),
-  { recursive: true },
-);
-
 for (const required of [
   "index.html",
   "loop.html",
@@ -95,7 +76,7 @@ for (const required of [
   "media/loop-reader.png",
   "media/loop-linker.png",
   "media/loop-mcp.png",
-  "demos/linker/sefaria-linker.js",
+  "demos/linker/index.html",
   "demos/explorer/index.html",
   "demos/explorer/authored.html",
   "demos/reader-workspace/index.html",
@@ -129,19 +110,12 @@ if (/publication\s+approval\s+pending/i.test(showcaseHtml)) {
   throw new Error("The closing quotation still requires publication approval.");
 }
 
-const bookmarklet = await readFile(
-  path.join(pages, "demos", "linker", "bookmarklet.txt"),
-  "utf8",
-);
-if (publicBase !== undefined && bookmarklet.includes("localhost")) {
-  throw new Error("The public Linker bookmarklet still points to localhost.");
-}
-
 function packageDirectory(packageName) {
   return (
     {
       "@sefaria-example/explorer": "examples/explorer",
       "@sefaria-example/reader": "examples/reader",
+      "@sefaria-example/linked-article": "examples/linked-article",
     }[packageName] ?? packageName
   );
 }
