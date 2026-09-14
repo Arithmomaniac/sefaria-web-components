@@ -1,8 +1,8 @@
-import "../../reader-workspace/src/style.css";
+import "../../../examples/reader/src/style.css";
 import {
   startReaderWorkspace,
   type ReaderWorkspace,
-} from "../../reader-workspace/src/app.js";
+} from "../../../examples/reader/src/app.js";
 
 let workspace: ReaderWorkspace | undefined;
 

@@ -19,7 +19,7 @@ Most component consumers should call an async component factory and supply this 
 
 ```ts
 import { createSefariaClient } from "@sefaria/client";
-import { loadSourceCardViewModel } from "@sefaria/components/source-card";
+import { loadSourceCardViewModel } from "@sefaria/web-components/source-card";
 
 const viewModel = await loadSourceCardViewModel(
   { tref: "Micah 6:8" },

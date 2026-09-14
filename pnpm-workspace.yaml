@@ -1,8 +1,10 @@
 packages:
   - packages/*
+  - examples/*
   - demos/*
   - demos/mcp/*
   - tests/*
 
 allowBuilds:
   esbuild: true
+  rs-module-lexer: true

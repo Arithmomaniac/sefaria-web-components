@@ -53,7 +53,7 @@ for (const buildCommand of buildCommands) {
 
 for (const [route, packageName] of PAGE_DEMOS) {
   await cp(
-    path.resolve(root, "demos", packageDirectory(packageName), "dist"),
+    path.resolve(root, packageDirectory(packageName), "dist"),
     path.join(pages, "demos", route),
     { recursive: true },
   );
@@ -140,8 +140,8 @@ if (publicBase !== undefined && bookmarklet.includes("localhost")) {
 function packageDirectory(packageName) {
   return (
     {
-      "@sefaria-demo/explorer": "explorer",
-      "@sefaria-demo/reader-workspace": "reader-workspace",
+      "@sefaria-example/explorer": "examples/explorer",
+      "@sefaria-example/reader": "examples/reader",
     }[packageName] ?? packageName
   );
 }

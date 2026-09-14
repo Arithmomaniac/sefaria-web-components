@@ -1,10 +1,10 @@
 > Created/edited by GitHub Copilot with human review/feedback by Avi Levin.
 
-# Sefaria Web Components
+# Sefaria Frontend Toolkit
 
 Build Sefaria reading surfaces without bringing along the Sefaria website. Use validated transport, pure text processing, component-specific factories, and request-free Web Components as individual pieces or as a packaged Reader.
 
-Explore the repository through the interactive [Sefaria Web Components showcase](https://arithmomaniac.github.io/sefaria-web-components/), including the supported stateful Reader, a manually composed side-by-side workflow, the Linker, and captured MCP Reader results.
+The existing `main` website remains available through the interactive [Sefaria Web Components showcase](https://arithmomaniac.github.io/sefaria-web-components/). This unpublished toolkit branch is developed and qualified independently; it is not deployed or published.
 
 > **Experimental.** This Microsoft Global Hackathon 2026 project has no support or stability guarantee. It is not an official Sefaria product. Packages are currently private workspace packages, not a published installation offering.
 
@@ -40,7 +40,7 @@ The [development guide](docs/development.md) covers Corepack, the Python fixture
 
 The client, text transforms, text segment, bilingual segment, reference label, selectable source card, connections panel, request-free popup, contextual connections reader, DOM-free reader session and controller, controlled reader surface, embeddable Linker demonstration, and Core MCP App are implemented on the [documented implementation baseline](docs/development.md#implemented-on-this-baseline). A source card handles both a single segment and a collection of text from one response.
 
-Run `pnpm dev:reader-workspace` for the supported stateful Reader and lower-level spatial website demonstrations, `pnpm dev:connections` for the contextual diagnostic page in the explorer, or `pnpm dev:linker` for the embeddable citation demonstration. Run `pnpm demo:mcp:vscode` to open the isolated VS Code capture layout with fullscreen maximized Chat, only the Sefaria demo tools selected, and an empty composer; the [MCP App demonstration](docs/mcp-app-demo.md) covers the optional one-time sign-in and interactive workflow. The launcher does not type, submit a prompt, or call a tool. The MCP Reader has completed an authenticated walkthrough covering same-App connections, nested navigation, retained breadcrumbs, and explicit chat export. Public hosting and broad live-site qualification for the Linker remain outside the delivered demonstration. [Development](docs/development.md) separates current behavior, superseded plans, and remaining work.
+Run `pnpm dev:reader` for the supported stateful Reader and lower-level spatial website demonstrations, `pnpm dev:connections` for the contextual diagnostic page in the explorer, or `pnpm dev:linker` for the embeddable citation demonstration. Run `pnpm demo:mcp:vscode` to open the isolated VS Code capture layout with fullscreen maximized Chat, only the Sefaria demo tools selected, and an empty composer; the [MCP App demonstration](docs/mcp-app-demo.md) covers the optional one-time sign-in and interactive workflow. The launcher does not type, submit a prompt, or call a tool. The MCP Reader has completed an authenticated walkthrough covering same-App connections, nested navigation, retained breadcrumbs, and explicit chat export. Public hosting and broad live-site qualification for the Linker remain outside the delivered demonstration. [Development](docs/development.md) separates current behavior, superseded plans, and remaining work.
 
 ## License and ownership
 

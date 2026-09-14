@@ -1,0 +1,75 @@
+{
+  "name": "@sefaria/web-components",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "license": "GPL-3.0-only",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Arithmomaniac/sefaria-web-components.git",
+    "directory": "packages/web-components"
+  },
+  "homepage": "https://github.com/Arithmomaniac/sefaria-web-components#readme",
+  "files": [
+    "dist",
+    "!dist/*.tsbuildinfo",
+    "README.md",
+    "custom-elements.json"
+  ],
+  "customElements": "./custom-elements.json",
+  "sideEffects": [
+    "./dist/index.js",
+    "./dist/*-element.js"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./bilingual-segment": {
+      "types": "./dist/bilingual-segment.d.ts",
+      "import": "./dist/bilingual-segment.js"
+    },
+    "./connections-panel": {
+      "types": "./dist/connections-panel.d.ts",
+      "import": "./dist/connections-panel.js"
+    },
+    "./popup": {
+      "types": "./dist/popup.d.ts",
+      "import": "./dist/popup.js"
+    },
+    "./reader": {
+      "types": "./dist/reader.d.ts",
+      "import": "./dist/reader.js"
+    },
+    "./reader-controller": {
+      "types": "./dist/reader-controller.d.ts",
+      "import": "./dist/reader-controller.js"
+    },
+    "./reader-session": {
+      "types": "./dist/reader-session.d.ts",
+      "import": "./dist/reader-session.js"
+    },
+    "./ref-label": {
+      "types": "./dist/ref-label.d.ts",
+      "import": "./dist/ref-label.js"
+    },
+    "./source-card": {
+      "types": "./dist/source-card.d.ts",
+      "import": "./dist/source-card.js"
+    },
+    "./text-segment": {
+      "types": "./dist/text-segment.d.ts",
+      "import": "./dist/text-segment.js"
+    }
+  },
+  "dependencies": {
+    "@sefaria/client": "workspace:*",
+    "@sefaria/text-transform": "workspace:*",
+    "lit": "^3.3.3"
+  },
+  "scripts": {
+    "build": "node ../../scripts/clean-package-dist.mjs && tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json"
+  }
+}

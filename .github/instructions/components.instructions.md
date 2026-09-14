@@ -1,6 +1,6 @@
 ---
 description: "Rules for component factories, Lit elements, and browser demonstrations"
-applyTo: "packages/components/**,demos/explorer/src/authored/**,docs/specs/components.md"
+applyTo: "packages/web-components/**,examples/explorer/src/authored/**,docs/specs/components.md"
 ---
 
 # Component Instructions

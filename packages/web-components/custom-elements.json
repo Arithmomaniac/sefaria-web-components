@@ -1,0 +1,2022 @@
+{
+  "schemaVersion": "1.0.0",
+  "readme": "",
+  "modules": [
+    {
+      "kind": "javascript-module",
+      "path": "dist/bilingual-segment-element.js",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "Request-free custom element that renders one bilingual-segment view model.",
+          "name": "SefariaBilingualSegment",
+          "members": [
+            {
+              "kind": "field",
+              "name": "viewModel",
+              "privacy": "public",
+              "type": {
+                "text": "BilingualSegmentViewModel"
+              },
+              "description": "Render-ready state supplied by the host."
+            },
+            {
+              "kind": "field",
+              "name": "contentLanguage",
+              "privacy": "public",
+              "type": {
+                "text": "BilingualSegmentContentLanguage"
+              },
+              "description": "Sides the host wants displayed.",
+              "default": "\"both\"",
+              "attribute": "content-language"
+            },
+            {
+              "kind": "field",
+              "name": "layout",
+              "privacy": "public",
+              "type": {
+                "text": "BilingualSegmentLayout"
+              },
+              "description": "Requested arrangement of the two sides.",
+              "default": "\"auto\"",
+              "attribute": "layout"
+            },
+            {
+              "kind": "field",
+              "name": "sideOrder",
+              "privacy": "public",
+              "type": {
+                "text": "BilingualSegmentSideOrder"
+              },
+              "description": "Requested role order for a side-by-side arrangement.",
+              "default": "\"primary-first\"",
+              "attribute": "side-order"
+            }
+          ],
+          "attributes": [
+            {
+              "name": "content-language",
+              "type": {
+                "text": "BilingualSegmentContentLanguage"
+              },
+              "description": "Sides the host wants displayed.",
+              "default": "\"both\"",
+              "fieldName": "contentLanguage"
+            },
+            {
+              "name": "layout",
+              "type": {
+                "text": "BilingualSegmentLayout"
+              },
+              "description": "Requested arrangement of the two sides.",
+              "default": "\"auto\"",
+              "fieldName": "layout"
+            },
+            {
+              "name": "side-order",
+              "type": {
+                "text": "BilingualSegmentSideOrder"
+              },
+              "description": "Requested role order for a side-by-side arrangement.",
+              "default": "\"primary-first\"",
+              "fieldName": "sideOrder"
+            }
+          ],
+          "superclass": {
+            "name": "SefariaElement",
+            "module": "dist/sefaria-element.js"
+          },
+          "tagName": "sefaria-bilingual-segment",
+          "customElement": true,
+          "events": [],
+          "slots": [],
+          "cssParts": [],
+          "cssProperties": [
+            {
+              "name": "--sefaria-surface",
+              "description": "Primary surface color.",
+              "default": "light-dark(#fffdf8, #2b2e2a)"
+            },
+            {
+              "name": "--sefaria-surface-muted",
+              "description": "Muted surface color.",
+              "default": "light-dark(#f5f1e8, #222521)"
+            },
+            {
+              "name": "--sefaria-fg",
+              "description": "Primary foreground color.",
+              "default": "light-dark(#25231f, #f1eee7)"
+            },
+            {
+              "name": "--sefaria-fg-muted",
+              "description": "Muted foreground color.",
+              "default": "light-dark(#6d675d, #bdb7ac)"
+            },
+            {
+              "name": "--sefaria-border",
+              "description": "Standard border color.",
+              "default": "light-dark(#d7cfc1, #555b53)"
+            },
+            {
+              "name": "--sefaria-border-strong",
+              "description": "Strong border color.",
+              "default": "light-dark(#aaa094, #73796f)"
+            },
+            {
+              "name": "--sefaria-accent",
+              "description": "Accent and focus color.",
+              "default": "light-dark(#8e2449, #ff93b4)"
+            },
+            {
+              "name": "--sefaria-accent-soft",
+              "description": "Translucent accent surface.",
+              "default": "light-dark(rgb(142 36 73 / 10%), rgb(255 147 180 / 14%))"
+            },
+            {
+              "name": "--sefaria-danger",
+              "description": "Error foreground color.",
+              "default": "light-dark(#9c1c1c, #ffaaa4)"
+            },
+            {
+              "name": "--sefaria-link",
+              "description": "Link foreground color.",
+              "default": "light-dark(#8e2449, #ff93b4)"
+            },
+            {
+              "name": "--sefaria-shadow",
+              "description": "Popup and elevated-surface shadow.",
+              "default": "0 1rem 3rem rgb(0 0 0 / 28%)"
+            },
+            {
+              "name": "--sefaria-panel-radius",
+              "description": "Panel corner radius.",
+              "default": "0.75rem"
+            },
+            {
+              "name": "--sefaria-control-radius",
+              "description": "Control corner radius.",
+              "default": "0.3rem"
+            },
+            {
+              "name": "--sefaria-font-scale",
+              "description": "Component font-size multiplier.",
+              "default": "1"
+            },
+            {
+              "name": "--sefaria-font-hebrew",
+              "description": "Hebrew body font stack.",
+              "default": "\"Noto Serif Hebrew\", \"SBL Hebrew\", \"Times New Roman\", serif"
+            },
+            {
+              "name": "--sefaria-font-english",
+              "description": "English body font stack.",
+              "default": "Georgia, \"Times New Roman\", serif"
+            },
+            {
+              "name": "--sefaria-font-label-hebrew",
+              "description": "Hebrew label font stack.",
+              "default": "\"Noto Sans Hebrew\", system-ui, sans-serif"
+            },
+            {
+              "name": "--sefaria-font-label-english",
+              "description": "English label font stack.",
+              "default": "system-ui, sans-serif"
+            }
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "SefariaBilingualSegment",
+          "declaration": {
+            "name": "SefariaBilingualSegment",
+            "module": "dist/bilingual-segment-element.js"
+          }
+        },
+        {
+          "kind": "custom-element-definition",
+          "name": "sefaria-bilingual-segment",
+          "declaration": {
+            "name": "SefariaBilingualSegment",
+            "module": "dist/bilingual-segment-element.js"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "dist/connections-panel-element.js",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "Request-free category summaries and bounded connected-text details.",
+          "name": "SefariaConnectionsPanel",
+          "members": [
+            {
+              "kind": "field",
+              "name": "viewModel",
+              "privacy": "public",
+              "type": {
+                "text": "ConnectionsViewModel | undefined"
+              },
+              "description": "Host-supplied rendering state."
+            },
+            {
+              "kind": "field",
+              "name": "showPreviews",
+              "privacy": "public",
+              "type": {
+                "text": "boolean"
+              },
+              "description": "Hides or reveals captured preview data without requesting it.",
+              "default": "true",
+              "attribute": "show-previews"
+            },
+            {
+              "kind": "method",
+              "name": "#entry",
+              "privacy": "private",
+              "parameters": [
+                {
+                  "name": "entry",
+                  "type": {
+                    "text": "ConnectionEntry"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "#emit",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "void"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "name",
+                  "type": {
+                    "text": "string"
+                  }
+                },
+                {
+                  "name": "detail",
+                  "type": {
+                    "text": "object"
+                  }
+                }
+              ]
+            }
+          ],
+          "events": [
+            {
+              "name": "sefaria-connections-category-change",
+              "description": "Requests a different captured connection category.",
+              "type": {
+                "text": "CustomEvent"
+              }
+            },
+            {
+              "name": "sefaria-connections-preview-request",
+              "description": "Requests captured connection previews from the host.",
+              "type": {
+                "text": "CustomEvent"
+              }
+            },
+            {
+              "name": "sefaria-connections-page-change",
+              "description": "Requests a different page of captured connections.",
+              "type": {
+                "text": "CustomEvent"
+              }
+            },
+            {
+              "name": "sefaria-connection-select",
+              "description": "Reports selection of one connected reference.",
+              "type": {
+                "text": "CustomEvent"
+              }
+            }
+          ],
+          "attributes": [
+            {
+              "name": "show-previews",
+              "type": {
+                "text": "boolean"
+              },
+              "description": "Hides or reveals captured preview data without requesting it.",
+              "default": "true",
+              "fieldName": "showPreviews"
+            }
+          ],
+          "superclass": {
+            "name": "SefariaElement",
+            "module": "dist/sefaria-element.js"
+          },
+          "tagName": "sefaria-connections-panel",
+          "customElement": true,
+          "slots": [],
+          "cssParts": [],
+          "cssProperties": [
+            {
+              "name": "--sefaria-surface",
+              "description": "Primary surface color.",
+              "default": "light-dark(#fffdf8, #2b2e2a)"
+            },
+            {
+              "name": "--sefaria-surface-muted",
+              "description": "Muted surface color.",
+              "default": "light-dark(#f5f1e8, #222521)"
+            },
+            {
+              "name": "--sefaria-fg",
+              "description": "Primary foreground color.",
+              "default": "light-dark(#25231f, #f1eee7)"
+            },
+            {
+              "name": "--sefaria-fg-muted",
+              "description": "Muted foreground color.",
+              "default": "light-dark(#6d675d, #bdb7ac)"
+            },
+            {
+              "name": "--sefaria-border",
+              "description": "Standard border color.",
+              "default": "light-dark(#d7cfc1, #555b53)"
+            },
+            {
+              "name": "--sefaria-border-strong",
+              "description": "Strong border color.",
+              "default": "light-dark(#aaa094, #73796f)"
+            },
+            {
+              "name": "--sefaria-accent",
+              "description": "Accent and focus color.",
+              "default": "light-dark(#8e2449, #ff93b4)"
+            },
+            {
+              "name": "--sefaria-accent-soft",
+              "description": "Translucent accent surface.",
+              "default": "light-dark(rgb(142 36 73 / 10%), rgb(255 147 180 / 14%))"
+            },
+            {
+              "name": "--sefaria-danger",
+              "description": "Error foreground color.",
+              "default": "light-dark(#9c1c1c, #ffaaa4)"
+            },
+            {
+              "name": "--sefaria-link",
+              "description": "Link foreground color.",
+              "default": "light-dark(#8e2449, #ff93b4)"
+            },
+            {
+              "name": "--sefaria-shadow",
+              "description": "Popup and elevated-surface shadow.",
+              "default": "0 1rem 3rem rgb(0 0 0 / 28%)"
+            },
+            {
+              "name": "--sefaria-panel-radius",
+              "description": "Panel corner radius.",
+              "default": "0.75rem"
+            },
+            {
+              "name": "--sefaria-control-radius",
+              "description": "Control corner radius.",
+              "default": "0.3rem"
+            },
+            {
+              "name": "--sefaria-font-scale",
+              "description": "Component font-size multiplier.",
+              "default": "1"
+            },
+            {
+              "name": "--sefaria-font-hebrew",
+              "description": "Hebrew body font stack.",
+              "default": "\"Noto Serif Hebrew\", \"SBL Hebrew\", \"Times New Roman\", serif"
+            },
+            {
+              "name": "--sefaria-font-english",
+              "description": "English body font stack.",
+              "default": "Georgia, \"Times New Roman\", serif"
+            },
+            {
+              "name": "--sefaria-font-label-hebrew",
+              "description": "Hebrew label font stack.",
+              "default": "\"Noto Sans Hebrew\", system-ui, sans-serif"
+            },
+            {
+              "name": "--sefaria-font-label-english",
+              "description": "English label font stack.",
+              "default": "system-ui, sans-serif"
+            }
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "SefariaConnectionsPanel",
+          "declaration": {
+            "name": "SefariaConnectionsPanel",
+            "module": "dist/connections-panel-element.js"
+          }
+        },
+        {
+          "kind": "custom-element-definition",
+          "name": "sefaria-connections-panel",
+          "declaration": {
+            "name": "SefariaConnectionsPanel",
+            "module": "dist/connections-panel-element.js"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "dist/popup-element.js",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "Request-free anchored dialog that renders one popup view model.",
+          "name": "SefariaPopup",
+          "members": [
+            {
+              "kind": "field",
+              "name": "viewModel",
+              "privacy": "public",
+              "type": {
+                "text": "PopupViewModel | undefined"
+              },
+              "description": "Render-ready popup state supplied by the integration.",
+              "default": "undefined"
+            },
+            {
+              "kind": "field",
+              "name": "anchor",
+              "privacy": "public",
+              "type": {
+                "text": "HTMLElement | null"
+              },
+              "description": "Host element used for placement and focus restoration.",
+              "default": "null"
+            },
+            {
+              "kind": "field",
+              "name": "open",
+              "privacy": "public",
+              "type": {
+                "text": "boolean"
+              },
+              "description": "Whether the dialog is visible.",
+              "default": "false",
+              "attribute": "open",
+              "reflects": true
+            },
+            {
+              "kind": "method",
+              "name": "#renderContent",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "TemplateResult"
+                }
+              }
+            },
+            {
+              "kind": "field",
+              "name": "#close",
+              "privacy": "private"
+            },
+            {
+              "kind": "field",
+              "name": "#handleKeydown",
+              "privacy": "private"
+            },
+            {
+              "kind": "field",
+              "name": "#handleViewportChange",
+              "privacy": "private"
+            },
+            {
+              "kind": "method",
+              "name": "#place",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "void"
+                }
+              }
+            }
+          ],
+          "attributes": [
+            {
+              "name": "open",
+              "type": {
+                "text": "boolean"
+              },
+              "description": "Whether the dialog is visible.",
+              "default": "false",
+              "fieldName": "open"
+            }
+          ],
+          "superclass": {
+            "name": "SefariaElement",
+            "module": "dist/sefaria-element.js"
+          },
+          "tagName": "sefaria-popup",
+          "customElement": true,
+          "events": [
+            {
+              "name": "sefaria-popup-close",
+              "description": "Reports that the popup should close.",
+              "type": {
+                "text": "CustomEvent"
+              }
+            }
+          ],
+          "slots": [],
+          "cssParts": [],
+          "cssProperties": [
+            {
+              "name": "--sefaria-surface",
+              "description": "Primary surface color.",
+              "default": "light-dark(#fffdf8, #2b2e2a)"
+            },
+            {
+              "name": "--sefaria-surface-muted",
+              "description": "Muted surface color.",
+              "default": "light-dark(#f5f1e8, #222521)"
+            },
+            {
+              "name": "--sefaria-fg",
+              "description": "Primary foreground color.",
+              "default": "light-dark(#25231f, #f1eee7)"
+            },
+            {
+              "name": "--sefaria-fg-muted",
+              "description": "Muted foreground color.",
+              "default": "light-dark(#6d675d, #bdb7ac)"
+            },
+            {
+              "name": "--sefaria-border",
+              "description": "Standard border color.",
+              "default": "light-dark(#d7cfc1, #555b53)"
+            },
+            {
+              "name": "--sefaria-border-strong",
+              "description": "Strong border color.",
+              "default": "light-dark(#aaa094, #73796f)"
+            },
+            {
+              "name": "--sefaria-accent",
+              "description": "Accent and focus color.",
+              "default": "light-dark(#8e2449, #ff93b4)"
+            },
+            {
+              "name": "--sefaria-accent-soft",
+              "description": "Translucent accent surface.",
+              "default": "light-dark(rgb(142 36 73 / 10%), rgb(255 147 180 / 14%))"
+            },
+            {
+              "name": "--sefaria-danger",
+              "description": "Error foreground color.",
+              "default": "light-dark(#9c1c1c, #ffaaa4)"
+            },
+            {
+              "name": "--sefaria-link",
+              "description": "Link foreground color.",
+              "default": "light-dark(#8e2449, #ff93b4)"
+            },
+            {
+              "name": "--sefaria-shadow",
+              "description": "Popup and elevated-surface shadow.",
+              "default": "0 1rem 3rem rgb(0 0 0 / 28%)"
+            },
+            {
+              "name": "--sefaria-panel-radius",
+              "description": "Panel corner radius.",
+              "default": "0.75rem"
+            },
+            {
+              "name": "--sefaria-control-radius",
+              "description": "Control corner radius.",
+              "default": "0.3rem"
+            },
+            {
+              "name": "--sefaria-font-scale",
+              "description": "Component font-size multiplier.",
+              "default": "1"
+            },
+            {
+              "name": "--sefaria-font-hebrew",
+              "description": "Hebrew body font stack.",
+              "default": "\"Noto Serif Hebrew\", \"SBL Hebrew\", \"Times New Roman\", serif"
+            },
+            {
+              "name": "--sefaria-font-english",
+              "description": "English body font stack.",
+              "default": "Georgia, \"Times New Roman\", serif"
+            },
+            {
+              "name": "--sefaria-font-label-hebrew",
+              "description": "Hebrew label font stack.",
+              "default": "\"Noto Sans Hebrew\", system-ui, sans-serif"
+            },
+            {
+              "name": "--sefaria-font-label-english",
+              "description": "English label font stack.",
+              "default": "system-ui, sans-serif"
+            }
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "SefariaPopup",
+          "declaration": {
+            "name": "SefariaPopup",
+            "module": "dist/popup-element.js"
+          }
+        },
+        {
+          "kind": "custom-element-definition",
+          "name": "sefaria-popup",
+          "declaration": {
+            "name": "SefariaPopup",
+            "module": "dist/popup-element.js"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "dist/reader-element.js",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "Request-free controlled reader surface for one semantic reader entry.",
+          "name": "SefariaReader",
+          "members": [
+            {
+              "kind": "field",
+              "name": "viewModel",
+              "privacy": "public",
+              "type": {
+                "text": "ReaderViewModel | undefined"
+              },
+              "description": "Host-supplied reader rendering state."
+            },
+            {
+              "kind": "field",
+              "name": "activePane",
+              "privacy": "public",
+              "type": {
+                "text": "ReaderPane"
+              },
+              "description": "Host-controlled pane selected in compact presentation.",
+              "default": "\"source\"",
+              "attribute": "active-pane"
+            },
+            {
+              "kind": "field",
+              "name": "chatExport",
+              "privacy": "public",
+              "type": {
+                "text": "boolean"
+              },
+              "description": "Shows an explicit host-mediated chat export action when a target exists.",
+              "default": "false",
+              "attribute": "chat-export"
+            },
+            {
+              "kind": "method",
+              "name": "#source",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "TemplateResult"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "viewModel",
+                  "type": {
+                    "text": "ReaderViewModel"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "#connections",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "TemplateResult"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "viewModel",
+                  "type": {
+                    "text": "ReaderViewModel"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "#effectivePane",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "ReaderPane"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "viewModel",
+                  "type": {
+                    "text": "ReaderViewModel"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "#back",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "void"
+                }
+              }
+            },
+            {
+              "kind": "method",
+              "name": "#activate",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "void"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "entryId",
+                  "type": {
+                    "text": "string"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "#pane",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "void"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "pane",
+                  "type": {
+                    "text": "ReaderPane"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "#chatExport",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "void"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "targetRef",
+                  "type": {
+                    "text": "string"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "#sourceSelect",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "void"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "event",
+                  "type": {
+                    "text": "CustomEvent<SourceSelectDetail>"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "#category",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "void"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "event",
+                  "type": {
+                    "text": "CustomEvent<ConnectionsCategoryDetail>"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "#page",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "void"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "event",
+                  "type": {
+                    "text": "CustomEvent<ConnectionsPageDetail>"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "#connection",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "void"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "event",
+                  "type": {
+                    "text": "CustomEvent<ConnectionSelectDetail>"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "#previews",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "void"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "event",
+                  "type": {
+                    "text": "CustomEvent"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "#emit",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "void"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "name",
+                  "type": {
+                    "text": "string"
+                  }
+                },
+                {
+                  "name": "detail",
+                  "type": {
+                    "text": "object"
+                  }
+                }
+              ]
+            }
+          ],
+          "events": [
+            {
+              "name": "sefaria-reader-back",
+              "description": "Requests navigation to the previous entry.",
+              "type": {
+                "text": "CustomEvent"
+              }
+            },
+            {
+              "name": "sefaria-reader-history-activate",
+              "description": "Requests activation of one retained history entry.",
+              "type": {
+                "text": "CustomEvent"
+              }
+            },
+            {
+              "name": "sefaria-reader-pane-change",
+              "description": "Requests the visible compact reader pane.",
+              "type": {
+                "text": "CustomEvent"
+              }
+            },
+            {
+              "name": "sefaria-reader-chat-export",
+              "description": "Requests host-owned export of a reference to chat.",
+              "type": {
+                "text": "CustomEvent"
+              }
+            },
+            {
+              "name": "sefaria-reader-source-select",
+              "description": "Reports selection of one source-card item.",
+              "type": {
+                "text": "CustomEvent"
+              }
+            },
+            {
+              "name": "sefaria-reader-connections-category-change",
+              "description": "Requests a different connection category.",
+              "type": {
+                "text": "CustomEvent"
+              }
+            },
+            {
+              "name": "sefaria-reader-connections-page-change",
+              "description": "Requests a different connection page.",
+              "type": {
+                "text": "CustomEvent"
+              }
+            },
+            {
+              "name": "sefaria-reader-connection-select",
+              "description": "Reports selection of one connected reference.",
+              "type": {
+                "text": "CustomEvent"
+              }
+            },
+            {
+              "name": "sefaria-reader-connections-preview-request",
+              "description": "Requests connection previews from the host.",
+              "type": {
+                "text": "CustomEvent"
+              }
+            }
+          ],
+          "attributes": [
+            {
+              "name": "active-pane",
+              "type": {
+                "text": "ReaderPane"
+              },
+              "description": "Host-controlled pane selected in compact presentation.",
+              "default": "\"source\"",
+              "fieldName": "activePane"
+            },
+            {
+              "name": "chat-export",
+              "type": {
+                "text": "boolean"
+              },
+              "description": "Shows an explicit host-mediated chat export action when a target exists.",
+              "default": "false",
+              "fieldName": "chatExport"
+            }
+          ],
+          "superclass": {
+            "name": "SefariaElement",
+            "module": "dist/sefaria-element.js"
+          },
+          "tagName": "sefaria-reader",
+          "customElement": true,
+          "slots": [],
+          "cssParts": [],
+          "cssProperties": [
+            {
+              "name": "--sefaria-surface",
+              "description": "Primary surface color.",
+              "default": "light-dark(#fffdf8, #2b2e2a)"
+            },
+            {
+              "name": "--sefaria-surface-muted",
+              "description": "Muted surface color.",
+              "default": "light-dark(#f5f1e8, #222521)"
+            },
+            {
+              "name": "--sefaria-fg",
+              "description": "Primary foreground color.",
+              "default": "light-dark(#25231f, #f1eee7)"
+            },
+            {
+              "name": "--sefaria-fg-muted",
+              "description": "Muted foreground color.",
+              "default": "light-dark(#6d675d, #bdb7ac)"
+            },
+            {
+              "name": "--sefaria-border",
+              "description": "Standard border color.",
+              "default": "light-dark(#d7cfc1, #555b53)"
+            },
+            {
+              "name": "--sefaria-border-strong",
+              "description": "Strong border color.",
+              "default": "light-dark(#aaa094, #73796f)"
+            },
+            {
+              "name": "--sefaria-accent",
+              "description": "Accent and focus color.",
+              "default": "light-dark(#8e2449, #ff93b4)"
+            },
+            {
+              "name": "--sefaria-accent-soft",
+              "description": "Translucent accent surface.",
+              "default": "light-dark(rgb(142 36 73 / 10%), rgb(255 147 180 / 14%))"
+            },
+            {
+              "name": "--sefaria-danger",
+              "description": "Error foreground color.",
+              "default": "light-dark(#9c1c1c, #ffaaa4)"
+            },
+            {
+              "name": "--sefaria-link",
+              "description": "Link foreground color.",
+              "default": "light-dark(#8e2449, #ff93b4)"
+            },
+            {
+              "name": "--sefaria-shadow",
+              "description": "Popup and elevated-surface shadow.",
+              "default": "0 1rem 3rem rgb(0 0 0 / 28%)"
+            },
+            {
+              "name": "--sefaria-panel-radius",
+              "description": "Panel corner radius.",
+              "default": "0.75rem"
+            },
+            {
+              "name": "--sefaria-control-radius",
+              "description": "Control corner radius.",
+              "default": "0.3rem"
+            },
+            {
+              "name": "--sefaria-font-scale",
+              "description": "Component font-size multiplier.",
+              "default": "1"
+            },
+            {
+              "name": "--sefaria-font-hebrew",
+              "description": "Hebrew body font stack.",
+              "default": "\"Noto Serif Hebrew\", \"SBL Hebrew\", \"Times New Roman\", serif"
+            },
+            {
+              "name": "--sefaria-font-english",
+              "description": "English body font stack.",
+              "default": "Georgia, \"Times New Roman\", serif"
+            },
+            {
+              "name": "--sefaria-font-label-hebrew",
+              "description": "Hebrew label font stack.",
+              "default": "\"Noto Sans Hebrew\", system-ui, sans-serif"
+            },
+            {
+              "name": "--sefaria-font-label-english",
+              "description": "English label font stack.",
+              "default": "system-ui, sans-serif"
+            }
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "SefariaReader",
+          "declaration": {
+            "name": "SefariaReader",
+            "module": "dist/reader-element.js"
+          }
+        },
+        {
+          "kind": "custom-element-definition",
+          "name": "sefaria-reader",
+          "declaration": {
+            "name": "SefariaReader",
+            "module": "dist/reader-element.js"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "dist/ref-label-element.js",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "Request-free custom element that renders one reference-label view model.",
+          "name": "SefariaRefLabel",
+          "members": [
+            {
+              "kind": "field",
+              "name": "viewModel",
+              "privacy": "public",
+              "type": {
+                "text": "RefLabelViewModel"
+              },
+              "description": "Render-ready state supplied by the host."
+            },
+            {
+              "kind": "field",
+              "name": "labelLanguage",
+              "privacy": "public",
+              "type": {
+                "text": "RefLabelLanguage"
+              },
+              "description": "Label language selected by the host.",
+              "default": "\"english\"",
+              "attribute": "label-language"
+            },
+            {
+              "kind": "field",
+              "name": "linked",
+              "privacy": "public",
+              "type": {
+                "text": "boolean"
+              },
+              "description": "Whether data-state labels render as canonical links.",
+              "default": "false",
+              "attribute": "linked"
+            },
+            {
+              "kind": "method",
+              "name": "#renderData",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "TemplateResult"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "viewModel",
+                  "type": {
+                    "text": "RefLabelDataViewModel"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "#renderLabel",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "TemplateResult"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "viewModel",
+                  "type": {
+                    "text": "RefLabelDataViewModel"
+                  }
+                }
+              ]
+            }
+          ],
+          "attributes": [
+            {
+              "name": "label-language",
+              "type": {
+                "text": "RefLabelLanguage"
+              },
+              "description": "Label language selected by the host.",
+              "default": "\"english\"",
+              "fieldName": "labelLanguage"
+            },
+            {
+              "name": "linked",
+              "type": {
+                "text": "boolean"
+              },
+              "description": "Whether data-state labels render as canonical links.",
+              "default": "false",
+              "fieldName": "linked"
+            }
+          ],
+          "superclass": {
+            "name": "SefariaElement",
+            "module": "dist/sefaria-element.js"
+          },
+          "tagName": "sefaria-ref-label",
+          "customElement": true,
+          "events": [],
+          "slots": [],
+          "cssParts": [],
+          "cssProperties": [
+            {
+              "name": "--sefaria-surface",
+              "description": "Primary surface color.",
+              "default": "light-dark(#fffdf8, #2b2e2a)"
+            },
+            {
+              "name": "--sefaria-surface-muted",
+              "description": "Muted surface color.",
+              "default": "light-dark(#f5f1e8, #222521)"
+            },
+            {
+              "name": "--sefaria-fg",
+              "description": "Primary foreground color.",
+              "default": "light-dark(#25231f, #f1eee7)"
+            },
+            {
+              "name": "--sefaria-fg-muted",
+              "description": "Muted foreground color.",
+              "default": "light-dark(#6d675d, #bdb7ac)"
+            },
+            {
+              "name": "--sefaria-border",
+              "description": "Standard border color.",
+              "default": "light-dark(#d7cfc1, #555b53)"
+            },
+            {
+              "name": "--sefaria-border-strong",
+              "description": "Strong border color.",
+              "default": "light-dark(#aaa094, #73796f)"
+            },
+            {
+              "name": "--sefaria-accent",
+              "description": "Accent and focus color.",
+              "default": "light-dark(#8e2449, #ff93b4)"
+            },
+            {
+              "name": "--sefaria-accent-soft",
+              "description": "Translucent accent surface.",
+              "default": "light-dark(rgb(142 36 73 / 10%), rgb(255 147 180 / 14%))"
+            },
+            {
+              "name": "--sefaria-danger",
+              "description": "Error foreground color.",
+              "default": "light-dark(#9c1c1c, #ffaaa4)"
+            },
+            {
+              "name": "--sefaria-link",
+              "description": "Link foreground color.",
+              "default": "light-dark(#8e2449, #ff93b4)"
+            },
+            {
+              "name": "--sefaria-shadow",
+              "description": "Popup and elevated-surface shadow.",
+              "default": "0 1rem 3rem rgb(0 0 0 / 28%)"
+            },
+            {
+              "name": "--sefaria-panel-radius",
+              "description": "Panel corner radius.",
+              "default": "0.75rem"
+            },
+            {
+              "name": "--sefaria-control-radius",
+              "description": "Control corner radius.",
+              "default": "0.3rem"
+            },
+            {
+              "name": "--sefaria-font-scale",
+              "description": "Component font-size multiplier.",
+              "default": "1"
+            },
+            {
+              "name": "--sefaria-font-hebrew",
+              "description": "Hebrew body font stack.",
+              "default": "\"Noto Serif Hebrew\", \"SBL Hebrew\", \"Times New Roman\", serif"
+            },
+            {
+              "name": "--sefaria-font-english",
+              "description": "English body font stack.",
+              "default": "Georgia, \"Times New Roman\", serif"
+            },
+            {
+              "name": "--sefaria-font-label-hebrew",
+              "description": "Hebrew label font stack.",
+              "default": "\"Noto Sans Hebrew\", system-ui, sans-serif"
+            },
+            {
+              "name": "--sefaria-font-label-english",
+              "description": "English label font stack.",
+              "default": "system-ui, sans-serif"
+            }
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "SefariaRefLabel",
+          "declaration": {
+            "name": "SefariaRefLabel",
+            "module": "dist/ref-label-element.js"
+          }
+        },
+        {
+          "kind": "custom-element-definition",
+          "name": "sefaria-ref-label",
+          "declaration": {
+            "name": "SefariaRefLabel",
+            "module": "dist/ref-label-element.js"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "dist/source-card-element.js",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "Request-free custom element that renders one source-card view model.",
+          "name": "SefariaSourceCard",
+          "members": [
+            {
+              "kind": "field",
+              "name": "viewModel",
+              "privacy": "public",
+              "type": {
+                "text": "SourceCardViewModel"
+              },
+              "description": "Render-ready state supplied by the host."
+            },
+            {
+              "kind": "field",
+              "name": "referenceLabel",
+              "privacy": "public",
+              "type": {
+                "text": "RefLabelViewModel | undefined"
+              },
+              "description": "Optional richer label supplied by a host that already owns it.",
+              "default": "undefined"
+            },
+            {
+              "kind": "field",
+              "name": "contentLanguage",
+              "privacy": "public",
+              "type": {
+                "text": "BilingualPairContentLanguage"
+              },
+              "description": "Sides the host wants displayed for every pair.",
+              "default": "\"both\"",
+              "attribute": "content-language"
+            },
+            {
+              "kind": "field",
+              "name": "layout",
+              "privacy": "public",
+              "type": {
+                "text": "BilingualPairLayout"
+              },
+              "description": "Requested arrangement for every pair.",
+              "default": "\"auto\"",
+              "attribute": "layout"
+            },
+            {
+              "kind": "field",
+              "name": "sideOrder",
+              "privacy": "public",
+              "type": {
+                "text": "BilingualPairSideOrder"
+              },
+              "description": "Requested role order for every pair.",
+              "default": "\"primary-first\"",
+              "attribute": "side-order"
+            },
+            {
+              "kind": "field",
+              "name": "showAddressLabels",
+              "privacy": "public",
+              "type": {
+                "text": "boolean"
+              },
+              "description": "Whether compact address labels are visible beside rendered text sides.",
+              "default": "true"
+            },
+            {
+              "kind": "field",
+              "name": "selectable",
+              "privacy": "public",
+              "type": {
+                "text": "boolean"
+              },
+              "description": "Enables selection controls for items with proven canonical targets.",
+              "default": "false",
+              "attribute": "selectable"
+            },
+            {
+              "kind": "field",
+              "name": "selectedPosition",
+              "privacy": "public",
+              "type": {
+                "text": "readonly number[] | undefined"
+              },
+              "description": "Host-controlled original position path, never a reference string.",
+              "default": "undefined"
+            },
+            {
+              "kind": "field",
+              "name": "hideAttributions",
+              "privacy": "public",
+              "type": {
+                "text": "boolean"
+              },
+              "description": "Whether resolved edition attribution is intentionally omitted.",
+              "default": "false",
+              "attribute": "hide-attributions"
+            },
+            {
+              "kind": "method",
+              "name": "revealSelection",
+              "return": {
+                "type": {
+                  "text": "Promise<void>"
+                }
+              },
+              "description": "Reveals the selected control without requesting or changing data."
+            },
+            {
+              "kind": "method",
+              "name": "#renderItem",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "TemplateResult"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "item",
+                  "type": {
+                    "text": "SourceCardItemViewModel"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "#renderAddressLabel",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "TemplateResult"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "item",
+                  "type": {
+                    "text": "SourceCardItemViewModel"
+                  }
+                },
+                {
+                  "name": "side",
+                  "type": {
+                    "text": "BilingualPairSide"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "#renderSelectionControl",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "TemplateResult"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "position",
+                  "type": {
+                    "text": "readonly number[]"
+                  }
+                },
+                {
+                  "name": "ref",
+                  "type": {
+                    "text": "string"
+                  }
+                },
+                {
+                  "name": "className",
+                  "type": {
+                    "text": "string"
+                  }
+                },
+                {
+                  "name": "content",
+                  "type": {
+                    "text": "string"
+                  }
+                },
+                {
+                  "name": "language",
+                  "optional": true,
+                  "type": {
+                    "text": "string"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "#isSelectable",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "item is SourceCardItemViewModel & {\n    readonly ref: string;\n    readonly addressLabel: string;\n  }"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "item",
+                  "type": {
+                    "text": "SourceCardItemViewModel"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "#itemClass",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "string"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "item",
+                  "type": {
+                    "text": "SourceCardItemViewModel"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "#handleItemClick",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "void"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "event",
+                  "type": {
+                    "text": "MouseEvent"
+                  }
+                },
+                {
+                  "name": "item",
+                  "type": {
+                    "text": "SourceCardItemViewModel"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "#selectItem",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "void"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "position",
+                  "type": {
+                    "text": "readonly number[]"
+                  }
+                },
+                {
+                  "name": "ref",
+                  "type": {
+                    "text": "string"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "#renderHeader",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "TemplateResult"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "header",
+                  "type": {
+                    "text": "SourceCardHeaderViewModel"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "#renderAttributions",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "TemplateResult | typeof nothing"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "attributions",
+                  "type": {
+                    "text": "readonly SourceCardAttributionViewModel[]"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "#renderAttribution",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "TemplateResult"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "attribution",
+                  "type": {
+                    "text": "SourceCardAttributionViewModel"
+                  }
+                }
+              ]
+            }
+          ],
+          "events": [
+            {
+              "name": "sefaria-source-select",
+              "description": "Reports selection of one source-card item.",
+              "type": {
+                "text": "CustomEvent"
+              }
+            }
+          ],
+          "attributes": [
+            {
+              "name": "content-language",
+              "type": {
+                "text": "BilingualPairContentLanguage"
+              },
+              "description": "Sides the host wants displayed for every pair.",
+              "default": "\"both\"",
+              "fieldName": "contentLanguage"
+            },
+            {
+              "name": "layout",
+              "type": {
+                "text": "BilingualPairLayout"
+              },
+              "description": "Requested arrangement for every pair.",
+              "default": "\"auto\"",
+              "fieldName": "layout"
+            },
+            {
+              "name": "side-order",
+              "type": {
+                "text": "BilingualPairSideOrder"
+              },
+              "description": "Requested role order for every pair.",
+              "default": "\"primary-first\"",
+              "fieldName": "sideOrder"
+            },
+            {
+              "name": "hide-attributions",
+              "type": {
+                "text": "boolean"
+              },
+              "description": "Whether resolved edition attribution is intentionally omitted.",
+              "default": "false",
+              "fieldName": "hideAttributions"
+            },
+            {
+              "name": "selectable",
+              "type": {
+                "text": "boolean"
+              },
+              "description": "Enables selection controls for items with proven canonical targets.",
+              "default": "false",
+              "fieldName": "selectable"
+            }
+          ],
+          "superclass": {
+            "name": "SefariaElement",
+            "module": "dist/sefaria-element.js"
+          },
+          "tagName": "sefaria-source-card",
+          "customElement": true,
+          "slots": [],
+          "cssParts": [],
+          "cssProperties": [
+            {
+              "name": "--sefaria-surface",
+              "description": "Primary surface color.",
+              "default": "light-dark(#fffdf8, #2b2e2a)"
+            },
+            {
+              "name": "--sefaria-surface-muted",
+              "description": "Muted surface color.",
+              "default": "light-dark(#f5f1e8, #222521)"
+            },
+            {
+              "name": "--sefaria-fg",
+              "description": "Primary foreground color.",
+              "default": "light-dark(#25231f, #f1eee7)"
+            },
+            {
+              "name": "--sefaria-fg-muted",
+              "description": "Muted foreground color.",
+              "default": "light-dark(#6d675d, #bdb7ac)"
+            },
+            {
+              "name": "--sefaria-border",
+              "description": "Standard border color.",
+              "default": "light-dark(#d7cfc1, #555b53)"
+            },
+            {
+              "name": "--sefaria-border-strong",
+              "description": "Strong border color.",
+              "default": "light-dark(#aaa094, #73796f)"
+            },
+            {
+              "name": "--sefaria-accent",
+              "description": "Accent and focus color.",
+              "default": "light-dark(#8e2449, #ff93b4)"
+            },
+            {
+              "name": "--sefaria-accent-soft",
+              "description": "Translucent accent surface.",
+              "default": "light-dark(rgb(142 36 73 / 10%), rgb(255 147 180 / 14%))"
+            },
+            {
+              "name": "--sefaria-danger",
+              "description": "Error foreground color.",
+              "default": "light-dark(#9c1c1c, #ffaaa4)"
+            },
+            {
+              "name": "--sefaria-link",
+              "description": "Link foreground color.",
+              "default": "light-dark(#8e2449, #ff93b4)"
+            },
+            {
+              "name": "--sefaria-shadow",
+              "description": "Popup and elevated-surface shadow.",
+              "default": "0 1rem 3rem rgb(0 0 0 / 28%)"
+            },
+            {
+              "name": "--sefaria-panel-radius",
+              "description": "Panel corner radius.",
+              "default": "0.75rem"
+            },
+            {
+              "name": "--sefaria-control-radius",
+              "description": "Control corner radius.",
+              "default": "0.3rem"
+            },
+            {
+              "name": "--sefaria-font-scale",
+              "description": "Component font-size multiplier.",
+              "default": "1"
+            },
+            {
+              "name": "--sefaria-font-hebrew",
+              "description": "Hebrew body font stack.",
+              "default": "\"Noto Serif Hebrew\", \"SBL Hebrew\", \"Times New Roman\", serif"
+            },
+            {
+              "name": "--sefaria-font-english",
+              "description": "English body font stack.",
+              "default": "Georgia, \"Times New Roman\", serif"
+            },
+            {
+              "name": "--sefaria-font-label-hebrew",
+              "description": "Hebrew label font stack.",
+              "default": "\"Noto Sans Hebrew\", system-ui, sans-serif"
+            },
+            {
+              "name": "--sefaria-font-label-english",
+              "description": "English label font stack.",
+              "default": "system-ui, sans-serif"
+            }
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "SefariaSourceCard",
+          "declaration": {
+            "name": "SefariaSourceCard",
+            "module": "dist/source-card-element.js"
+          }
+        },
+        {
+          "kind": "custom-element-definition",
+          "name": "sefaria-source-card",
+          "declaration": {
+            "name": "SefariaSourceCard",
+            "module": "dist/source-card-element.js"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "dist/text-segment-element.js",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "Request-free custom element that renders one text-segment view model.",
+          "name": "SefariaTextSegment",
+          "members": [
+            {
+              "kind": "field",
+              "name": "viewModel",
+              "privacy": "public",
+              "type": {
+                "text": "TextSegmentViewModel"
+              },
+              "description": "Render-ready state supplied by the host."
+            },
+            {
+              "kind": "method",
+              "name": "#renderData",
+              "privacy": "private",
+              "parameters": [
+                {
+                  "name": "viewModel",
+                  "type": {
+                    "text": "TextSegmentDataViewModel"
+                  }
+                }
+              ]
+            }
+          ],
+          "superclass": {
+            "name": "SefariaElement",
+            "module": "dist/sefaria-element.js"
+          },
+          "tagName": "sefaria-text-segment",
+          "customElement": true,
+          "events": [],
+          "slots": [],
+          "cssParts": [],
+          "cssProperties": [
+            {
+              "name": "--sefaria-surface",
+              "description": "Primary surface color.",
+              "default": "light-dark(#fffdf8, #2b2e2a)"
+            },
+            {
+              "name": "--sefaria-surface-muted",
+              "description": "Muted surface color.",
+              "default": "light-dark(#f5f1e8, #222521)"
+            },
+            {
+              "name": "--sefaria-fg",
+              "description": "Primary foreground color.",
+              "default": "light-dark(#25231f, #f1eee7)"
+            },
+            {
+              "name": "--sefaria-fg-muted",
+              "description": "Muted foreground color.",
+              "default": "light-dark(#6d675d, #bdb7ac)"
+            },
+            {
+              "name": "--sefaria-border",
+              "description": "Standard border color.",
+              "default": "light-dark(#d7cfc1, #555b53)"
+            },
+            {
+              "name": "--sefaria-border-strong",
+              "description": "Strong border color.",
+              "default": "light-dark(#aaa094, #73796f)"
+            },
+            {
+              "name": "--sefaria-accent",
+              "description": "Accent and focus color.",
+              "default": "light-dark(#8e2449, #ff93b4)"
+            },
+            {
+              "name": "--sefaria-accent-soft",
+              "description": "Translucent accent surface.",
+              "default": "light-dark(rgb(142 36 73 / 10%), rgb(255 147 180 / 14%))"
+            },
+            {
+              "name": "--sefaria-danger",
+              "description": "Error foreground color.",
+              "default": "light-dark(#9c1c1c, #ffaaa4)"
+            },
+            {
+              "name": "--sefaria-link",
+              "description": "Link foreground color.",
+              "default": "light-dark(#8e2449, #ff93b4)"
+            },
+            {
+              "name": "--sefaria-shadow",
+              "description": "Popup and elevated-surface shadow.",
+              "default": "0 1rem 3rem rgb(0 0 0 / 28%)"
+            },
+            {
+              "name": "--sefaria-panel-radius",
+              "description": "Panel corner radius.",
+              "default": "0.75rem"
+            },
+            {
+              "name": "--sefaria-control-radius",
+              "description": "Control corner radius.",
+              "default": "0.3rem"
+            },
+            {
+              "name": "--sefaria-font-scale",
+              "description": "Component font-size multiplier.",
+              "default": "1"
+            },
+            {
+              "name": "--sefaria-font-hebrew",
+              "description": "Hebrew body font stack.",
+              "default": "\"Noto Serif Hebrew\", \"SBL Hebrew\", \"Times New Roman\", serif"
+            },
+            {
+              "name": "--sefaria-font-english",
+              "description": "English body font stack.",
+              "default": "Georgia, \"Times New Roman\", serif"
+            },
+            {
+              "name": "--sefaria-font-label-hebrew",
+              "description": "Hebrew label font stack.",
+              "default": "\"Noto Sans Hebrew\", system-ui, sans-serif"
+            },
+            {
+              "name": "--sefaria-font-label-english",
+              "description": "English label font stack.",
+              "default": "system-ui, sans-serif"
+            }
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "SefariaTextSegment",
+          "declaration": {
+            "name": "SefariaTextSegment",
+            "module": "dist/text-segment-element.js"
+          }
+        },
+        {
+          "kind": "custom-element-definition",
+          "name": "sefaria-text-segment",
+          "declaration": {
+            "name": "SefariaTextSegment",
+            "module": "dist/text-segment-element.js"
+          }
+        }
+      ]
+    }
+  ]
+}

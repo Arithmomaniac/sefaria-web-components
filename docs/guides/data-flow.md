@@ -73,8 +73,8 @@ The [render-text guide](render-text.md#put-a-source-card-in-a-browser-app) imple
 | --- | --- | --- |
 | `@sefaria/client` | Generated operations, API contracts, response validation, configurable API origin and `fetch` | Component methods, rendering, caching, or retry policy |
 | `@sefaria/text-transform` | Pure processing of HTML and Hebrew text | Fetching, component state, or DOM rendering |
-| `@sefaria/components/source-card`, `@sefaria/components/popup`, and other non-DOM subpaths | Component request types, view-model unions, pure and async factories | Browser elements or the host's active selection |
-| `@sefaria/components` browser exports | Registered Lit elements, layout, theme, accessibility, and rendering | Fetching or interpreting raw API payloads |
+| `@sefaria/web-components/source-card`, `@sefaria/web-components/popup`, and other non-DOM subpaths | Component request types, view-model unions, pure and async factories | Browser elements or the host's active selection |
+| `@sefaria/web-components` browser exports | Registered Lit elements, layout, theme, accessibility, and rendering | Fetching or interpreting raw API payloads |
 | Your application or integration | Client creation, input, loading state, cancellation, stale-result handling, and assigning view models | A second copy of the factory's projection logic |
 
 Imports from the non-DOM component subpaths can run without loading custom elements. Import the browser package only in the browser. Generated API types and view-model types describe values; importing a type does not fetch or render anything. The [design diagram](../design.md#package-dependency-diagram) distinguishes runtime, type-only, generation, and external-payload relationships.
@@ -88,7 +88,7 @@ import { zGetV3TextsResponse } from "@sefaria/client/schemas";
 import {
   createSourceCardViewModel,
   type SourceCardRequest,
-} from "@sefaria/components/source-card";
+} from "@sefaria/web-components/source-card";
 
 export function projectReceivedText(
   value: unknown,

@@ -1,18 +1,18 @@
 import { createSefariaClient } from "@sefaria/client";
-import "@sefaria/components";
+import "@sefaria/web-components";
 import type {
   SefariaReader,
   SefariaTextSegment,
   TextSegmentRequest,
   TextSegmentViewModel,
-} from "@sefaria/components";
-import { bindReaderController } from "@sefaria/components";
+} from "@sefaria/web-components";
+import { bindReaderController } from "@sefaria/web-components";
 import {
   loadReaderController,
   type ReaderController,
   type ReaderControllerSnapshot,
-} from "@sefaria/components/reader-controller";
-import { loadTextSegmentViewModel } from "@sefaria/components/text-segment";
+} from "@sefaria/web-components/reader-controller";
+import { loadTextSegmentViewModel } from "@sefaria/web-components/text-segment";
 import {
   useCallback,
   useEffect,

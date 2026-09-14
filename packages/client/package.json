@@ -3,17 +3,51 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "license": "GPL-3.0-only",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Arithmomaniac/sefaria-web-components.git",
+    "directory": "packages/client"
+  },
+  "homepage": "https://github.com/Arithmomaniac/sefaria-web-components#readme",
+  "files": [
+    "dist",
+    "!dist/*.tsbuildinfo",
+    "README.md"
+  ],
+  "sideEffects": false,
   "exports": {
-    ".": "./src/index.ts",
-    "./client": "./src/client.ts",
-    "./contracts": "./src/generated/contracts.gen.ts",
-    "./errors": "./src/contract-error.ts",
-    "./schemas": "./src/generated/zod.gen.ts",
-    "./validation": "./src/validation.ts",
-    "./validators": "./src/generated/response-validators.gen.ts"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./client": {
+      "types": "./dist/client.d.ts",
+      "import": "./dist/client.js"
+    },
+    "./contracts": {
+      "types": "./dist/generated/contracts.gen.d.ts",
+      "import": "./dist/generated/contracts.gen.js"
+    },
+    "./errors": {
+      "types": "./dist/contract-error.d.ts",
+      "import": "./dist/contract-error.js"
+    },
+    "./schemas": {
+      "types": "./dist/generated/zod.gen.d.ts",
+      "import": "./dist/generated/zod.gen.js"
+    },
+    "./validation": {
+      "types": "./dist/validation.d.ts",
+      "import": "./dist/validation.js"
+    },
+    "./validators": {
+      "types": "./dist/generated/response-validators.gen.d.ts",
+      "import": "./dist/generated/response-validators.gen.js"
+    }
   },
   "scripts": {
-    "build": "pnpm --workspace-root exec tsc -p packages/client/tsconfig.build.json",
+    "build": "node ../../scripts/clean-package-dist.mjs && pnpm --workspace-root exec tsc -p packages/client/tsconfig.build.json",
     "fixture:capture-candidate": "tsx scripts/refresh-fixtures.ts",
     "openapi:check": "tsx scripts/generate-openapi.ts --check",
     "openapi:generate": "tsx scripts/generate-openapi.ts",

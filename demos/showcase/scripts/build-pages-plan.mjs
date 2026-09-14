@@ -1,6 +1,6 @@
 export const PAGE_DEMOS = [
-  ["explorer", "@sefaria-demo/explorer"],
-  ["reader-workspace", "@sefaria-demo/reader-workspace"],
+  ["explorer", "@sefaria-example/explorer"],
+  ["reader-workspace", "@sefaria-example/reader"],
 ];
 
 export const LEGACY_DEMO_REDIRECTS = [

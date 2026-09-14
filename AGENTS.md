@@ -53,7 +53,7 @@ High-risk changes include public API contracts, OpenAPI corrections, generated o
 
 - `@sefaria/client` owns the pinned OpenAPI input, checksum, guarded overlay, generated contracts, Zod schemas, validators, thin client, and its bounded per-client response cache.
 - `@sefaria/text-transform` owns pure sanitization, vocalization, and footnote operations.
-- Non-DOM `@sefaria/components` subpaths own component request types, view models, pure factories, and async factories.
+- Non-DOM `@sefaria/web-components` subpaths own component request types, view models, pure factories, and async factories.
 - Component elements own layout, interaction, accessibility, theming, and DOM rendering.
 - Integrations own host input, boundary validation, client creation, cancellation, and factory calls.
 - Specifications own intended behavior.

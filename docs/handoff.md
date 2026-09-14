@@ -10,16 +10,16 @@ The project addresses four steps between receiving JSON and presenting a reading
 
 1. `@sefaria/client` validates the corrected transport contract and preserves documented HTTP, network, and abort semantics.
 2. `@sefaria/text-transform` safely prepares Sefaria's structured text markup and Hebrew vocalization.
-3. Pure `@sefaria/components` factories project transport payloads into component-specific rendering data.
+3. Pure `@sefaria/web-components` factories project transport payloads into component-specific rendering data.
 4. Request-free Web Components own layout, accessibility, interaction, and theming.
 
 The same pieces support both packaged and host-specific compositions:
 
 | Capability | Example |
 | --- | --- |
-| Text, bilingual, reference, source-card, and connections primitives | [Developer explorer](../demos/explorer/index.html) |
-| Supported packaged Reader | `demos/reader-workspace/controlled.html` |
-| Custom host-owned spatial reading workflow | `demos/reader-workspace/index.html` |
+| Text, bilingual, reference, source-card, and connections primitives | [Developer explorer](../examples/explorer/index.html) |
+| Supported packaged Reader | `examples/reader/controlled.html` |
+| Custom host-owned spatial reading workflow | `examples/reader/index.html` |
 | Reading surfaces embedded in an ordinary page | [Linker demonstration](linker-demo.md) |
 | The Reader delivered through an MCP App | [MCP App demonstration](mcp-app-demo.md) |
 | Guided explanation of the complete story | [Public showcase](https://arithmomaniac.github.io/sefaria-web-components/) |
@@ -32,9 +32,9 @@ The Reader is one composition of the reusable contracts, not the whole product. 
 | --- | --- |
 | `packages/client` | Pinned upstream OpenAPI input, guarded corrections, generated contracts and validators, thin client, and bounded per-client response cache |
 | `packages/text-transform` | Pure sanitization, vocalization, footnotes, and connected-text previews |
-| `packages/components` | Component request types, view models, pure/async factories, reader session/controller, and request-free elements |
-| `demos/explorer` | Authored component states and live developer diagnostics |
-| `demos/reader-workspace`, `demos/linker`, `demos/mcp`, `demos/showcase` | Distinct website, embedding, host-transport, and presentation examples |
+| `packages/web-components` | Component request types, view models, pure/async factories, reader session/controller, and request-free elements |
+| `examples/explorer` | Authored component states and live developer diagnostics |
+| `examples/reader`, `demos/linker`, `demos/mcp`, `demos/showcase` | Distinct website, embedding, host-transport, and presentation examples |
 | `docs/specs` | Intended behavior and acceptance rules |
 | `docs/evidence.md` | Upstream observations, deployed fixtures, captures, and provenance |
 
@@ -65,6 +65,6 @@ The implementation deliberately differs from Sefaria in a small number of docume
 
 1. Run the browser setup and `pnpm check` from [Development](development.md).
 2. Open `pnpm dev` for authored and live component exploration.
-3. Run `pnpm dev:reader-workspace` to compare the supported Reader with the custom spatial composition.
+3. Run `pnpm dev:reader` to compare the supported Reader with the custom spatial composition.
 4. Read [How the pieces fit together](guides/data-flow.md), then inspect one component subpath from request through view model and element.
 5. Use the specifications and evidence record for contract review rather than reconstructing intent from Git history or the showcase.

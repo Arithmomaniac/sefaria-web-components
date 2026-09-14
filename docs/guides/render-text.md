@@ -33,10 +33,10 @@ Open the local Vite URL printed in the terminal and select a preset. The live de
 
 | Need | Element | Non-DOM factory subpath |
 | --- | --- | --- |
-| One selected text version of one segment | `<sefaria-text-segment>` | `@sefaria/components/text-segment` |
-| One segment's primary and translation sides | `<sefaria-bilingual-segment>` | `@sefaria/components/bilingual-segment` |
-| A canonical reference label, optionally linked | `<sefaria-ref-label>` | `@sefaria/components/ref-label` |
-| A passage as a bounded collection, including a singleton | `<sefaria-source-card>` | `@sefaria/components/source-card` |
+| One selected text version of one segment | `<sefaria-text-segment>` | `@sefaria/web-components/text-segment` |
+| One segment's primary and translation sides | `<sefaria-bilingual-segment>` | `@sefaria/web-components/bilingual-segment` |
+| A canonical reference label, optionally linked | `<sefaria-ref-label>` | `@sefaria/web-components/ref-label` |
+| A passage as a bounded collection, including a singleton | `<sefaria-source-card>` | `@sefaria/web-components/source-card` |
 
 There is no separate text-range component: the source card covers that role. A bilingual segment is not a miniature source card; reference and edition attribution belong at the card boundary.
 
@@ -45,9 +45,9 @@ There is no separate text-range component: the source card covers that role. A b
 The following is a complete browser TypeScript module for a Vite-style app with access to this workspace's packages. It creates the element, sets a loading model, makes one request, and displays the result.
 
 ```ts
-import "@sefaria/components";
+import "@sefaria/web-components";
 import { createSefariaClient } from "@sefaria/client";
-import { loadSourceCardViewModel } from "@sefaria/components/source-card";
+import { loadSourceCardViewModel } from "@sefaria/web-components/source-card";
 
 const card = document.createElement("sefaria-source-card");
 const hostError = document.createElement("p");
@@ -77,7 +77,7 @@ The package import registers the current elements. The `document.createElement` 
 Without exact edition selectors, the source-card factory requests the primary and translation roles. If you need a particular edition, use its exact `versionTitle`, not its position in an API array:
 
 ```ts
-import type { SourceCardRequest } from "@sefaria/components/source-card";
+import type { SourceCardRequest } from "@sefaria/web-components/source-card";
 
 export function requestForEditions(
   tref: string,

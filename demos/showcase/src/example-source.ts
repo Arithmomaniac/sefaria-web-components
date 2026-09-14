@@ -23,7 +23,7 @@ const payload = result.data;`,
   payload,
   request,
 );`,
-  element: `import "@sefaria/components";
+  element: `import "@sefaria/web-components";
 
 // The package import registers <sefaria-text-segment>.
 const element = document.createElement("sefaria-text-segment");
@@ -112,8 +112,8 @@ export const textSegmentElementSource = `${textSegmentElementDeclarationSource}
 }`;
 
 export const textExampleSource = `import { createSefariaClient } from "@sefaria/client";
-import "@sefaria/components";
-import { loadTextSegmentViewModel } from "@sefaria/components/text-segment";
+import "@sefaria/web-components";
+import { loadTextSegmentViewModel } from "@sefaria/web-components/text-segment";
 
 const client = createSefariaClient();
 const request = {
@@ -153,11 +153,11 @@ unsubscribe();
 unbind();
 controller.dispose();`;
 
-export const manualReaderExampleSource = `import "../../reader-workspace/src/style.css";
+export const manualReaderExampleSource = `import "../../../examples/reader/src/style.css";
 import {
   startReaderWorkspace,
   type ReaderWorkspace,
-} from "../../reader-workspace/src/app.js";
+} from "../../../examples/reader/src/app.js";
 
 let workspace: ReaderWorkspace | undefined;
 

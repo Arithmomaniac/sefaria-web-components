@@ -1,0 +1,22 @@
+:root {
+  color-scheme: light dark;
+  font-family: system-ui, sans-serif;
+}
+
+body {
+  margin: 0;
+  background: light-dark(#f4f0e8, #1e211e);
+  color: light-dark(#25231f, #f1eee7);
+}
+
+main {
+  display: grid;
+  gap: 1rem;
+  width: min(52rem, calc(100% - 2rem));
+  margin: 2rem auto;
+}
+
+h1,
+p {
+  margin: 0;
+}

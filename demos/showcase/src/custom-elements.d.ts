@@ -1,4 +1,7 @@
-import type { SefariaReader, SefariaTextSegment } from "@sefaria/components";
+import type {
+  SefariaReader,
+  SefariaTextSegment,
+} from "@sefaria/web-components";
 import type { DetailedHTMLProps, HTMLAttributes, Ref } from "react";
 
 declare module "react" {
