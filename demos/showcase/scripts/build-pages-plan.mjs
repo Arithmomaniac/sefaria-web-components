@@ -1,6 +1,7 @@
 export const PAGE_DEMOS = [
   ["explorer", "@sefaria-example/explorer"],
   ["reader-workspace", "@sefaria-example/reader"],
+  ["linker", "@sefaria-example/linked-article"],
 ];
 
 export const LEGACY_DEMO_REDIRECTS = [
@@ -12,7 +13,7 @@ export const LEGACY_DEMO_REDIRECTS = [
   ["connections", "connections.html"],
 ];
 
-export function createBuildCommands({ linkerUrl, skipTypecheck }) {
+export function createBuildCommands({ skipTypecheck }) {
   const command = (packageName, buildArgs, bundleArgs, environment = {}) => ({
     args: [
       "--filter",
@@ -27,8 +28,5 @@ export function createBuildCommands({ linkerUrl, skipTypecheck }) {
     ...PAGE_DEMOS.map(([, packageName]) =>
       command(packageName, ["--base=./"], ["vite", "build", "--base=./"]),
     ),
-    command("@sefaria-demo/linker", [], ["node", "build.mjs"], {
-      SEFARIA_LINKER_ARTIFACT_URL: linkerUrl,
-    }),
   ];
 }

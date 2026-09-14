@@ -98,7 +98,7 @@ describe("showcase reader presentation", () => {
       "Existing Sefaria-powered applications—not adopters of this toolkit",
     );
     expect(normalized).toContain(
-      "Sefaria already has a Linker; this rewrite is not a new product feature",
+      "An ordinary Sefaria anchor keeps native navigation",
     );
     expect(normalized).toContain(
       "developing and customizing interactive interfaces for educational, personal, and AI applications",

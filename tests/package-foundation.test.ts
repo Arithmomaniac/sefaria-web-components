@@ -110,7 +110,7 @@ describe("library package foundations", () => {
       );
     }
     expect(explorer).toContain('data-local-target="/examples/reader/"');
-    expect(explorer).toContain('data-local-target="/demos/linker/"');
+    expect(explorer).toContain('data-local-target="/examples/linked-article/"');
   });
 });
 

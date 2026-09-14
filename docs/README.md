@@ -12,7 +12,7 @@ Sefaria reviewers and incoming maintainers should begin with the [source handoff
 
 1. [Render text](guides/render-text.md): run a demo, choose a component, and put a source card in a browser app.
 2. [How the pieces fit together](guides/data-flow.md): understand the client, factories, view models, and elements, including the already-fetched-data path.
-3. [Linker demonstration](linker-demo.md): embed citation detection and request-free popups or run the same script as a bookmarklet.
+3. [Authored linked article](linked-article.md): preserve ordinary citation navigation while a page-owned enhancement loads request-free popups.
 4. [MCP App demonstration](mcp-app-demo.md): run the stateful reader in VS Code Copilot Chat and inspect same-App connection navigation, retained breadcrumbs, and explicit chat export.
 5. [Text markup, with examples](guides/text-markup.md): recognize footnotes, commentary markers, Masorah spans, links, and other HTML inside a passage.
 6. [Intentional differences](guides/differences.md): understand which Sefaria behaviors we preserve and which we deliberately change.
@@ -57,6 +57,6 @@ Guides explain use. Specifications own intended behavior and acceptance rules. G
 | [Client specification](specs/client.md) | Pinned OpenAPI, corrections, eight GET and POST operations, validation, and failure contracts |
 | [Text-processing specification](specs/text-processing.md) | Exact sanitizer allowlists, vocalization, and footnote rules |
 | [Component specification](specs/components.md) | Requests, view models, factories, elements, connections, popup behavior, and composition |
-| [Integration specification](specs/integrations.md) | Current connections-reader, Linker, and MCP boundaries, including host acceptance |
+| [Integration specification](specs/integrations.md) | Current connections-reader, linked-article, and MCP boundaries, including host acceptance |
 
 The [archive index](archive/README.md) points to the exact Git revision containing the pre-rewrite documents and demo captures. It is not a second checked-in set of current instructions.

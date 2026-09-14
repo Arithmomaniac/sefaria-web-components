@@ -39,11 +39,11 @@ The central layers are the same in both cases:
 3. A **factory** projects the validated payload into a component-specific **view model**.
 4. A request-free **Web Component** renders that view model.
 
-The difference is where the request happens. A regular site supplies `@sefaria/client` to an async factory. The current Linker integration owns citation detection and polling, then calls the popup async factory when a reader activates a generated link. In the planned MCP path, the server obtains the payload, the App validates `structuredContent`, and the App calls the same pure factory directly. None of these paths sends raw API JSON to the element.
+The difference is where the request happens. A regular site supplies `@sefaria/client` to an async factory. The authored linked-article page calls the popup async factory when a reader activates an explicit citation anchor. In the MCP path, the server obtains the payload, the App validates `structuredContent`, and the App calls the same pure factory directly. None of these paths sends raw API JSON to the element.
 
 Web Components are composable because the host can arrange several request-free elements and supply each one a view model. Composite data projection happens before rendering: a composite pure factory can call child pure factories using one captured payload. One element does not reach out to fetch data or ask another element to do so; interactive elements emit events and the host decides what data to obtain next.
 
-The Linker lane is current. The planned MCP lane is shown to explain the intended boundary; its complete integration is not implemented on the documented baseline. The [design diagram](../design.md#package-dependency-diagram) provides the detailed dependency view.
+The linked-article and MCP lanes are current. The [design diagram](../design.md#package-dependency-diagram) provides the detailed dependency view.
 
 ## Four things that are easy to confuse
 

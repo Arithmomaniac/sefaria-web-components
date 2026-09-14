@@ -4,7 +4,7 @@
 
 ## Status
 
-The standalone connections reader, multi-pane website reader workspace, stateful MCP reader, adaptive connections tool and rendering, authenticated VS Code reader walkthrough, and Linker integration are current. MCP reader data operations use host-proxied server-tool calls. A successful App `ui/message` response applies only to the reader's separate explicit chat-export action and means the host accepted that message for enqueueing or composer placement.
+The standalone connections reader, multi-pane website reader workspace, stateful MCP reader, adaptive connections tool and rendering, authenticated VS Code reader walkthrough, and authored linked-article integration are current. MCP reader data operations use host-proxied server-tool calls. A successful App `ui/message` response applies only to the reader's separate explicit chat-export action and means the host accepted that message for enqueueing or composer placement.
 
 ## Shared integration rules
 
@@ -30,7 +30,7 @@ Interactive demonstrations run in same-origin iframe viewports so resizing chang
 
 The deck displays captured MCP Reader screenshots, but GitHub Pages does not run the Python MCP server. The gallery shows the initial stateful Reader, retained same-App hierarchy, and explicit nested-reference chat export. Screenshot galleries identify recorded evidence and do not imitate an interactive MCP host. Public assets include provenance and exclude authenticated, private, or unrelated browser content.
 
-The Pages artifact contains an allowlisted set of built browser demonstrations. The deck is the site root, existing demonstrations remain under stable subpaths, and the public Linker bookmarklet points to the deployed HTTPS artifact rather than localhost. Pull requests build and test the artifact without publishing; main publishes only after the normal checks and asset approval gates.
+The Pages artifact contains an allowlisted set of built browser demonstrations. The deck is the site root, and existing demonstrations remain under stable subpaths, including the authored linked article at the historical Linker route. Pull requests build and test the artifact without publishing; main publishes only after the normal checks and asset approval gates.
 
 ## Interaction task flow
 
@@ -340,71 +340,50 @@ Each successful stage records a screenshot, and the run writes a machine-readabl
 - Explicit chat export sends one fixed user-role message for the exact current target. Rejected, stale, concurrent, or unconfirmed messaging leaves the reader usable and is not retried automatically.
 - The named-host walkthrough completes the initial reader, local connections controls, two same-App connection hops, deep chat export, middle breadcrumb activation, and root breadcrumb activation with stage-specific assertions and artifacts.
 
-## Linker script purpose
+## Authored linked-article purpose
 
-The current Linker integration demonstrates a request-free popup on a third-party page through one embeddable classic script and a bookmarklet that loads that same script. It is not a migration program for the deployed Sefaria Linker and does not load the deployed Linker bundle.
+The current linked-article integration demonstrates progressive enhancement for citations that the page author already marked as ordinary anchors. It is not a citation detector, DOM-rewriting script, bookmarklet, userscript, or migration program for the deployed Sefaria Linker.
 
-The integration owns article extraction, citation-detection submission and polling, host DOM mutation, request cancellation, client creation, and factory calls. The popup element owns only rendering and interaction.
+The integration specification is the intended-behavior authority. Each authored anchor owns its explicit Sefaria reference and native `https://www.sefaria.org/` destination. The page integration owns enhancement listeners, client creation, popup loading, cancellation, stale-result suppression, visible integration failures, and cleanup. The popup view model owns rendered data, and `<sefaria-popup>` owns request-free dialog rendering and interaction.
 
-The integration calls the generated `POST /api/find-refs` operation once per scan with `with_text=0` and `debug=0`, then calls the generated `GET /api/async/{task_id}` operation until the known task reaches a terminal state or the bounded polling policy ends. The client supplies validated operations but owns no polling or retry policy.
+The superseded Linker implementation failed this ownership boundary because it extracted host text, submitted detection work, polled, rewrote host DOM, installed a global script API, and prevented all citation navigation. An executable counterexample is an authored `<a href="https://www.sefaria.org/Micah.6.8" data-sefaria-ref="Micah 6:8">Micah 6:8</a>` loaded with JavaScript disabled: the current contract requires ordinary navigation to the authored `href`, while automatic detection cannot supply or preserve that fallback.
 
-The integration sends extracted article title and body text to Sefaria. It does not send page-tracking metadata, call the website-selector endpoint, or submit citation reports.
+| Capability | Required knowledge or state | Exact success result | Invalid input | Missing data or state | Authority | Executable example |
+| --- | --- | --- | --- | --- | --- | --- |
+| Native citation navigation | Authored `href` | Browser follows the authored Sefaria URL without enhancement | Missing or non-Sefaria `href` is not enhanced | JavaScript unavailable | Authored anchor | Disable JavaScript and activate the Micah 6:8 link |
+| Popup enhancement | Authored `data-sefaria-ref`, permitted unmodified activation, supplied client | One popup async-factory operation and one v3 text request with cache disabled | Blank reference is not enhanced | No eligible anchor leaves the page unchanged | Integration specification and popup factory | Click the Micah 6:8 anchor and assert one strict fixture request |
+| Supersession | Current operation identity and abort signal | Only the newest eligible activation can update the popup | N/A | Cancellation may not stop the transport | Page integration | Resolve an older ignored request after a newer request completes |
+| Cleanup | Owned anchors, listener registrations, popup, and active controller | Abort active work, remove owned listeners and popup, and permit native navigation | N/A | Detached host | Page integration | Destroy during a pending load and resolve it late |
 
-## Linker flow
+## Authored linked-article flow
 
 ```mermaid
 sequenceDiagram
-    participant Page as Host page
-    participant Detection as Detection API
-    participant Linker as Script integration
+    participant Page as Authored article
+    participant Integration as Page enhancement
     participant Factory as Popup async factory
     participant Client as @sefaria/client
     participant Element as sefaria-popup
 
-    Page->>Linker: explicit script invocation
-    Linker->>Detection: submit extracted title and body
-    Linker->>Detection: poll known task
-    Detection-->>Linker: validated citation matches
-    Linker->>Page: wrap proven host occurrences
-    Page->>Linker: citation activation
-    Linker->>Factory: PopupRequest and supplied client
-    Factory->>Client: generated text operation
-    Client-->>Factory: corrected typed payload
-    Factory-->>Linker: PopupViewModel
-    Linker->>Element: viewModel, anchor, open
-    Element-->>Page: dialog DOM and composed events
+    Page->>Page: render ordinary Sefaria anchor
+    alt JavaScript absent or native/modifier activation
+        Page->>Page: follow authored href
+    else Enhanced unmodified activation
+        Page->>Integration: activate explicit data-sefaria-ref
+        Integration->>Element: anchor, open, loading view model
+        Integration->>Factory: PopupRequest and supplied client
+        Factory->>Client: one generated text operation
+        Client-->>Factory: corrected validated payload
+        Factory-->>Integration: PopupViewModel
+        Integration->>Element: terminal view model
+    end
 ```
 
-The element receives no reference and makes no request.
+The element receives no reference, raw payload, client, host, or fetch function and makes no request.
 
-If a newer citation replaces an older request, the integration aborts or ignores the obsolete operation. An old response must not replace the newer view model.
+The enhancement handles only an unmodified primary activation that was not already prevented. Modifier keys, non-primary pointer activation, explicit download behavior, and alternate browsing-context targets retain native anchor behavior. Keyboard Enter follows the browser's ordinary anchor activation path and receives the same enhancement as an unmodified primary click.
 
-## Linker extraction and host safety
-
-Each invocation performs one article scan. The default extraction uses Readability on an inert document clone, preserves paragraph boundaries, and can include additional content through explicit selectors. Dynamic pages invoke the public API again after their content changes; the integration does not install an automatic mutation observer.
-
-The integration maps validated detection results back to proven visible host-text occurrences. It leaves failed, ambiguous, overlapping, stale, or unprovable matches unchanged. It does not parse references locally or choose the first ambiguous result.
-
-Citation anchors accept only URLs that resolve to the canonical HTTPS `www.sefaria.org` origin. Off-origin, malformed, inherited, or unsafe service values are skipped.
-
-The integration:
-
-- adds no global CSS
-- does not replace host keyboard handlers
-- does not rewrite existing links, editable controls, navigation, hidden content, scripts, styles, or excluded subtrees
-- sends host-page text only through the approved Sefaria detection path
-- sanitizes Sefaria HTML through the component factory
-- removes only its own links, popup, timers, and listeners during destroy
-
-Work that expands with page or payload size has explicit measured limits. Crossing a limit produces an integration-owned error; it does not silently truncate citation detection or switch extraction strategies.
-
-## Linker polling
-
-The current polling policy performs at most 16 status requests. Inter-poll waits begin at 500 milliseconds, grow by a factor of 1.5, and stop growing at 5 seconds. The complete operation has a 120-second deadline that aborts in-flight work.
-
-A valid pending response schedules the next poll. A task failure, documented HTTP error, network failure, abort, contract mismatch, unexpected task identifier, unexpected state, attempt exhaustion, or deadline exhaustion stops the operation visibly. The integration never resubmits the original detection request automatically.
-
-A newer scan aborts and supersedes the older scan. A late obsolete response cannot modify the current page.
+If a newer citation replaces an older request, the integration aborts the older operation when possible and rejects its completion by operation identity. An obsolete result or abort must not replace the current view model.
 
 ## Popup behavior
 
@@ -432,38 +411,23 @@ The popup previews at most 20 aligned source-card positions. It declares when ad
 
 The popup keeps source-card edition attribution visible so the embedded preview identifies its source editions. Other source-card hosts also show attribution by default and can opt out with `hide-attributions`.
 
-## Script and bookmarklet artifacts
+## Authored linked-article acceptance criteria
 
-The build produces one self-contained classic script, one generated bookmarklet loader, one article demo that invokes the script automatically, and one equivalent no-autostart article page for bookmarklet use.
-
-The browser API exposes explicit `link()` and `destroy()` operations on a versioned integration namespace. Repeated `link()` calls rescan without nesting owned links. Repeated insertion of the same compatible bundle reuses the existing API and does not duplicate custom-element definitions or listeners.
-
-The bookmarklet click is the user invocation and starts immediately. It loads the same script artifact used by the embed snippet. Its artifact URL is build configuration: localhost for local development and an explicit HTTPS URL for intended public use.
-
-The integration documents Content Security Policy, Trusted Types, mixed-content, network, CORS, and restricted-page limitations. It does not bypass browser protections with a proxy, extension, or privileged userscript.
-
-## Linker acceptance criteria
-
-- The built classic script can be embedded in an ordinary page without a package manager or module loader.
-- The generated bookmarklet loads that same built script and invokes it immediately.
-- The authored article demo contains no precomputed citation matches and links automatically on load.
-- The no-autostart article demo proves bookmarklet activation.
-- A scan makes one detection submission and only the bounded status requests required by that task.
-- Default detection makes no source-text request, page-tracking request, website-selector request, or citation-report request.
-- A detected citation calls the popup async factory when the integration selects the client path.
-- One citation activation performs one v3 text request.
+- The static article contains authored Sefaria anchors with explicit references and useful prose for bounded `Micah 6:8`.
+- With JavaScript disabled, activating a citation follows its native authored `href`.
+- An unmodified primary click or keyboard Enter opens the popup; modifier and alternate native navigation behavior is not prevented.
+- One eligible citation activation calls the real public popup async factory and performs one strict v3 text request with the client cache disabled.
 - The popup element receives only a view model and interaction properties.
 - Host styles do not enter the popup.
 - Popup styles do not enter the host page.
 - Keyboard users can open, traverse, and close the popup.
 - Closing restores focus.
 - Rapid citation changes do not show obsolete data.
-- Rapid scans do not apply obsolete DOM mutations.
-- Repeated scans do not nest owned links.
-- Destroy removes owned mutations and aborts pending work.
+- Closing or destroying the integration aborts pending work and rejects late completion.
+- Destroy removes only the integration's popup, listeners, and accessibility attributes; authored anchors remain unchanged.
 - API HTML is sanitized before it reaches the element.
-- The script needs no deployed project-specific service.
-- Built artifacts contain no development-server URL or unresolved package import.
+- Fixture transport rejects an unexpected method, origin, path, or query instead of returning default success.
+- The private production build contains no unresolved workspace import.
 
 ## Integration failure rules
 
