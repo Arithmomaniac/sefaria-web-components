@@ -20,6 +20,9 @@ const componentIds = [
 type ComponentId = (typeof componentIds)[number];
 type Theme = "system" | "light" | "dark";
 
+const repositorySourceBase =
+  "https://github.com/Arithmomaniac/sefaria-web-components/blob/feature/avilevin/frontend-toolkit-alpha/examples/explorer/";
+
 const componentDetails = {
   "ref-label": {
     label: "Reference label",
@@ -338,10 +341,11 @@ class SefariaDevelopmentStatus extends SefariaElement {
                     <dt>Runnable source</dt>
                     <dd>
                       <a
-                        href=${
+                        data-repository-source
+                        href=${`${repositorySourceBase}${
                           selectedDetail?.source ??
                           "src/authored/development-status.ts"
-                        }
+                        }`}
                         >${
                           selectedDetail?.source ??
                           "src/authored/development-status.ts"

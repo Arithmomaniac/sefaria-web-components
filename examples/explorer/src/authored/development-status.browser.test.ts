@@ -280,6 +280,28 @@ test("opens one authored state from a stable deep link", async () => {
   ).toContain("component=source-card");
 });
 
+test("links diagnostics to repository source instead of a Vite fallback", async () => {
+  history.replaceState(
+    null,
+    "",
+    `${location.pathname}?component=reader&diagnostics=1`,
+  );
+  const lab = await renderLab();
+  const sourceLink =
+    lab.shadowRoot?.querySelector<HTMLAnchorElement>(
+      "a[data-repository-source]",
+    ) ?? undefined;
+
+  expect(sourceLink?.textContent?.trim()).toBe(
+    "src/authored/reader.scenarios.ts",
+  );
+  expect(sourceLink?.href).toBe(
+    "https://github.com/Arithmomaniac/sefaria-web-components/blob/feature/avilevin/frontend-toolkit-alpha/examples/explorer/src/authored/reader.scenarios.ts",
+  );
+  expect(sourceLink?.origin).not.toBe(location.origin);
+  expect(readerScenarios.map((scenario) => scenario.id)).toContain("paired");
+});
+
 test("changes scenario, theme, width and diagnostics without requesting", async () => {
   const fetch = vi.fn();
   vi.stubGlobal("fetch", fetch);
