@@ -1,8 +1,12 @@
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 
 import { describe, expect, it } from "vitest";
 
 import {
+  resolveModuleFromParent,
   validateConsumerLockfile,
   validateInstalledPath,
   validatePackedPackage,
@@ -74,6 +78,37 @@ describe("tarball consumer validation", () => {
     ).toThrow("resolves outside the isolated consumer");
   });
 
+  it("resolves a dependency from the UI package parent rather than the process cwd", async () => {
+    const fixture = await mkdtemp(
+      path.join(tmpdir(), "sefaria-parent-resolution-test-"),
+    );
+    try {
+      const topLevel = path.join(fixture, "node_modules", "probe-dependency");
+      const ui = path.join(fixture, "node_modules", "probe-ui");
+      const nested = path.join(ui, "node_modules", "probe-dependency");
+      await Promise.all([
+        writePackage(topLevel, "top-level"),
+        writePackage(nested, "ui-relative"),
+        mkdir(ui, { recursive: true }).then(() =>
+          writeFile(path.join(ui, "entry.mjs"), ""),
+        ),
+      ]);
+
+      const resolved = resolveModuleFromParent({
+        specifier: "probe-dependency",
+        parentUrl: pathToFileURL(path.join(ui, "entry.mjs")).href,
+        cwd: fixture,
+      });
+
+      expect(resolved).toBe(pathToFileURL(path.join(nested, "index.js")).href);
+      expect(resolved).not.toBe(
+        pathToFileURL(path.join(topLevel, "index.js")).href,
+      );
+    } finally {
+      await rm(fixture, { force: true, recursive: true });
+    }
+  });
+
   it("accepts a complete package and installed consumer path", () => {
     expect(() =>
       validatePackedPackage({
@@ -106,3 +141,21 @@ describe("tarball consumer validation", () => {
     ).not.toThrow();
   });
 });
+
+async function writePackage(directory: string, marker: string) {
+  await mkdir(directory, { recursive: true });
+  await Promise.all([
+    writeFile(
+      path.join(directory, "package.json"),
+      `${JSON.stringify({
+        name: "probe-dependency",
+        type: "module",
+        exports: "./index.js",
+      })}\n`,
+    ),
+    writeFile(
+      path.join(directory, "index.js"),
+      `export default ${JSON.stringify(marker)};\n`,
+    ),
+  ]);
+}

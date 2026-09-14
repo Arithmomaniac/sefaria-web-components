@@ -1,4 +1,6 @@
+import { spawnSync } from "node:child_process";
 import path from "node:path";
+import process from "node:process";
 
 export function validatePackedPackage({
   definition,
@@ -106,6 +108,30 @@ export function validateInstalledPath({
   ) {
     throw new Error(`${packageName} resolves outside the isolated consumer.`);
   }
+}
+
+export function resolveModuleFromParent({
+  specifier,
+  parentUrl,
+  cwd,
+  executable = process.execPath,
+}) {
+  const result = spawnSync(
+    executable,
+    [
+      "--experimental-import-meta-resolve",
+      "--input-type=module",
+      "-e",
+      `console.log(import.meta.resolve(${JSON.stringify(specifier)}, ${JSON.stringify(parentUrl)}))`,
+    ],
+    { cwd, encoding: "utf8" },
+  );
+  if (result.status !== 0) {
+    throw new Error(
+      `Unable to resolve ${specifier} from ${parentUrl}: ${result.stderr}`,
+    );
+  }
+  return result.stdout.trim();
 }
 
 export function isPathWithin(parent, candidate) {

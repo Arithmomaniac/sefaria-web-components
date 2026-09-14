@@ -21,6 +21,7 @@ import YAML from "yaml";
 
 import {
   isPathWithin,
+  resolveModuleFromParent,
   validateConsumerLockfile,
   validateInstalledPath,
   validatePackedPackage,
@@ -239,15 +240,20 @@ async function inspectConsumerResolution() {
     consumer,
   );
 
-  const transitiveClient = capture(
+  const uiSourceCard = capture(
     "node",
     [
       "--input-type=module",
       "-e",
-      "console.log(import.meta.resolve('@sefaria/client', import.meta.resolve('@sefaria/web-components/source-card')))",
+      "console.log(import.meta.resolve('@sefaria/web-components/source-card'))",
     ],
     consumer,
   ).trim();
+  const transitiveClient = resolveModuleFromParent({
+    specifier: "@sefaria/client",
+    parentUrl: uiSourceCard,
+    cwd: consumer,
+  });
   validateInstalledPath({
     packageName: "@sefaria/web-components transitive @sefaria/client",
     installedPath: await realpath(fileURLToPath(transitiveClient)),
