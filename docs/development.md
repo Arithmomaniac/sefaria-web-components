@@ -6,6 +6,18 @@ This contributor guide describes the current source tree as of September 8, 2026
 
 The sections below separate delivered baseline behavior, changes from older plans, and work that remains intended. A runnable command is not proof that the corresponding integration is finished.
 
+## Unpublished toolkit integration branch
+
+The unpublished toolkit work is integrated through `feature/avilevin/frontend-toolkit-alpha`; implementation pull requests must target that branch rather than `main`. Its branch workflow is CI-only and runs the stable `check` job for pull requests targeting `main` or the toolkit branch and for pushes to the toolkit branch. It deliberately has no Pages artifact upload, deployment job, package publication, release action, OIDC permission, tag trigger, or manual-dispatch path. `main` remains the separate website and Pages deployment source.
+
+Run the deterministic workflow-policy regression with:
+
+```powershell
+pnpm test -- tests/workflow-policy.test.ts
+```
+
+The maintained bootstrap handoff is [IMPLEMENTATION-PLAN.md](../IMPLEMENTATION-PLAN.md). Its archive links point to the immutable pre-bootstrap baseline; it is an execution handoff, not a normative component or transport specification.
+
 ## Contributor guides
 
 For reader-oriented explanations, use the friendly guides rather than the archived demo transcripts:
