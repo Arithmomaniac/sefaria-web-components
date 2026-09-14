@@ -20,6 +20,14 @@ body {
   padding: 1rem;
 }
 
+html[data-theme="light"] {
+  color-scheme: light;
+}
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+}
+
 sefaria-development-status {
   --sefaria-surface: var(--lab-surface);
   --sefaria-surface-muted: var(--lab-surface-muted);

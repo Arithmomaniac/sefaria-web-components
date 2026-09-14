@@ -26,6 +26,7 @@
     "dev:source-card": "pnpm build && vite . --open /examples/explorer/source-card.html",
     "dev:mcp": "pnpm --filter @sefaria-example/mcp-app dev",
     "dev:reader": "pnpm --filter @sefaria-example/reader dev",
+    "dev:react": "pnpm --filter @sefaria-example/react-vite dev",
     "dev:ref-label": "pnpm build && vite . --open /examples/explorer/ref-label.html",
     "dev:text-segment": "pnpm build && vite . --open /examples/explorer/text-segment.html",
     "format": "prettier --write .",

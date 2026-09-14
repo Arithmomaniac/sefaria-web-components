@@ -8,7 +8,7 @@ import type {
 } from "@sefaria/web-components";
 import { html, type LitElement } from "lit";
 import { render } from "vitest-browser-lit";
-import { expect, test } from "vitest";
+import { beforeEach, expect, test, vi } from "vitest";
 
 import "./development-status.js";
 import {
@@ -61,6 +61,13 @@ import {
   textSegmentLoadingScenario,
   textSegmentScenarios,
 } from "./text-segment.scenarios.js";
+
+beforeEach(() => {
+  history.replaceState(null, "", location.pathname);
+  delete document.documentElement.dataset.theme;
+  document.body.innerHTML = "";
+  vi.restoreAllMocks();
+});
 
 async function renderLab(): Promise<LitElement> {
   render(html`<sefaria-development-status></sefaria-development-status>`);
@@ -237,3 +244,149 @@ test("shows the six controlled reader scenarios", async () => {
     "truncated-history",
   ]);
 });
+
+test("opens one authored state from a stable deep link", async () => {
+  history.replaceState(
+    null,
+    "",
+    `${location.pathname}?component=source-card&scenario=one-sided&diagnostics=1`,
+  );
+
+  const lab = await renderLab();
+  expect(
+    lab.shadowRoot?.querySelectorAll("[data-component][data-scenario]"),
+  ).toHaveLength(1);
+  expect(
+    lab.shadowRoot?.querySelector(
+      '[data-component="source-card"][data-scenario="one-sided"]',
+    ),
+  ).not.toBeNull();
+  expect(
+    lab.shadowRoot
+      ?.querySelector("[data-authored-selection]")
+      ?.textContent?.replaceAll(/\s+/gu, " ")
+      .trim(),
+  ).toBe("Source card / one-sided");
+  expect(
+    lab.shadowRoot?.querySelector<HTMLSelectElement>("#component-select")
+      ?.value,
+  ).toBe("source-card");
+  expect(
+    lab.shadowRoot?.querySelector<HTMLSelectElement>("#scenario-select")?.value,
+  ).toBe("one-sided");
+  expect(lab.shadowRoot?.querySelector("details")).not.toBeNull();
+  expect(
+    lab.shadowRoot?.querySelector<HTMLAnchorElement>(".scenario-link")?.href,
+  ).toContain("component=source-card");
+});
+
+test("links diagnostics to repository source instead of a Vite fallback", async () => {
+  history.replaceState(
+    null,
+    "",
+    `${location.pathname}?component=reader&diagnostics=1`,
+  );
+  const lab = await renderLab();
+  const sourceLink =
+    lab.shadowRoot?.querySelector<HTMLAnchorElement>(
+      "a[data-repository-source]",
+    ) ?? undefined;
+
+  expect(sourceLink?.textContent?.trim()).toBe(
+    "src/authored/reader.scenarios.ts",
+  );
+  expect(sourceLink?.href).toBe(
+    "https://github.com/Arithmomaniac/sefaria-web-components/blob/feature/avilevin/frontend-toolkit-alpha/examples/explorer/src/authored/reader.scenarios.ts",
+  );
+  expect(sourceLink?.origin).not.toBe(location.origin);
+  expect(readerScenarios.map((scenario) => scenario.id)).toContain("paired");
+});
+
+test("changes scenario, theme, width and diagnostics without requesting", async () => {
+  const fetch = vi.fn();
+  vi.stubGlobal("fetch", fetch);
+  const lab = await renderLab();
+  const shadow = lab.shadowRoot;
+  if (!shadow) throw new Error("The component lab shadow root is missing.");
+
+  changeSelect(shadow, "#component-select", "source-card");
+  await lab.updateComplete;
+  changeSelect(shadow, "#scenario-select", "many-items");
+  changeSelect(shadow, "#theme-select", "dark");
+  changeRange(shadow, "#width-control", "480");
+  changeSelect(shadow, "#diagnostics-select", "1");
+  await lab.updateComplete;
+
+  expect(
+    shadow.querySelectorAll("[data-component][data-scenario]"),
+  ).toHaveLength(1);
+  expect(document.documentElement.dataset.theme).toBe("dark");
+  expect(lab.style.getPropertyValue("--authored-preview-width")).toBe("480px");
+  expect(location.search).toContain("scenario=many-items");
+  expect(location.search).toContain("width=480");
+  expect(shadow.querySelector("details")).not.toBeNull();
+  expect(fetch).not.toHaveBeenCalled();
+});
+
+test("shows event diagnostics while retaining authored request ownership", async () => {
+  const fetch = vi.fn();
+  vi.stubGlobal("fetch", fetch);
+  history.replaceState(
+    null,
+    "",
+    `${location.pathname}?component=source-card&scenario=many-items&diagnostics=1`,
+  );
+  const lab = await renderLab();
+  const card = lab.shadowRoot?.querySelector<SefariaSourceCard>(
+    "sefaria-source-card",
+  );
+  if (!card) throw new Error("The deep-linked source card is missing.");
+
+  card.dispatchEvent(
+    new CustomEvent("sefaria-source-select", {
+      detail: { position: [0], ref: "Micah 6:8" },
+      bubbles: true,
+      composed: true,
+    }),
+  );
+  await lab.updateComplete;
+
+  expect(
+    lab.shadowRoot?.querySelector("#event-diagnostic")?.textContent,
+  ).toContain("sefaria-source-select");
+  expect(fetch).not.toHaveBeenCalled();
+});
+
+test("clears an invalid deep-link warning when a control rewrites the URL", async () => {
+  history.replaceState(
+    null,
+    "",
+    `${location.pathname}?component=unknown&scenario=missing`,
+  );
+  const lab = await renderLab();
+  const shadow = lab.shadowRoot;
+  if (!shadow) throw new Error("The component lab shadow root is missing.");
+  expect(shadow.querySelector('[role="alert"]')).not.toBeNull();
+
+  changeRange(shadow, "#width-control", "480");
+  await lab.updateComplete;
+
+  expect(shadow.querySelector('[role="alert"]')).toBeNull();
+  expect(location.search).not.toContain("unknown");
+  expect(location.search).not.toContain("missing");
+});
+
+function changeSelect(root: ParentNode, selector: string, value: string): void {
+  const select = root.querySelector<HTMLSelectElement>(selector);
+  if (!select) throw new Error(`${selector} is missing.`);
+  select.value = value;
+  select.dispatchEvent(new Event("change", { bubbles: true }));
+}
+
+function changeRange(root: ParentNode, selector: string, value: string): void {
+  const input = root.querySelector<HTMLInputElement>(selector);
+  if (!input) throw new Error(`${selector} is missing.`);
+  input.value = value;
+  input.dispatchEvent(new Event("input", { bubbles: true }));
+  input.dispatchEvent(new Event("change", { bubbles: true }));
+}
