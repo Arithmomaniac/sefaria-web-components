@@ -57,15 +57,23 @@ describe("Wave 4 integration policy", () => {
   });
 
   it("parses workflow structure and rejects publication capabilities", async () => {
-    const workflow = await readFile(
-      path.join(root, ".github", "workflows", "ci.yml"),
-      "utf8",
-    );
-    expect(validateWorkflowPolicy({ "ci.yml": workflow })).toEqual([]);
+    const [workflow, setupWorkflow] = await Promise.all([
+      readFile(path.join(root, ".github", "workflows", "ci.yml"), "utf8"),
+      readFile(
+        path.join(root, ".github", "workflows", "copilot-setup-steps.yml"),
+        "utf8",
+      ),
+    ]);
+    expect(
+      validateWorkflowPolicy({
+        "ci.yml": workflow,
+        "copilot-setup-steps.yml": setupWorkflow,
+      }),
+    ).toEqual([]);
 
     const unsafe = workflow
       .replace(
-        "permissions:\n  contents: read",
+        /permissions:\r?\n {2}contents: read/u,
         "permissions:\n  contents: write\n  id-token: write",
       )
       .replace(
@@ -80,11 +88,11 @@ describe("Wave 4 integration policy", () => {
       ]),
     );
     const triggerAndScalarPermissions = workflow
-      .replace("permissions:\n  contents: read", "permissions: write-all")
+      .replace(/permissions:\r?\n {2}contents: read/u, "permissions: write-all")
       .replace("  push:", "  workflow_dispatch:\n  push:")
       .replace(
-        "    branches:\n      - feature/avilevin/frontend-toolkit-alpha",
-        "    branches:\n      - feature/avilevin/frontend-toolkit-alpha\n    tags:\n      - v*",
+        /(push:\r?\n {4}branches:\r?\n {6}- feature\/avilevin\/frontend-toolkit-alpha)/u,
+        "$1\n    tags:\n      - v*",
       );
     expect(
       validateWorkflowPolicy({ "ci.yml": triggerAndScalarPermissions }),
@@ -100,6 +108,16 @@ describe("Wave 4 integration policy", () => {
         expect.stringMatching(/publication\/deployment action/),
         expect.stringMatching(/publication command/),
       ]),
+    );
+    expect(
+      validateWorkflowPolicy({
+        "copilot-setup-steps.yml": setupWorkflow.replace(
+          "contents: read",
+          "contents: write",
+        ),
+      }),
+    ).toContain(
+      "unsafe workflow permission in copilot-setup-steps.yml:jobs.copilot-setup-steps.permissions.contents",
     );
   });
 

@@ -306,6 +306,12 @@ Review the initial corrections for:
 - [ ] The lockfile contains no mirror-specific remote tarball resolution.
 - [ ] Maintained entry documentation distinguishes source/local-tarball use from future registry availability and makes no unsupported official or deployed claim.
 - [ ] Every retained test from the immutable baseline inventory is present in Vitest discovery; every retirement has a precise presentation-only or supersession reason.
+- [ ] Fresh agent setup uses the frozen lockfile, verifies required immutable Git objects, installs Chromium, and proves a headless launch.
+- [ ] Toolkit setup is selected by checked-out package capability rather than one exact branch name.
+- [ ] An unrelated checkout skips toolkit setup explicitly; a malformed recognized toolkit fails.
+- [ ] Linux and Windows each run the complete `pnpm check`; the required `check` fails for a failed, canceled, or skipped matrix.
+- [ ] Failure artifacts use an explicit bounded allowlist and exclude authenticated captures, dependencies, credentials, and complete workspaces.
+- [ ] The setup-only default-branch bootstrap contains no toolkit source or repository-settings change, and its existing Pages consequence is reviewed.
 
 ## TypeScript toolchain
 
@@ -324,6 +330,7 @@ Review the initial corrections for:
 Run the current complete check after code or configuration changes:
 
 ```powershell
+pnpm setup:agent
 pnpm check
 ```
 

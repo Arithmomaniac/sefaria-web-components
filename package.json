@@ -42,6 +42,7 @@
     "openapi:refresh": "pnpm --filter @sefaria/client openapi:refresh",
     "preview:site": "vitepress preview docs --host 127.0.0.1",
     "site:examples": "node scripts/build-site.mjs --examples-only",
+    "setup:agent": "node scripts/setup-agent.mjs",
     "setup:mcp:vscode": "pnpm build:mcp && tsx examples/mcp-app/scripts/setup-vscode-host.ts",
     "launch:mcp:vscode": "pnpm build:mcp && tsx examples/mcp-app/scripts/launch-vscode-host.ts",
     "walkthrough:mcp:vscode": "pnpm build:mcp && tsx examples/mcp-app/scripts/capture-vscode-host.ts",

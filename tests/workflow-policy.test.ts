@@ -3,17 +3,18 @@ import { resolve } from "node:path";
 import { parseDocument } from "yaml";
 import { describe, expect, it } from "vitest";
 
-const workflow = readFileSync(
+import { validateWorkflowPolicy } from "../scripts/integration-policy.mjs";
+
+const ciSource = readFileSync(
   resolve(process.cwd(), ".github/workflows/ci.yml"),
   "utf8",
 );
+const setupSource = readFileSync(
+  resolve(process.cwd(), ".github/workflows/copilot-setup-steps.yml"),
+  "utf8",
+);
 
-const toolkitBranch = "feature/avilevin/frontend-toolkit-alpha";
 type RecordValue = Record<string, unknown>;
-
-function isRecord(value: unknown): value is RecordValue {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
 
 function parseWorkflow(source: string): RecordValue {
   const document = parseDocument(source, { prettyErrors: true });
@@ -21,270 +22,131 @@ function parseWorkflow(source: string): RecordValue {
     throw new Error(document.errors.map((error) => error.message).join("\n"));
   }
   const value: unknown = document.toJS();
-  if (!isRecord(value)) {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
     throw new Error(
       "Workflow YAML must contain a mapping at the document root.",
     );
   }
-  return value;
+  return value as RecordValue;
 }
 
-function stringList(value: unknown, path: string, issues: string[]) {
-  if (!Array.isArray(value) || value.some((item) => typeof item !== "string")) {
-    issues.push(`invalid ${path}`);
-    return [];
-  }
-  return value;
-}
+describe("agent-ready workflow policy", () => {
+  it("requires complete Linux and Windows validation behind one check", () => {
+    const workflow = parseWorkflow(ciSource);
+    const jobs = workflow.jobs as RecordValue;
+    const validation = jobs.validation as RecordValue;
+    const strategy = validation.strategy as RecordValue;
+    const matrix = strategy.matrix as RecordValue;
+    const check = jobs.check as RecordValue;
 
-function policyIssues(workflowValue: RecordValue) {
-  const issues: string[] = [];
-  const events = workflowValue.on;
-  const permissions = workflowValue.permissions;
-  const jobs = workflowValue.jobs;
-
-  if (!isRecord(events)) {
-    issues.push("missing workflow events");
-  } else {
-    const eventKeys = Object.keys(events).sort();
-    if (
-      JSON.stringify(eventKeys) !== JSON.stringify(["pull_request", "push"])
-    ) {
-      issues.push("unsupported workflow events");
-    }
-    for (const eventName of ["pull_request", "push"]) {
-      const event = events[eventName];
-      if (!isRecord(event)) {
-        issues.push(`missing ${eventName} event`);
-        continue;
-      }
-      if (
-        JSON.stringify(Object.keys(event).sort()) !==
-        JSON.stringify(["branches"])
-      ) {
-        issues.push(`unsupported ${eventName} filters`);
-      }
-      const branches = stringList(
-        event.branches,
-        `${eventName}.branches`,
-        issues,
-      );
-      const expected =
-        eventName === "push" ? [toolkitBranch] : ["main", toolkitBranch];
-      if (
-        JSON.stringify([...branches].sort()) !==
-        JSON.stringify([...expected].sort())
-      ) {
-        issues.push(`unexpected ${eventName} branches`);
-      }
-    }
-  }
-
-  if (
-    !isRecord(permissions) ||
-    JSON.stringify(permissions) !== JSON.stringify({ contents: "read" })
-  ) {
-    issues.push("unsafe default permissions");
-  }
-
-  if (!isRecord(jobs) || !Object.prototype.hasOwnProperty.call(jobs, "check")) {
-    issues.push("missing check job");
-    return issues;
-  }
-  if (Object.keys(jobs).length !== 1) {
-    issues.push("unexpected jobs");
-    return issues;
-  }
-
-  const check = jobs.check;
-  if (!isRecord(check)) {
-    issues.push("invalid check job");
-    return issues;
-  }
-  for (const key of ["permissions", "environment", "if", "continue-on-error"]) {
-    if (key in check) {
-      issues.push(`unsupported check job field: ${key}`);
-    }
-  }
-  if (!Array.isArray(check.steps)) {
-    issues.push("missing check steps");
-    return issues;
-  }
-
-  let validationStepCount = 0;
-  for (const [index, step] of check.steps.entries()) {
-    if (!isRecord(step)) {
-      issues.push(`invalid check step ${index}`);
-      continue;
-    }
-    for (const key of ["if", "continue-on-error"]) {
-      if (key in step) {
-        issues.push(`unsupported check step field: ${key}`);
-      }
-    }
-    if (typeof step.run === "string") {
-      if (/\b(pnpm|npm|changeset)\b.*\bpublish\b|\brelease\b/i.test(step.run)) {
-        issues.push("publication or release command");
-      }
-      if (step.run === "pnpm check") {
-        validationStepCount += 1;
-      }
-    }
-    if (
-      typeof step.uses === "string" &&
-      /(deploy-pages|upload-pages-artifact|publish|release)/i.test(step.uses)
-    ) {
-      issues.push("deployment or release action");
-    }
-  }
-  if (validationStepCount !== 1) {
-    issues.push("missing or duplicated unconditional pnpm check step");
-  }
-  return issues;
-}
-
-describe("integration workflow policy", () => {
-  it("parses supported event scopes and the one unconditional check job", () => {
-    const parsed = parseWorkflow(workflow);
-    expect(policyIssues(parsed)).toEqual([]);
-    expect((parsed.on as RecordValue).push).toEqual({
-      branches: [toolkitBranch],
-    });
-    expect((parsed.on as RecordValue).pull_request).toEqual({
-      branches: ["main", toolkitBranch],
-    });
+    expect(Object.keys(jobs).sort()).toEqual(["check", "validation"]);
+    expect(strategy["fail-fast"]).toBe(false);
+    expect(matrix.os).toEqual(["ubuntu-latest", "windows-latest"]);
+    expect(validation["continue-on-error"]).toBeUndefined();
+    expect(
+      (validation.steps as RecordValue[]).filter(
+        (step) => step.run === "pnpm check",
+      ),
+    ).toHaveLength(1);
+    expect(check.name).toBe("check");
+    expect(check.if).toBe("${{ always() }}");
+    expect(check.needs).toBe("validation");
+    expect(JSON.stringify(check)).toContain("needs.validation.result");
+    expect(JSON.stringify(check)).toContain('!= \\"success\\"');
   });
 
-  it("rejects unsupported PR targets, tags, dispatch, and a main push", () => {
-    const unsupportedPr = parseWorkflow(
-      workflow.replace(`      - ${toolkitBranch}`, "      - release/*"),
-    );
-    const tags = parseWorkflow(
-      workflow.replace(
-        new RegExp(`(push:\\s+branches:\\s+- ${toolkitBranch})`),
-        "$1\n    tags:\n      - v*",
-      ),
-    );
-    const dispatch = parseWorkflow(
-      workflow.replace("  push:", "  workflow_dispatch:\n  push:"),
-    );
-    const mainPush = parseWorkflow(
-      workflow.replace(
-        new RegExp(`(push:\\s+branches:\\s+- ${toolkitBranch})`),
-        "$1\n      - main",
-      ),
-    );
+  it("retains the intended branch and permission boundary", () => {
+    const workflow = parseWorkflow(ciSource);
 
-    expect(policyIssues(unsupportedPr)).toContain(
-      "unexpected pull_request branches",
+    expect(workflow.permissions).toEqual({ contents: "read" });
+    expect(workflow.on).toEqual({
+      pull_request: {
+        branches: ["main", "feature/avilevin/frontend-toolkit-alpha"],
+      },
+      push: { branches: ["feature/avilevin/frontend-toolkit-alpha"] },
+    });
+    expect(ciSource).not.toMatch(
+      /deploy-pages|upload-pages-artifact|publish|release|pull_request_target/iu,
     );
-    expect(policyIssues(tags)).toContain("unsupported push filters");
-    expect(policyIssues(dispatch)).toContain("unsupported workflow events");
-    expect(policyIssues(mainPush)).toContain("unexpected push branches");
   });
 
-  it("rejects each unsafe job, action, step, and filter mutation independently", () => {
-    const mutations: Array<[string, string, string]> = [
-      [
-        "deploy job",
-        workflow.replace(
-          "jobs:",
-          "jobs:\n  deploy:\n    runs-on: ubuntu-latest\n    steps:\n      - run: pnpm publish",
-        ),
-        "unexpected jobs",
-      ],
-      [
-        "default permissions",
-        workflow.replace("  contents: read", "  contents: write"),
-        "unsafe default permissions",
-      ],
-      [
-        "job permissions",
-        workflow.replace(
-          "    runs-on: ubuntu-latest",
-          "    permissions:\n      contents: write\n    runs-on: ubuntu-latest",
-        ),
-        "unsupported check job field: permissions",
-      ],
-      [
-        "missing check job",
-        workflow.replace("  check:", "  validation:"),
-        "missing check job",
-      ],
-      [
-        "named publication step",
-        workflow.replace(
-          "- run: pnpm check",
-          "- name: Publish\n        run: pnpm --filter @sefaria/client publish\n      - run: pnpm check",
-        ),
-        "publication or release command",
-      ],
-      [
-        "named deployment step",
-        workflow.replace(
-          "- run: pnpm check",
-          "- name: Deploy\n        uses: actions/deploy-pages@v5\n      - run: pnpm check",
-        ),
-        "deployment or release action",
-      ],
-      [
-        "named publication action",
-        workflow.replace(
-          "- run: pnpm check",
-          "- name: Publish\n        uses: JS-DevTools/npm-publish@v3\n      - run: pnpm check",
-        ),
-        "deployment or release action",
-      ],
-      [
-        "job if",
-        workflow.replace(
-          "    runs-on: ubuntu-latest",
-          "    if: false\n    runs-on: ubuntu-latest",
-        ),
-        "unsupported check job field: if",
-      ],
-      [
-        "job continue-on-error",
-        workflow.replace(
-          "    runs-on: ubuntu-latest",
-          "    continue-on-error: true\n    runs-on: ubuntu-latest",
-        ),
-        "unsupported check job field: continue-on-error",
-      ],
-      [
-        "conditional validation step",
-        workflow.replace(
-          "- run: pnpm check",
-          "- if: false\n        run: pnpm check",
-        ),
-        "unsupported check step field: if",
-      ],
-      [
-        "continue-on-error validation step",
-        workflow.replace(
-          "- run: pnpm check",
-          "- continue-on-error: true\n        run: pnpm check",
-        ),
-        "unsupported check step field: continue-on-error",
-      ],
-      [
-        "pull request paths filter",
-        workflow.replace(
-          "    branches:",
-          "    paths:\n      - '**/*.ts'\n    branches:",
-        ),
-        "unsupported pull_request filters",
-      ],
-    ];
+  it("keeps Copilot setup read-only and capability-based", () => {
+    const workflow = parseWorkflow(setupSource);
+    const jobs = workflow.jobs as RecordValue;
+    const setup = jobs["copilot-setup-steps"] as RecordValue;
 
-    for (const [name, candidate, expectedIssue] of mutations) {
-      expect(policyIssues(parseWorkflow(candidate)), name).toContain(
-        expectedIssue,
-      );
-    }
+    expect(Object.keys(jobs)).toEqual(["copilot-setup-steps"]);
+    expect(workflow.on).toEqual({
+      workflow_dispatch: null,
+      pull_request: {
+        paths: [
+          ".github/scripts/detect-toolkit.mjs",
+          ".github/workflows/copilot-setup-steps.yml",
+        ],
+      },
+      push: {
+        paths: [
+          ".github/scripts/detect-toolkit.mjs",
+          ".github/workflows/copilot-setup-steps.yml",
+        ],
+      },
+    });
+    expect(setup.permissions).toEqual({ contents: "read" });
+    expect(setupSource).toContain(".github/scripts/detect-toolkit.mjs");
+    expect(setupSource).toContain("pnpm setup:agent");
+    expect(setupSource).not.toContain(
+      "feature/avilevin/frontend-toolkit-alpha",
+    );
+    expect(setupSource).not.toMatch(/secrets\.|contents: write|id-token/iu);
   });
 
   it("surfaces malformed workflow YAML", () => {
-    expect(() => parseWorkflow(`${workflow}\n  - malformed`)).toThrow();
+    expect(() => parseWorkflow(`${ciSource}\n  - malformed`)).toThrow();
+  });
+
+  it("rejects missing platforms, conditional checks, permissive aggregation, and secrets", () => {
+    const mutations: Array<[string, string]> = [
+      [
+        ciSource.replace("          - windows-latest", ""),
+        "CI must validate Linux and Windows",
+      ],
+      [
+        ciSource.replace(
+          "      - run: pnpm check",
+          "      - if: false\n        run: pnpm check",
+        ),
+        "CI must run one unconditional pnpm check",
+      ],
+      [
+        ciSource.replace(
+          'if [ "${{ needs.validation.result }}" != "success" ]',
+          'if [ "${{ needs.validation.result }}" != "failure" ]',
+        ),
+        "CI check aggregation is not fail-closed",
+      ],
+      [
+        setupSource.replace(
+          "run: pnpm setup:agent",
+          "env:\n          TOKEN: ${{ secrets.GITHUB_TOKEN }}\n        run: pnpm setup:agent",
+        ),
+        "secret reference",
+      ],
+      [
+        setupSource.replace(
+          "  pull_request:\n    paths:\n      - .github/scripts/detect-toolkit.mjs\n      - .github/workflows/copilot-setup-steps.yml\n",
+          "",
+        ),
+        "Copilot setup self-validation is missing",
+      ],
+    ];
+
+    for (const [candidate, expected] of mutations) {
+      const filename = candidate.includes("Copilot Setup Steps")
+        ? "copilot-setup-steps.yml"
+        : "ci.yml";
+      expect(
+        validateWorkflowPolicy({ [filename]: candidate }).join("\n"),
+      ).toContain(expected);
+    }
   });
 });
