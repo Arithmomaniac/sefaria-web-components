@@ -2,6 +2,14 @@ name: Copilot Setup Steps
 
 on:
   workflow_dispatch:
+  pull_request:
+    paths:
+      - .github/scripts/detect-toolkit.mjs
+      - .github/workflows/copilot-setup-steps.yml
+  push:
+    paths:
+      - .github/scripts/detect-toolkit.mjs
+      - .github/workflows/copilot-setup-steps.yml
 
 jobs:
   copilot-setup-steps:
@@ -13,24 +21,7 @@ jobs:
       - name: Detect toolkit checkout
         id: toolkit
         shell: bash
-        run: |
-          manifest="packages/web-components/package.json"
-          if [ ! -f "$manifest" ]; then
-            echo "applicable=false" >> "$GITHUB_OUTPUT"
-            echo "This checkout does not contain the unpublished toolkit; skipping toolkit setup."
-            exit 0
-          fi
-          package_name="$(node -p "require('./$manifest').name")"
-          if [ "$package_name" != "@sefaria/web-components" ]; then
-            echo "applicable=false" >> "$GITHUB_OUTPUT"
-            echo "This checkout does not contain the unpublished toolkit; skipping toolkit setup."
-            exit 0
-          fi
-          if [ ! -f scripts/setup-agent.mjs ]; then
-            echo "Recognized toolkit checkout is missing scripts/setup-agent.mjs." >&2
-            exit 1
-          fi
-          echo "applicable=true" >> "$GITHUB_OUTPUT"
+        run: node .github/scripts/detect-toolkit.mjs >> "$GITHUB_OUTPUT"
       - if: steps.toolkit.outputs.applicable == 'true'
         uses: pnpm/action-setup@v4
       - if: steps.toolkit.outputs.applicable == 'true'
