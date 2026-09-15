@@ -10,7 +10,8 @@ The controlled Reader is the shortest complete path. The toolkit supplies its co
 
 ## Prerequisites
 
-- Complete [Load data and handle interaction](03-live-data.md).
+- Node.js 22.12 or later, pnpm 11.22.0, Chromium, and repository access.
+- Complete the one-time checkout, install, and build steps under [the workspace path](02-supplied-data.md#try-it). You do not need to complete the earlier lessons.
 - Decide whether your host needs a complete stateful Reader or custom pane placement.
 
 ## Try it
@@ -20,14 +21,11 @@ The supported path creates the browser client, loads a controller once, binds it
 ```ts
 import { createSefariaClient } from "@sefaria/client";
 import "@sefaria/web-components";
-import {
-  bindReaderController,
-  type SefariaReader,
-} from "@sefaria/web-components";
+import { bindReaderController } from "@sefaria/web-components";
 import { loadReaderController } from "@sefaria/web-components/reader-controller";
 
-const element = document.querySelector<SefariaReader>("sefaria-reader");
-if (!element) throw new Error("The Reader element is missing.");
+const element = document.createElement("sefaria-reader");
+document.body.append(element);
 
 const controller = await loadReaderController(
   { tref: "Micah 6:8" },
@@ -48,6 +46,7 @@ window.addEventListener(
 Run both maintained website choices:
 
 ```powershell
+pnpm build
 pnpm dev:reader
 ```
 

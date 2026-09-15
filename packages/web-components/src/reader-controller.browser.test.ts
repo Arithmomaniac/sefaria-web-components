@@ -50,7 +50,16 @@ test("binds one persistent reader, forwards navigation, resets its pane, and cle
     },
     dataSource,
   );
+  const dispose = vi.spyOn(controller, "dispose");
   const unbind = bindReaderController(element, controller);
+  window.addEventListener(
+    "pagehide",
+    () => {
+      unbind();
+      controller.dispose();
+    },
+    { once: true },
+  );
   await element.updateComplete;
 
   expect(element.viewModel?.selectedTarget?.ref).toBe("Micah 6:8");
@@ -85,7 +94,8 @@ test("binds one persistent reader, forwards navigation, resets its pane, and cle
   expect(element.viewModel?.currentEntryId).toBe("entry-1");
 
   const sourceCalls = dataSource.loadSource.mock.calls.length;
-  unbind();
+  window.dispatchEvent(new Event("pagehide"));
+  expect(dispose).toHaveBeenCalledOnce();
   element.dispatchEvent(
     new CustomEvent("sefaria-reader-connection-select", {
       detail: {

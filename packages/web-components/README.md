@@ -36,9 +36,14 @@ const controller = await loadReaderController(
 );
 const unbind = bindReaderController(reader, controller);
 
-// During host teardown:
-unbind();
-controller.dispose();
+window.addEventListener(
+  "pagehide",
+  () => {
+    unbind();
+    controller.dispose();
+  },
+  { once: true },
+);
 ```
 
 Use a component's pure factory when corrected API-shaped JSON has already crossed a validated server, MCP, fixture, stored-data, or user-input boundary. Use its async factory for browser client mode. A successful async result is the same projection as the pure factory over its captured payload.
