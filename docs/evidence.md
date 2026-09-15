@@ -105,7 +105,7 @@ The authenticated VS Code and live Sefaria walkthroughs remain optional named-ho
 
 **Observed on September 15, 2026 with Node 26.8.1 and pnpm 11.22.0 on Windows:** `pnpm setup:agent` completed a frozen workspace install, verified the immutable Git objects used by the test-disposition gate, installed the existing Playwright Chromium release, and launched and closed Chromium. A disposable three-commit repository cloned with `--depth 1` proved that the shared history-preparation function obtains explicitly required older commits and verifies them after fetch.
 
-The complete `pnpm check` then passed all 16 stages. Vitest discovered 84 test files and passed 617 tests, including the new setup, workflow-policy, check-result, and real shallow-checkout regressions. The machine-readable result identified every stage as passed. This local run does not establish hosted Linux or Windows Actions behavior.
+The complete `pnpm check` then passed all 16 stages. Vitest discovered 84 test files and passed 618 tests, including the new setup, shared detector, workflow-policy, check-result, and real shallow-checkout regressions. The machine-readable result identified every stage as passed. This local run does not establish hosted Linux or Windows Actions behavior.
 
 An occupied-port probe held `127.0.0.1:6338` while a maintained browser test started. Vitest reported that the configured port was in use, selected another port, and passed all 10 selected tests. The demonstrated implementation already supports this collision; no custom port allocation was added.
 

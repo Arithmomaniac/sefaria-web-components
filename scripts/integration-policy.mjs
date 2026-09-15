@@ -70,7 +70,7 @@ export function validateWorkflowPolicy(workflows) {
         const expectedEvents =
           filename.endsWith("/copilot-setup-steps.yml") ||
           filename === "copilot-setup-steps.yml"
-            ? ["workflow_dispatch"]
+            ? ["pull_request", "push", "workflow_dispatch"]
             : ["pull_request", "push"];
         if (JSON.stringify(eventNames) !== JSON.stringify(expectedEvents)) {
           issues.push(`unsupported workflow events in ${filename}`);
@@ -170,6 +170,18 @@ function validateCiWorkflow(workflow, issues, filename) {
 }
 
 function validateCopilotSetupWorkflow(workflow, issues, filename) {
+  const expectedPaths = [
+    ".github/scripts/detect-toolkit.mjs",
+    ".github/workflows/copilot-setup-steps.yml",
+  ];
+  if (
+    JSON.stringify(workflow.on?.pull_request) !==
+      JSON.stringify({ paths: expectedPaths }) ||
+    JSON.stringify(workflow.on?.push) !==
+      JSON.stringify({ paths: expectedPaths })
+  ) {
+    issues.push(`Copilot setup self-validation is missing in ${filename}`);
+  }
   const jobs = workflow.jobs;
   if (
     !isRecord(jobs) ||
@@ -188,8 +200,7 @@ function validateCopilotSetupWorkflow(workflow, issues, filename) {
     issues.push(`unsafe Copilot setup job in ${filename}`);
   }
   if (
-    !source.includes("packages/web-components/package.json") ||
-    !source.includes("@sefaria/web-components") ||
+    !source.includes(".github/scripts/detect-toolkit.mjs") ||
     !source.includes("pnpm setup:agent") ||
     source.includes("feature/avilevin/frontend-toolkit-alpha")
   ) {

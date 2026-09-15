@@ -6,8 +6,11 @@ import { promisify } from "node:util";
 import { describe, expect, it, vi } from "vitest";
 
 import {
-  REQUIRED_HISTORY_COMMITS,
   classifyToolkitManifest,
+  detectToolkitCheckout,
+} from "../.github/scripts/detect-toolkit.mjs";
+import {
+  REQUIRED_HISTORY_COMMITS,
   ensureGitObjects,
   runAgentSetup,
 } from "../scripts/setup-agent.mjs";
@@ -30,6 +33,41 @@ describe("Copilot agent setup", () => {
     ).toBe("unrelated");
     expect(() => classifyToolkitManifest({ private: true })).toThrow(
       "packages/web-components/package.json",
+    );
+  });
+
+  it("uses the same detector for missing, malformed, and ready checkouts", async () => {
+    await expect(
+      detectToolkitCheckout("repo", {
+        read: vi
+          .fn()
+          .mockRejectedValue(
+            Object.assign(new Error("missing"), { code: "ENOENT" }),
+          ),
+        requireSetup: vi.fn(),
+      }),
+    ).resolves.toBe("unrelated");
+
+    await expect(
+      detectToolkitCheckout("repo", {
+        read: vi.fn().mockResolvedValue(JSON.stringify({ private: true })),
+        requireSetup: vi.fn(),
+      }),
+    ).rejects.toThrow("has no package name");
+
+    const requireSetup = vi.fn().mockResolvedValue(undefined);
+    await expect(
+      detectToolkitCheckout("repo", {
+        read: vi
+          .fn()
+          .mockResolvedValue(
+            JSON.stringify({ name: "@sefaria/web-components" }),
+          ),
+        requireSetup,
+      }),
+    ).resolves.toBe("toolkit");
+    expect(requireSetup).toHaveBeenCalledWith(
+      path.join("repo", "scripts", "setup-agent.mjs"),
     );
   });
 

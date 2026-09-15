@@ -17,15 +17,6 @@ export const REQUIRED_HISTORY_COMMITS = [
 const browserProbe =
   "import { chromium } from 'playwright'; const browser = await chromium.launch({ headless: true }); await browser.close();";
 
-export function classifyToolkitManifest(manifest) {
-  if (!Object.prototype.hasOwnProperty.call(manifest, "name")) {
-    throw new Error(
-      "packages/web-components/package.json exists but has no package name.",
-    );
-  }
-  return manifest.name === "@sefaria/web-components" ? "toolkit" : "unrelated";
-}
-
 export async function runAgentSetup({
   platform = process.platform,
   run = runCommand,

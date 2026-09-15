@@ -76,10 +76,23 @@ describe("agent-ready workflow policy", () => {
     const setup = jobs["copilot-setup-steps"] as RecordValue;
 
     expect(Object.keys(jobs)).toEqual(["copilot-setup-steps"]);
-    expect(workflow.on).toEqual({ workflow_dispatch: null });
+    expect(workflow.on).toEqual({
+      workflow_dispatch: null,
+      pull_request: {
+        paths: [
+          ".github/scripts/detect-toolkit.mjs",
+          ".github/workflows/copilot-setup-steps.yml",
+        ],
+      },
+      push: {
+        paths: [
+          ".github/scripts/detect-toolkit.mjs",
+          ".github/workflows/copilot-setup-steps.yml",
+        ],
+      },
+    });
     expect(setup.permissions).toEqual({ contents: "read" });
-    expect(setupSource).toContain("packages/web-components/package.json");
-    expect(setupSource).toContain("@sefaria/web-components");
+    expect(setupSource).toContain(".github/scripts/detect-toolkit.mjs");
     expect(setupSource).toContain("pnpm setup:agent");
     expect(setupSource).not.toContain(
       "feature/avilevin/frontend-toolkit-alpha",
@@ -117,6 +130,13 @@ describe("agent-ready workflow policy", () => {
           "env:\n          TOKEN: ${{ secrets.GITHUB_TOKEN }}\n        run: pnpm setup:agent",
         ),
         "secret reference",
+      ],
+      [
+        setupSource.replace(
+          "  pull_request:\n    paths:\n      - .github/scripts/detect-toolkit.mjs\n      - .github/workflows/copilot-setup-steps.yml\n",
+          "",
+        ),
+        "Copilot setup self-validation is missing",
       ],
     ];
 
