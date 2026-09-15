@@ -312,8 +312,8 @@ async function inspectConsumerResolution(consumer) {
   validateInstalledPath({
     packageName: "@sefaria/web-components transitive @sefaria/client",
     installedPath: await realpath(fileURLToPath(transitiveClient)),
-    consumer,
-    repository,
+    consumer: canonicalConsumer,
+    repository: canonicalRepository,
   });
 }
 
