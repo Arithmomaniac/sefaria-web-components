@@ -51,7 +51,7 @@ test("binds one persistent reader, forwards navigation, resets its pane, and cle
     dataSource,
   );
   const dispose = vi.spyOn(controller, "dispose");
-  const unbind = bindReaderController(element, controller);
+  let unbind = bindReaderController(element, controller);
   window.addEventListener(
     "pagehide",
     () => {
@@ -92,10 +92,8 @@ test("binds one persistent reader, forwards navigation, resets its pane, and cle
     }),
   );
   expect(element.viewModel?.currentEntryId).toBe("entry-1");
-
   const sourceCalls = dataSource.loadSource.mock.calls.length;
-  window.dispatchEvent(new Event("pagehide"));
-  expect(dispose).toHaveBeenCalledOnce();
+  unbind();
   element.dispatchEvent(
     new CustomEvent("sefaria-reader-connection-select", {
       detail: {
@@ -107,6 +105,10 @@ test("binds one persistent reader, forwards navigation, resets its pane, and cle
   await Promise.resolve();
   expect(dataSource.loadSource).toHaveBeenCalledTimes(sourceCalls);
   expect(element.viewModel?.currentEntryId).toBe("entry-1");
+
+  unbind = bindReaderController(element, controller);
+  window.dispatchEvent(new Event("pagehide"));
+  expect(dispose).toHaveBeenCalledOnce();
 });
 
 test("leaves chat export entirely with the host", async () => {
