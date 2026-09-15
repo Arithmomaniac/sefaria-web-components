@@ -1,4 +1,4 @@
-> Created/edited by GitHub Copilot with human review/feedback by avilevin.
+> Created/edited by GitHub Copilot; pending human review.
 
 # Client specification
 
@@ -56,7 +56,7 @@ Core generation and contract checks cover these operations:
 
 No other operation is generated or exported.
 
-The client owns one validated request and response for each operation. It does not own citation-detection polling, retry timing, task deadlines, page extraction, or DOM mutation. The Linker integration submits once and polls through the two generated operations.
+The client owns one validated request and response for each operation. It does not own citation-detection polling, retry timing, task deadlines, page extraction, or DOM mutation. The generated submission and task-status functions expose the reviewed transport operations, but the current authored linked-article integration does not use them or implement automatic citation detection.
 
 ## OpenAPI supply chain
 
@@ -190,6 +190,8 @@ const result = await getV3Texts({
 Each named SDK function accepts the generated client in its options. The package also exports generated operation types, Zod schemas, and response validators.
 
 The default base URL is `https://www.sefaria.org`. Tests and non-browser hosts can supply another base URL and `fetch`.
+
+## Response cache
 
 The package owns one bounded response cache per created client. Caching is enabled by default and can be disabled with `cache: false`. The default limits are a five-minute TTL, 100 entries, and 10 MiB of retained response-body bytes; callers can override each positive finite limit.
 

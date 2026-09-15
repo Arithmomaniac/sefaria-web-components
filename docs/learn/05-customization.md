@@ -34,13 +34,13 @@ For a headless path, import only the layers you need:
 
 ```ts
 import { createSefariaClient } from "@sefaria/client";
-import { extractFootnotes, sanitizeSefariaHtml } from "@sefaria/text-transform";
+import { extractFootnotes, sanitize } from "@sefaria/text-transform";
 import { loadSourceCardViewModel } from "@sefaria/web-components/source-card";
 
 const client = createSefariaClient({ cache: false });
 const viewModel = await loadSourceCardViewModel({ tref: "Micah 6:8" }, client);
 
-const safeHtml = sanitizeSefariaHtml("<b>Justice</b>");
+const safeHtml = sanitize("<b>Justice</b>");
 const footnotes = extractFootnotes(safeHtml);
 console.log(viewModel.state, footnotes);
 ```

@@ -57,6 +57,31 @@ describe("documentation learning journey", () => {
     expect(config).not.toContain("github.io");
   });
 
+  it("documents package builds before direct example development servers", async () => {
+    for (const [filename, command] of [
+      ["README.md", "pnpm dev:vanilla"],
+      [
+        "examples/vanilla-vite/README.md",
+        "pnpm --filter @sefaria-example/vanilla-vite dev",
+      ],
+      [
+        "examples/react-vite/README.md",
+        "pnpm --filter @sefaria-example/react-vite dev",
+      ],
+      [
+        "examples/reader/README.md",
+        "pnpm --filter @sefaria-example/reader dev",
+      ],
+      ["docs/development.md", "pnpm dev:reader"],
+    ] as const) {
+      const markdown = await readFile(path.join(root, filename), "utf8");
+      expect(markdown.indexOf("pnpm build")).toBeGreaterThanOrEqual(0);
+      expect(markdown.indexOf("pnpm build")).toBeLessThan(
+        markdown.indexOf(command),
+      );
+    }
+  });
+
   it("keeps supplied-data and React teaching aligned with maintained source", async () => {
     const suppliedLesson = await readFile(
       path.join(root, "docs", "learn", "02-supplied-data.md"),

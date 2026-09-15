@@ -1,8 +1,8 @@
 > Created/edited by GitHub Copilot; pending human review.
 
-# Sefaria Frontend Toolkit integration handoff
+# Historical Sefaria Frontend Toolkit bootstrap handoff
 
-**Status:** Maintained bootstrap handoff for the unpublished toolkit integration branch. This document supersedes the historical transfer-first plan preserved in the session archive; it does not authorize repository transfer, publication, Pages deployment, or a default-branch change.
+**Status:** Historical bootstrap artifact. The package foundation, examples, local documentation, and qualification waves described here were completed by September 14, 2026. Use [`docs/development.md`](docs/development.md) for the current baseline and GitHub issues for remaining delivery work. This document does not authorize repository transfer, publication, Pages deployment, or a default-branch change.
 
 ## Bootstrap objective
 
@@ -24,9 +24,9 @@ The policy regression is `tests/workflow-policy.test.ts`. It covers supported pu
 
 Subsequent PRs may establish package artifacts, examples, and documentation/site work after the bootstrap PR merges into the protected toolkit branch. Nothing here implies toolkit-to-main promotion. All packages and examples remain private until a separately approved release plan exists. Any public-contract or cross-package change must follow the applicable specification, evidence, and review gate.
 
-## Approved follow-on outline
+## Completed follow-on work
 
-The approved unpublished plan continues with four bounded waves after bootstrap: package foundation renames `packages/web-components` to `packages/web-components`, preserves supported subpaths, and proves private tarball consumption; the next wave contains three parallel example PRs covering a linked article, a standalone Node MCP App, and a curated example workbench with the real React extraction; local documentation consolidates maintained Markdown with a local VitePress site; and final qualification proves the package, example, documentation, and integration boundaries without publication or deployment. Mutable execution tracking belongs in coordinator SQL, not this handoff.
+The later package-foundation, example, local-documentation, and integration-qualification waves are complete on the toolkit branch. Their current behavior is documented in [`docs/development.md`](docs/development.md), while immutable pre-bootstrap and presentation sources remain linked below for historical inspection. Mutable execution tracking does not belong in this artifact or the normative specifications.
 
 ## Immutable historical archive
 

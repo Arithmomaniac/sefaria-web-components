@@ -111,7 +111,7 @@ The session owns the ordered entries and the meaning of returning to one. The re
 
 **Example:** start at a Micah 6:8 workspace, open a connected Rashi source, then open another source from there. Each entry preserves both the text pane and its related connections state. Two visits to the same reference can be different entries, so reference strings are not history IDs.
 
-| Action | Proposed history effect |
+| Action | Current history effect |
 | --- | --- |
 | Select a different segment in the current section | Update current entry and replace its connections state |
 | Change category, page, preview visibility, or display settings | Update current entry; do not add a crumb |
@@ -136,7 +136,7 @@ There is no public snapshot format in this delivery. Retention defaults to 20 en
 
 ## 5. Wide and narrow layouts share the same reading state
 
-![Proposed wide reader with two panes and compact reader with a pane switch, sharing the same source-history trail.](../images/reader-navigation-layouts.png)
+![Wide reader with two panes and compact reader with a pane switch, sharing the same source-history trail.](../images/reader-navigation-layouts.png)
 
 _The illustration predates the implementation but shows the current responsive contract. The compact view is mobile web or a narrow MCP App, not a native-mobile screenshot._
 

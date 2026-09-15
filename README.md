@@ -2,13 +2,15 @@
 
 # Sefaria Frontend Toolkit
 
-Build Sefaria reading surfaces from validated transport data, pure text processing, component-specific factories, and request-free Web Components. Use the complete Reader, individual components, or the headless packages without bringing along the Sefaria website.
+[Sefaria](https://www.sefaria.org/) is a free digital library of Jewish texts and translations. This frontend toolkit helps developers build reading and learning experiences with that data without rebuilding bilingual text, footnotes, attribution, connection navigation, and accessible Reader behavior from scratch.
+
+Start with the complete Reader, use individual browser-standard Web Components from vanilla JavaScript or React, or use the client, factories, and text transforms without rendering components. The current components focus on reading surfaces, but the project boundary is a reusable frontend/UI toolkit rather than a replacement for Sefaria's website.
 
 > **Experimental and unpublished.** This public source repository is a development project with no support or stability guarantee. It is not an official Sefaria product, and its private packages are not available from a public registry or CDN.
 
 ## First run
 
-With Node.js 22.12 or later, pnpm 11.22.0, and Chromium:
+Start from a checkout of `feature/avilevin/frontend-toolkit-alpha`, or a work branch based on it. With Node.js 22.12 or later, pnpm 11.22.0, and Chromium:
 
 ```powershell
 corepack enable
@@ -21,6 +23,7 @@ The command builds the maintained private examples and opens the local documenta
 If you want the shortest component proof instead of the documentation site:
 
 ```powershell
+pnpm build
 pnpm dev:vanilla
 ```
 
@@ -47,7 +50,9 @@ The [documentation home](docs/README.md) is the repository-native index for guid
 2. `@sefaria/text-transform` performs pure sanitization, vocalization, and footnote work.
 3. non-DOM `@sefaria/web-components/*` factories project validated payloads into component-specific view models.
 4. browser elements render those view models and emit events; they never receive clients, references, raw payloads, or `fetch`.
-5. the host owns input, loading, cancellation, stale-result rejection, and composition.
+5. supplied controllers coordinate supported behavior such as Reader navigation; the application binds them to elements and chooses the permitted data source and lifecycle.
+
+In short: an **element** displays data and emits events, a supplied **factory or controller** provides reusable library behavior, and the **application host** chooses how data is obtained and when the UI is created or disposed. The controlled Reader uses the provided controller; developers do not implement its navigation from scratch.
 
 Read [How the pieces fit together](docs/guides/data-flow.md) for the complete boundary and failure model.
 

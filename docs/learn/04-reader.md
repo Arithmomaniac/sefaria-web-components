@@ -6,6 +6,8 @@
 
 Choose the supported controlled Reader when its navigation model fits, and understand the additional responsibilities you accept when composing spatial source and connections panes yourself.
 
+The controlled Reader is the shortest complete path. The toolkit supplies its controller, factories, and element; the host provides the starting reference and data access, binds the controller, and cleans up. You do not implement source selection, connection navigation, cancellation, Back, or breadcrumbs from scratch.
+
 ## Prerequisites
 
 - Complete [Load data and handle interaction](03-live-data.md).
@@ -18,11 +20,11 @@ The supported path creates the browser client, loads a controller once, binds it
 ```ts
 import { createSefariaClient } from "@sefaria/client";
 import "@sefaria/web-components";
-import type { SefariaReader } from "@sefaria/web-components";
 import {
   bindReaderController,
-  loadReaderController,
-} from "@sefaria/web-components/reader-controller";
+  type SefariaReader,
+} from "@sefaria/web-components";
+import { loadReaderController } from "@sefaria/web-components/reader-controller";
 
 const element = document.querySelector<SefariaReader>("sefaria-reader");
 if (!element) throw new Error("The Reader element is missing.");
@@ -31,12 +33,12 @@ const controller = await loadReaderController(
   { tref: "Micah 6:8" },
   createSefariaClient({ cache: false }),
 );
-const binding = bindReaderController(element, controller);
+const unbind = bindReaderController(element, controller);
 
 window.addEventListener(
   "pagehide",
   () => {
-    binding.dispose();
+    unbind();
     controller.dispose();
   },
   { once: true },
@@ -55,6 +57,8 @@ pnpm dev:reader
 ## Expected result
 
 The controlled Reader owns bounded semantic history, source-to-connections transitions, cancellation, and component event handling while the host owns creation and disposal. The spatial example can keep several panes visible, but its host also owns pane identity, placement, activation, pruning, compact layout, pins, and operation timing.
+
+The same Reader presentation can run with different data paths. A regular website controller can use `@sefaria/client`; an MCP App controller uses host-mediated tools because the sandbox cannot make the same direct requests. In both cases the element receives rendering data and emits events rather than fetching.
 
 **Explicit live actions:** after starting `pnpm dev:site`, <a href="../../examples/reader/controlled.html?tref=Micah%206%3A8" target="_self">open the controlled Reader</a> or <a href="../../examples/reader/index.html?tref=Micah%206%3A8" target="_self">open the spatial Reader</a>. The repository-relative links also open the maintained source pages on GitHub. The local routes load data from Sefaria; opening the lesson itself makes no live request.
 

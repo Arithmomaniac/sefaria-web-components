@@ -1,4 +1,4 @@
-> Created/edited by GitHub Copilot with human review/feedback by avilevin.
+> Created/edited by GitHub Copilot; pending human review.
 
 # Component specification
 
@@ -261,9 +261,11 @@ Visual and interaction state remains on the element. This includes layout, expan
 
 If an interaction changes requested data, the element emits an event. The host calls a factory and supplies a new view model.
 
-## Interaction-triggered data [Planned]
+## Interaction-triggered data [Current for delivered interactive surfaces]
 
 An interactive element emits a semantic composed event. The event identifies the user action and its target. It does not contain a client or raw payload.
+
+The delivered source-card, connections-panel, popup, and Reader flows follow this contract. A future component remains planned until its own component contract and integration are implemented.
 
 The host selects one explicit data path:
 

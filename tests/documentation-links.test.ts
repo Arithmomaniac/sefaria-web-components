@@ -20,6 +20,8 @@ const journey = [
   "docs/learn/04-reader.md",
   "docs/learn/05-customization.md",
   "docs/learn/06-host-integration.md",
+  "docs/guides/differences.md",
+  "docs/archive/README.md",
   "examples/README.md",
   "examples/react-vite/README.md",
 ];

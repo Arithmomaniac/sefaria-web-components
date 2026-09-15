@@ -71,6 +71,8 @@ try {
     await page.goto(origin, { waitUntil: "networkidle" });
     await assertText(page.locator("h1"), "Sefaria Frontend Toolkit");
     await assertText(page.locator("body"), "Development preview");
+    await assertText(page.locator("body"), "free digital library");
+    await assertText(page.locator("body"), "Bind the supplied controller");
     assertEqual(textRequests.length, 0, "landing request count");
     await tabTo(
       page,

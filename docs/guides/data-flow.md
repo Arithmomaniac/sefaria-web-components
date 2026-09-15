@@ -4,17 +4,17 @@
 
 [Documentation](../README.md) / How the pieces fit together
 
-**Current:** the text-segment, bilingual-segment, reference-label, source-card, popup, and Linker paths described here are implemented. The same pattern is intended for later components, but their names and integration examples are not current APIs.
+**Current:** the text-segment, bilingual-segment, reference-label, source-card, popup, controlled Reader, authored linked-article, and MCP paths described here are implemented. The same pattern is intended for later components, but their names and integration examples are not current APIs.
 
-The client gets data. A factory turns that data into something a particular component can display. The Web Component renders the result. Your application connects these steps and owns the lifetime of the request.
+The toolkit separates three roles. An **element** displays a view model and emits events. Supplied **factories and controllers** provide reusable projection and supported behavior. The **application host** chooses the data source, creates and disposes the pieces, and owns any integration-specific policy. Elements do not fetch.
 
-## The same layers in two use cases
+## The same layers across different hosts
 
 ```mermaid
 flowchart TB
     API["Sefaria API"]
     SITE["Regular website<br/>@sefaria/client + async factory"]
-    LINKER["Linker integration<br/>detection + popup async factory"]
+    ARTICLE["Authored article<br/>explicit anchor + popup async factory"]
     MCP["MCP App<br/>structuredContent + validation"]
     FACTORY["Component factory<br/>API payload → rendering data"]
     VM["Component view model"]
@@ -22,17 +22,17 @@ flowchart TB
     UI["Host-composed UI"]
 
     API --> SITE
-    API --> LINKER
+    API --> ARTICLE
     API --> MCP
     SITE --> FACTORY
-    LINKER --> FACTORY
+    ARTICLE --> FACTORY
     MCP --> FACTORY
     FACTORY --> VM
     VM --> ELEMENT
     ELEMENT --> UI
 ```
 
-The central layers are the same in both cases:
+The central layers are the same in every case:
 
 1. The **API** supplies transport data.
 2. The **client or integration boundary** obtains and validates that data.
@@ -42,6 +42,8 @@ The central layers are the same in both cases:
 The difference is where the request happens. A regular site supplies `@sefaria/client` to an async factory. The authored linked-article page calls the popup async factory when a reader activates an explicit citation anchor. In the MCP path, the server obtains the payload, the App validates `structuredContent`, and the App calls the same pure factory directly. None of these paths sends raw API JSON to the element.
 
 Web Components are composable because the host can arrange several request-free elements and supply each one a view model. Composite data projection happens before rendering: a composite pure factory can call child pure factories using one captured payload. One element does not reach out to fetch data or ask another element to do so; interactive elements emit events and the host decides what data to obtain next.
+
+For the controlled Reader, that host decision does not mean rebuilding the Reader state machine. The toolkit supplies `loadReaderController` and `bindReaderController`; the application supplies the permitted data source and lifecycle. A website can use the public client while an MCP App uses host-proxied tools, and both bind the resulting controller state to the same request-free Reader presentation.
 
 The linked-article and MCP lanes are current. The [design diagram](../design.md#package-dependency-diagram) provides the detailed dependency view.
 
@@ -75,7 +77,8 @@ The [render-text guide](render-text.md#put-a-source-card-in-a-browser-app) imple
 | `@sefaria/text-transform` | Pure processing of HTML and Hebrew text | Fetching, component state, or DOM rendering |
 | `@sefaria/web-components/source-card`, `@sefaria/web-components/popup`, and other non-DOM subpaths | Component request types, view-model unions, pure and async factories | Browser elements or the host's active selection |
 | `@sefaria/web-components` browser exports | Registered Lit elements, layout, theme, accessibility, and rendering | Fetching or interpreting raw API payloads |
-| Your application or integration | Client creation, input, loading state, cancellation, stale-result handling, and assigning view models | A second copy of the factory's projection logic |
+| Supplied Reader controller | Supported Reader requests, cancellation, semantic history, and navigation state | DOM rendering, host data-source policy, or lifecycle |
+| Your application or integration | Data-source choice, input, lifecycle, custom composition, and assigning or binding rendering state | A second copy of factory projection or supported Reader navigation |
 
 Imports from the non-DOM component subpaths can run without loading custom elements. Import the browser package only in the browser. Generated API types and view-model types describe values; importing a type does not fetch or render anything. The [design diagram](../design.md#package-dependency-diagram) distinguishes runtime, type-only, generation, and external-payload relationships.
 

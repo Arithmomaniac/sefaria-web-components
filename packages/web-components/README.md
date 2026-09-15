@@ -1,4 +1,4 @@
-> Created/edited by GitHub Copilot with human review/feedback by avilevin.
+> Created/edited by GitHub Copilot; pending human review.
 
 # `@sefaria/web-components`
 
@@ -24,10 +24,8 @@ This is a private built package, not a published npm installation. Its export ma
 ```ts
 import "@sefaria/web-components";
 import { createSefariaClient } from "@sefaria/client";
-import {
-  bindReaderController,
-  loadReaderController,
-} from "@sefaria/web-components/reader-controller";
+import { bindReaderController } from "@sefaria/web-components";
+import { loadReaderController } from "@sefaria/web-components/reader-controller";
 
 const reader = document.createElement("sefaria-reader");
 document.body.append(reader);
