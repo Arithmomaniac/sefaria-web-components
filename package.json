@@ -49,7 +49,7 @@
     "test": "vitest run",
     "test:site": "node scripts/test-site.mjs",
     "test:watch": "vitest",
-    "typecheck": "pnpm -r --if-present typecheck && tsc -p demos/tsconfig.json"
+    "typecheck": "pnpm -r --if-present typecheck && tsc -p demos/tsconfig.json && node scripts/check-documentation-snippets.mjs"
   },
   "devDependencies": {
     "@changesets/cli": "3.0.2",

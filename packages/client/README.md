@@ -1,4 +1,4 @@
-> Created/edited by GitHub Copilot with human review/feedback by avilevin.
+> Created/edited by GitHub Copilot; pending human review.
 
 # `@sefaria/client`
 
@@ -9,10 +9,13 @@ This is a private source workspace package, not a published npm installation.
 ## Ordinary use
 
 ```ts
-import { createSefariaClient } from "@sefaria/client";
+import { createSefariaClient, getV3Texts } from "@sefaria/client";
 
 const client = createSefariaClient();
-const result = await client.getText({ path: { tref: "Micah 6:8" } });
+const result = await getV3Texts({
+  client,
+  path: { tref: "Micah 6:8" },
+});
 ```
 
 Most component consumers should call an async component factory and supply this client rather than interpret the transport result themselves:

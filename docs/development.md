@@ -22,7 +22,7 @@ The `integration:check` stage also parses active paths, package manifests, workf
 
 The same stage reconciles the immutable 73-file test inventory from `7bc2d258fac2959beb5252ebdbcbddbaccd0c7b7` and the nine pre-retirement showcase tests from `d7e2d59645ebf7427dcff2cbdd78073e2e7df58c`. It requires every retained destination to appear in Vitest's actual static discovery output and records a specific reason for each presentation-only or superseded retirement.
 
-The maintained bootstrap handoff is [`IMPLEMENTATION-PLAN.md`](https://github.com/Arithmomaniac/sefaria-web-components/blob/feature/avilevin/frontend-toolkit-alpha/IMPLEMENTATION-PLAN.md). Its archive links point to the immutable pre-bootstrap baseline; it is an execution handoff, not a normative component or transport specification.
+[`IMPLEMENTATION-PLAN.md`](https://github.com/Arithmomaniac/sefaria-web-components/blob/feature/avilevin/frontend-toolkit-alpha/IMPLEMENTATION-PLAN.md) is a historical bootstrap artifact. Its follow-on waves are complete, and it is not a maintained execution handoff or a normative component or transport specification. Use this development guide for the current baseline and the [repository issues](https://github.com/Arithmomaniac/sefaria-web-components/issues) for remaining delivery work.
 
 ## Contributor guides
 
@@ -87,6 +87,8 @@ The client, text-transform foundations, current components, controlled reader, c
 TypeScript emits reusable ES modules. Vite builds the browser demonstrations and the single-file MCP App.
 
 ## Local documentation site
+
+After a fresh checkout, run `pnpm install --frozen-lockfile` and `pnpm build` before any direct `pnpm dev:*` example command. Those Vite development scripts resolve the private packages from their built `dist` exports. `pnpm dev:site` is the exception: it builds the maintained example inputs before starting VitePress.
 
 Run the development site:
 

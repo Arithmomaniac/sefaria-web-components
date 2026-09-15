@@ -6,6 +6,8 @@
 
 Understand what the browser registers, why complex values use JavaScript properties rather than HTML attributes, how component events return interaction to the host, and where requests and rendering belong.
 
+A Web Component is a browser-standard custom HTML element. One JavaScript import registers it, after which vanilla JavaScript, React, or another browser framework can create the same element and assign its typed properties. React is therefore a host option, not a separate toolkit implementation.
+
 ## Prerequisites
 
 - Node.js 22.12 or later and pnpm 11.22.0.
@@ -61,7 +63,9 @@ The element renders its loading state inside Shadow DOM. No network request occu
 | Web Component | Shadow DOM, accessibility, theme, layout, and event emission | References, requests, clients, or raw payloads |
 | Host application | Inputs, loading, cancellation, stale-result rejection, and assigning view models | Reimplementing factory projection |
 
-The complete flow is `client -> pure/async factory -> component-specific view model -> request-free element`. Read [How the pieces fit together](../guides/data-flow.md) for the detailed failure and composition rules.
+For supported stateful surfaces, the toolkit can also supply a controller that coordinates existing factories and state. The controlled Reader uses this path: the host binds the provided controller instead of implementing navigation from scratch.
+
+The complete low-level flow is `client -> pure/async factory -> component-specific view model -> request-free element`. Read [How the pieces fit together](../guides/data-flow.md) for the detailed failure and composition rules.
 
 ## Exercise
 

@@ -7,8 +7,12 @@ This private standalone consumer uses React 19 with the existing `@sefaria/clien
 Run it from the repository root:
 
 ```powershell
+pnpm install --frozen-lockfile
+pnpm build
 pnpm --filter @sefaria-example/react-vite dev
 ```
+
+The build step is required on a fresh checkout because this Vite consumer resolves the private toolkit packages through their `dist` exports.
 
 The initial source card is projected from validated supplied data and makes no request. Select **Load from Sefaria** to let React call the public client and `loadSourceCardViewModel`; React owns the input, loading status, cancellation, stale-result suppression, and visible transport failures. Theme, preview width, and displayed text sides are element properties and do not fetch.
 

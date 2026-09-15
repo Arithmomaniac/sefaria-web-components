@@ -50,7 +50,16 @@ test("binds one persistent reader, forwards navigation, resets its pane, and cle
     },
     dataSource,
   );
-  const unbind = bindReaderController(element, controller);
+  const dispose = vi.spyOn(controller, "dispose");
+  let unbind = bindReaderController(element, controller);
+  window.addEventListener(
+    "pagehide",
+    () => {
+      unbind();
+      controller.dispose();
+    },
+    { once: true },
+  );
   await element.updateComplete;
 
   expect(element.viewModel?.selectedTarget?.ref).toBe("Micah 6:8");
@@ -83,7 +92,6 @@ test("binds one persistent reader, forwards navigation, resets its pane, and cle
     }),
   );
   expect(element.viewModel?.currentEntryId).toBe("entry-1");
-
   const sourceCalls = dataSource.loadSource.mock.calls.length;
   unbind();
   element.dispatchEvent(
@@ -97,6 +105,10 @@ test("binds one persistent reader, forwards navigation, resets its pane, and cle
   await Promise.resolve();
   expect(dataSource.loadSource).toHaveBeenCalledTimes(sourceCalls);
   expect(element.viewModel?.currentEntryId).toBe("entry-1");
+
+  unbind = bindReaderController(element, controller);
+  window.dispatchEvent(new Event("pagehide"));
+  expect(dispose).toHaveBeenCalledOnce();
 });
 
 test("leaves chat export entirely with the host", async () => {

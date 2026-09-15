@@ -1,4 +1,4 @@
-> Created/edited by GitHub Copilot with human review/feedback by avilevin.
+> Created/edited by GitHub Copilot; pending human review.
 
 # Design: Generated API Contracts and Request-Free Components
 
@@ -6,11 +6,11 @@ For a first explanation with examples, read [How the pieces fit together](guides
 
 ## Summary
 
-This design defines a generated API foundation with corrections and component-owned view models. Elements render view models and never request data. The client, text-processing packages, text-segment, bilingual-segment, reference-label, source-card, popup, connections-panel, DOM-free reader session and controller, controlled reader surface, regular-website reader workspace, MCP App, and Linker vertical slices are current.
+This design defines a generated API foundation with corrections and component-owned view models. Elements render view models and never request data. The client, text-processing packages, text-segment, bilingual-segment, reference-label, source-card, popup, connections-panel, DOM-free reader session and controller, controlled reader surface, regular-website reader workspace, MCP App, and authored linked-article vertical slices are current.
 
 ## Scope
 
-**In scope:** the Sefaria OpenAPI supply chain, the thin public client, text processing, component factories, request-free elements, the MCP payload boundary, and the Linker demonstration.
+**In scope:** the Sefaria OpenAPI supply chain, the thin public client, text processing, component factories, request-free elements, the MCP payload boundary, and authored citation-popup integration.
 
 **Out of scope:** a generalized domain-model package and offline reference parsing without a concrete consumer. Cache persistence, stale fallback, retries, request coalescing, HTML server rendering, and hydration are also out of scope.
 
@@ -18,7 +18,7 @@ This design defines a generated API foundation with corrections and component-ow
 
 Core is the stable first product boundary. It is not a delivery phase or issue plan.
 
-Core includes the eight API operations, all three text-processing capabilities, the text primitives, the source card with its bounded text collection, the popup, the Linker demonstration, and the MCP source-card App. See [Development](development.md) for current implementation details.
+Core includes the eight API operations, all three text-processing capabilities, the text primitives, the source card with its bounded text collection, the popup, the authored linked-article demonstration, and the MCP source-card App. The generated citation-detection submission and task-status operations remain transport capabilities; the maintained linked-article integration does not run an automatic detector. See [Development](development.md) for current implementation details.
 
 The connections panel, standalone contextual reader, DOM-free reader session, stateful reader controller, controlled reader, and regular-website reader workspace are implemented outside Core. The session adds bounded semantic history and capture ownership. The controller adds supported request execution, cancellation, and subscriptions without changing the request-free element boundary. The website workspace separately demonstrates lower-level spatial pane ownership.
 
@@ -208,9 +208,9 @@ MCP `structuredContent` carries a corrected API payload. Namespaced tool-result 
 
 ## Integrations
 
-The current Linker demonstration consumes public contracts and built artifacts. It owns citation extraction, asynchronous detection, DOM linking, cancellation, stale-result suppression, and popup factory calls outside the element.
+The current linked-article demonstration consumes public contracts and built artifacts. Its article author supplies ordinary Sefaria anchors. The page owns eligible activation, cancellation, stale-result suppression, popup factory calls, visible failures, and cleanup outside the element. It does not extract article text, submit citation detection, poll tasks, or rewrite the host DOM.
 
-The MCP App validates its namespaced request/status metadata and corrected API-shaped JSON before projection. The Linker integration calls an async component factory outside the element.
+The MCP App validates its namespaced request/status metadata and corrected API-shaped JSON before projection. The linked-article integration calls an async popup factory outside the element. The generated find-refs and async-task operations remain available transport operations, not an active automatic-Linker workflow in this repository.
 
 See the [integration specification](specs/integrations.md).
 

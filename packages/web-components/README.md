@@ -1,4 +1,4 @@
-> Created/edited by GitHub Copilot with human review/feedback by avilevin.
+> Created/edited by GitHub Copilot; pending human review.
 
 # `@sefaria/web-components`
 
@@ -24,10 +24,8 @@ This is a private built package, not a published npm installation. Its export ma
 ```ts
 import "@sefaria/web-components";
 import { createSefariaClient } from "@sefaria/client";
-import {
-  bindReaderController,
-  loadReaderController,
-} from "@sefaria/web-components/reader-controller";
+import { bindReaderController } from "@sefaria/web-components";
+import { loadReaderController } from "@sefaria/web-components/reader-controller";
 
 const reader = document.createElement("sefaria-reader");
 document.body.append(reader);
@@ -38,9 +36,14 @@ const controller = await loadReaderController(
 );
 const unbind = bindReaderController(reader, controller);
 
-// During host teardown:
-unbind();
-controller.dispose();
+window.addEventListener(
+  "pagehide",
+  () => {
+    unbind();
+    controller.dispose();
+  },
+  { once: true },
+);
 ```
 
 Use a component's pure factory when corrected API-shaped JSON has already crossed a validated server, MCP, fixture, stored-data, or user-input boundary. Use its async factory for browser client mode. A successful async result is the same projection as the pure factory over its captured payload.

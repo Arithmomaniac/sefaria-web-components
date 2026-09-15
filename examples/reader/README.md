@@ -5,8 +5,12 @@
 Run both Reader destinations from the repository root:
 
 ```powershell
+pnpm install --frozen-lockfile
+pnpm build
 pnpm --filter @sefaria-example/reader dev
 ```
+
+The build step is required on a fresh checkout because this Vite consumer resolves the private toolkit packages through their `dist` exports.
 
 ## Supported controlled Reader
 

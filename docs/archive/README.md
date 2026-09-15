@@ -10,7 +10,7 @@ The snapshot source is repository commit [`7f631685961b3ff6243d812570e1ffbd85aa5
 
 Use that immutable revision to inspect the historical [root README](https://github.com/Arithmomaniac/sefaria-web-components/blob/7f631685961b3ff6243d812570e1ffbd85aa53c6/README.md), [`docs/` tree](https://github.com/Arithmomaniac/sefaria-web-components/tree/7f631685961b3ff6243d812570e1ffbd85aa53c6/docs), demo transcripts and captures, and [`@sefaria/text-transform` README](https://github.com/Arithmomaniac/sefaria-web-components/blob/7f631685961b3ff6243d812570e1ffbd85aa53c6/packages/text-transform/README.md). Resolve all relative implementation links against the same commit.
 
-The original wording, status claims, timestamps, and human-review disclaimers are historical records, not fresh assertions. Follow the current [specifications](../README.md#detailed-reference), [development guide](../development.md), and [evidence record](../evidence.md) for maintained information.
+The original wording, status claims, timestamps, and human-review disclaimers are historical records, not fresh assertions. Follow the current [specifications](../README.md#specifications), [development guide](../development.md), and [evidence record](../evidence.md) for maintained information.
 
 ## What remains active?
 
