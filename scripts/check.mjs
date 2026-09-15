@@ -1,5 +1,7 @@
 import { spawn } from "node:child_process";
+import { mkdir, writeFile } from "node:fs/promises";
 import { realpathSync } from "node:fs";
+import path from "node:path";
 import { performance } from "node:perf_hooks";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
@@ -34,6 +36,7 @@ export async function runCheck({
   run = runPnpm,
   log = writeLine,
   now = performance.now.bind(performance),
+  writeResult = writeCheckResult,
 } = {}) {
   const results = [];
 
@@ -49,11 +52,23 @@ export async function runCheck({
 
     if (exitCode !== 0) {
       printSummary(results, log);
+      await writeResult({
+        status: "failed",
+        exitCode,
+        failedStage: stage.name,
+        stages: results,
+      });
       return exitCode;
     }
   }
 
   printSummary(results, log);
+  await writeResult({
+    status: "passed",
+    exitCode: 0,
+    failedStage: null,
+    stages: results,
+  });
   return 0;
 }
 
@@ -90,6 +105,15 @@ function formatDuration(milliseconds) {
 
 function writeLine(message) {
   process.stdout.write(`${message}\n`);
+}
+
+async function writeCheckResult(result) {
+  const directory = path.resolve(".artifacts", "check");
+  await mkdir(directory, { recursive: true });
+  await writeFile(
+    path.join(directory, "result.json"),
+    `${JSON.stringify(result, null, 2)}\n`,
+  );
 }
 
 export function isMainModule(

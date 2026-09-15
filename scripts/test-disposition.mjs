@@ -1,3 +1,8 @@
+export const BASELINE_TEST_INVENTORY_COMMIT =
+  "7bc2d258fac2959beb5252ebdbcbddbaccd0c7b7";
+export const PRE_RETIREMENT_SHOWCASE_COMMIT =
+  "d7e2d59645ebf7427dcff2cbdd78073e2e7df58c";
+
 const RETIRED = new Map([
   [
     "demos/linker/src/detection.test.ts",

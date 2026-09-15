@@ -241,6 +241,8 @@ async function inspectConsumerResolution(consumer) {
   const lockfilePath = path.join(consumer, "pnpm-lock.yaml");
   const lockfile = await readFile(lockfilePath, "utf8");
   validateConsumerLockfile(lockfile, packageDefinitions);
+  const canonicalConsumer = await realpath(consumer);
+  const canonicalRepository = await realpath(repository);
 
   for (const packageDefinition of packageDefinitions) {
     const resolved = capture(
@@ -256,8 +258,8 @@ async function inspectConsumerResolution(consumer) {
     validateInstalledPath({
       packageName: packageDefinition.name,
       installedPath,
-      consumer,
-      repository,
+      consumer: canonicalConsumer,
+      repository: canonicalRepository,
     });
   }
 
@@ -310,8 +312,8 @@ async function inspectConsumerResolution(consumer) {
   validateInstalledPath({
     packageName: "@sefaria/web-components transitive @sefaria/client",
     installedPath: await realpath(fileURLToPath(transitiveClient)),
-    consumer,
-    repository,
+    consumer: canonicalConsumer,
+    repository: canonicalRepository,
   });
 }
 

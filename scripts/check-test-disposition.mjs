@@ -4,24 +4,24 @@ import path from "node:path";
 import process from "node:process";
 
 import {
+  BASELINE_TEST_INVENTORY_COMMIT,
   dispositionFor,
   EXPECTED_BASELINE_TEST_COUNT,
   EXPECTED_PRE_RETIREMENT_SHOWCASE_TEST_COUNT,
   EXPECTED_RETIRED_TEST_COUNT,
+  PRE_RETIREMENT_SHOWCASE_COMMIT,
 } from "./test-disposition.mjs";
 
 const root = path.resolve(import.meta.dirname, "..");
-const baseline = "7bc2d258fac2959beb5252ebdbcbddbaccd0c7b7";
-const preRetirement = "d7e2d59645ebf7427dcff2cbdd78073e2e7df58c";
-const baselineTests = listTreeTests(baseline);
+const baselineTests = listTreeTests(BASELINE_TEST_INVENTORY_COMMIT);
 if (baselineTests.length !== EXPECTED_BASELINE_TEST_COUNT) {
   throw new Error(
     `Baseline test inventory changed: expected ${EXPECTED_BASELINE_TEST_COUNT}, found ${baselineTests.length}.`,
   );
 }
 
-const showcaseTests = listTreeTests(preRetirement).filter((filename) =>
-  filename.startsWith("demos/showcase/"),
+const showcaseTests = listTreeTests(PRE_RETIREMENT_SHOWCASE_COMMIT).filter(
+  (filename) => filename.startsWith("demos/showcase/"),
 );
 if (showcaseTests.length !== EXPECTED_PRE_RETIREMENT_SHOWCASE_TEST_COUNT) {
   throw new Error(
@@ -98,7 +98,7 @@ function capture(command, args) {
   });
   if (result.status !== 0) {
     throw new Error(
-      `${command} ${args.join(" ")} failed:\n${result.error?.message ?? result.stderr ?? result.stdout}`,
+      `${command} ${args.join(" ")} failed. Run "pnpm setup:agent" in a fresh or shallow checkout before "pnpm check".\n${result.error?.message ?? result.stderr ?? result.stdout}`,
     );
   }
   return result.stdout;

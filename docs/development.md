@@ -2,13 +2,15 @@
 
 # Development
 
-This contributor guide describes the current source tree as of September 14, 2026. The repository's specifications define intended behavior; the implementation and tests establish what is currently delivered.
+This contributor guide describes the current source tree as of September 15, 2026. The repository's specifications define intended behavior; the implementation and tests establish what is currently delivered.
 
 The sections below separate delivered baseline behavior, changes from older plans, and work that remains intended. A runnable command is not proof that the corresponding integration is finished.
 
 ## Unpublished toolkit integration branch
 
-The unpublished toolkit work is integrated through `feature/avilevin/frontend-toolkit-alpha`; implementation pull requests must target that branch rather than `main`. Its branch workflow is CI-only and runs the stable `check` job for pull requests targeting `main` or the toolkit branch and for pushes to the toolkit branch. It deliberately has no Pages artifact upload, deployment job, package publication, release action, OIDC permission, tag trigger, or manual-dispatch path. `main` remains the separate website and Pages deployment source.
+The unpublished toolkit work is integrated through `feature/avilevin/frontend-toolkit-alpha`; implementation pull requests must target that branch rather than `main`. Its branch workflow is CI-only and requires the complete deterministic gate on both Ubuntu and Windows behind the stable `check` status for pull requests targeting `main` or the toolkit branch and for pushes to the toolkit branch. It deliberately has no Pages deployment, package publication, release action, OIDC permission, tag trigger, or manual-dispatch path. Failure-only artifacts are restricted to setup/check results and maintained browser diagnostics. `main` remains the separate website and Pages deployment source.
+
+The conditional GitHub-hosted Copilot setup workflow must also exist on the repository's default branch before GitHub can use it. On the toolkit branch it is implemented but activation remains pending until the setup-only bootstrap is merged to `main` and verified in real cloud sessions. The bootstrap does not merge toolkit source into `main`; selecting the toolkit branch when launching a task determines the task's code base. Merging the bootstrap can still rerun `main`'s existing Pages workflow.
 
 Run the deterministic workflow-policy regression with:
 
@@ -137,6 +139,22 @@ Browser tests also require Chromium through Playwright.
 
 The local deterministic browser acceptance uses the Playwright Chromium installation. An external MCP Apps-compatible host is optional for local App development and named-host qualification.
 
+## Copilot agent and fresh-worktree setup
+
+After Node.js and the pinned pnpm are available, prepare a fresh toolkit checkout with:
+
+```powershell
+pnpm setup:agent
+```
+
+The command performs a frozen install, checks the two immutable commits used to reconcile the historical test inventory, fetches only missing required objects from `origin`, installs Chromium, and launches and closes a headless browser. On Linux it also asks Playwright to install Chromium's system dependencies; that can require privileges supplied by the host. It uses the effective package-manager configuration and does not override registries.
+
+Preparation can use the network and fails at the exact unsuccessful step. `pnpm check` remains the offline validation boundary: it does not fetch Git history, refresh fixtures, or contact Sefaria. If the historical objects are unavailable, the disposition error identifies `pnpm setup:agent` as the recovery command.
+
+GitHub's `.github/workflows/copilot-setup-steps.yml` first checks for `packages/web-components/package.json` with package name `@sefaria/web-components`. Toolkit-derived branches prepare normally; an unrelated checkout logs an explicit skip. A checkout that looks like the toolkit but lacks the setup script fails rather than silently skipping. This capability-based behavior must be verified in real cloud sessions after the workflow is active on `main`.
+
+Copilot CLI and Desktop do not automatically run the hosted workflow. Run `pnpm setup:agent` in each fresh local worktree. Concurrent Vitest browser runs may begin with port `6338`; Vitest selects another port when it is occupied. Tests on September 15, 2026 confirmed this fallback, so no custom port allocator is required.
+
 ## Install the workspace
 
 For browser-only TypeScript work, run these commands from the repository root:
@@ -149,6 +167,8 @@ pnpm exec playwright install chromium
 
 If Corepack is unavailable, install the pinned pnpm release through your approved package-management path, then run the same commands. Do not let a transient executor download an unpinned tool.
 
+The individual commands remain useful for targeted troubleshooting. Prefer `pnpm setup:agent` for a complete fresh-agent or fresh-worktree preparation.
+
 ## Current complete check
 
 ```powershell
@@ -156,6 +176,8 @@ pnpm check
 ```
 
 The current command checks stale OpenAPI output, then runs Prettier, Oxlint, workspace builds, the production local-site assembly and browser acceptance, official Inspector stdio qualification, deterministic real HTTP/AppBridge browser acceptance, TypeScript checks, freshly emitted API-documentation checks, tests, the offline focused compatibility qualification, private tarball consumption, and changeset rehearsal. It prints the elapsed time and result of every completed stage, including the first failed stage, so a slow local run can be attributed without rerunning the complete gate. The qualification prints grouped pass, failure, unavailable-source, and intentional-difference results. It does not refresh network fixtures or contact Sefaria.
+
+Every run writes a bounded machine-readable result to `.artifacts/check/result.json`. CI uploads that result and allowlisted browser diagnostics only after a platform failure. A Linux success cannot hide a Windows failure: the required `check` aggregation succeeds only when the complete matrix succeeds.
 
 The MCP acceptance transport rejects unexpected requests and uses the compiled Node server, registered resource, separate host and sandbox origins, and packaged App. TypeScript projects use ignored incremental build-information files, which reduce repeated local typecheck and build work without changing emitted artifacts.
 
