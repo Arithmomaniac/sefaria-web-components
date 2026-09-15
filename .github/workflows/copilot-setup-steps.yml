@@ -1,0 +1,42 @@
+name: Copilot Setup Steps
+
+on:
+  workflow_dispatch:
+
+jobs:
+  copilot-setup-steps:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Detect toolkit checkout
+        id: toolkit
+        shell: bash
+        run: |
+          manifest="packages/web-components/package.json"
+          if [ ! -f "$manifest" ]; then
+            echo "applicable=false" >> "$GITHUB_OUTPUT"
+            echo "This checkout does not contain the unpublished toolkit; skipping toolkit setup."
+            exit 0
+          fi
+          package_name="$(node -p "require('./$manifest').name")"
+          if [ "$package_name" != "@sefaria/web-components" ]; then
+            echo "applicable=false" >> "$GITHUB_OUTPUT"
+            echo "This checkout does not contain the unpublished toolkit; skipping toolkit setup."
+            exit 0
+          fi
+          if [ ! -f scripts/setup-agent.mjs ]; then
+            echo "Recognized toolkit checkout is missing scripts/setup-agent.mjs." >&2
+            exit 1
+          fi
+          echo "applicable=true" >> "$GITHUB_OUTPUT"
+      - if: steps.toolkit.outputs.applicable == 'true'
+        uses: pnpm/action-setup@v4
+      - if: steps.toolkit.outputs.applicable == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - if: steps.toolkit.outputs.applicable == 'true'
+        run: pnpm setup:agent

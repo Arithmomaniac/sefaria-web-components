@@ -12,9 +12,20 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  check:
-    runs-on: ubuntu-latest
+  validation:
+    name: validation (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
     steps:
       - uses: actions/checkout@v4
         with:
@@ -24,6 +35,33 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm setup:agent
       - run: pnpm check
+        env:
+          SITE_SCREENSHOT_DIR: .artifacts/site
+      - name: Upload failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: failure-${{ runner.os }}
+          path: |
+            .artifacts/check/result.json
+            .artifacts/setup/result.json
+            .artifacts/site/
+            playwright-report/
+            test-results/
+          if-no-files-found: warn
+          retention-days: 7
+
+  check:
+    name: check
+    if: ${{ always() }}
+    needs: validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require every validation platform
+        run: |
+          if [ "${{ needs.validation.result }}" != "success" ]; then
+            echo "Validation result: ${{ needs.validation.result }}"
+            exit 1
+          fi

@@ -48,12 +48,14 @@ describe("repository check runner", () => {
   it("stops after the first failed stage and reports completed timings", async () => {
     const run = vi.fn().mockResolvedValueOnce(0).mockResolvedValueOnce(7);
     const log = vi.fn();
+    const writeResult = vi.fn();
 
     const exitCode = await runCheck({
       stages: CHECK_STAGES.slice(0, 3),
       run,
       log,
       now: sequenceClock(100, 350, 500, 900),
+      writeResult,
     });
 
     expect(exitCode).toBe(7);
@@ -63,6 +65,36 @@ describe("repository check runner", () => {
     );
     expect(log).toHaveBeenCalledWith(expect.stringContaining("250ms"));
     expect(log).toHaveBeenCalledWith(expect.stringContaining("failed"));
+    expect(writeResult).toHaveBeenLastCalledWith({
+      status: "failed",
+      exitCode: 7,
+      failedStage: "Integration policy",
+      stages: [
+        { name: "OpenAPI contracts", elapsed: 250, exitCode: 0 },
+        { name: "Integration policy", elapsed: 400, exitCode: 7 },
+      ],
+    });
+  });
+
+  it("writes a successful bounded check result", async () => {
+    const writeResult = vi.fn();
+
+    await expect(
+      runCheck({
+        stages: CHECK_STAGES.slice(0, 1),
+        run: vi.fn().mockResolvedValue(0),
+        log: vi.fn(),
+        now: sequenceClock(0, 100),
+        writeResult,
+      }),
+    ).resolves.toBe(0);
+
+    expect(writeResult).toHaveBeenLastCalledWith({
+      status: "passed",
+      exitCode: 0,
+      failedStage: null,
+      stages: [{ name: "OpenAPI contracts", elapsed: 100, exitCode: 0 }],
+    });
   });
 
   it("recognizes the entry point after resolving a symlinked path", () => {

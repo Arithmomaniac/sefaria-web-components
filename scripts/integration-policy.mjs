@@ -67,17 +67,134 @@ export function validateWorkflowPolicy(workflows) {
         issues.push(`unsupported workflow events in ${filename}`);
       } else {
         const eventNames = Object.keys(events).sort();
-        if (
-          JSON.stringify(eventNames) !==
-          JSON.stringify(["pull_request", "push"])
-        ) {
+        const expectedEvents =
+          filename.endsWith("/copilot-setup-steps.yml") ||
+          filename === "copilot-setup-steps.yml"
+            ? ["workflow_dispatch"]
+            : ["pull_request", "push"];
+        if (JSON.stringify(eventNames) !== JSON.stringify(expectedEvents)) {
           issues.push(`unsupported workflow events in ${filename}`);
         }
       }
+      if (filename.endsWith("/ci.yml") || filename === "ci.yml") {
+        validateCiWorkflow(workflow, issues, filename);
+      } else if (
+        filename.endsWith("/copilot-setup-steps.yml") ||
+        filename === "copilot-setup-steps.yml"
+      ) {
+        validateCopilotSetupWorkflow(workflow, issues, filename);
+      }
+    }
+    if (/\$\{\{\s*secrets\./iu.test(source)) {
+      issues.push(`secret reference in ${filename}`);
     }
     walkWorkflow(workflow, [], issues, filename);
   }
   return issues;
+}
+
+function validateCiWorkflow(workflow, issues, filename) {
+  const events = workflow.on;
+  const jobs = workflow.jobs;
+  if (
+    !isRecord(events) ||
+    JSON.stringify(events.pull_request) !==
+      JSON.stringify({
+        branches: ["main", "feature/avilevin/frontend-toolkit-alpha"],
+      }) ||
+    JSON.stringify(events.push) !==
+      JSON.stringify({
+        branches: ["feature/avilevin/frontend-toolkit-alpha"],
+      })
+  ) {
+    issues.push(`unexpected CI branch scope in ${filename}`);
+  }
+  if (
+    !isRecord(jobs) ||
+    JSON.stringify(Object.keys(jobs).sort()) !==
+      JSON.stringify(["check", "validation"])
+  ) {
+    issues.push(`unexpected CI jobs in ${filename}`);
+    return;
+  }
+
+  const validation = jobs.validation;
+  const check = jobs.check;
+  if (!isRecord(validation) || !isRecord(check)) {
+    issues.push(`invalid CI jobs in ${filename}`);
+    return;
+  }
+  const strategy = validation.strategy;
+  const matrix = isRecord(strategy) ? strategy.matrix : undefined;
+  if (
+    !isRecord(strategy) ||
+    strategy["fail-fast"] !== false ||
+    !isRecord(matrix) ||
+    JSON.stringify(matrix.os) !==
+      JSON.stringify(["ubuntu-latest", "windows-latest"])
+  ) {
+    issues.push(`CI must validate Linux and Windows in ${filename}`);
+  }
+  if (validation["continue-on-error"] !== undefined) {
+    issues.push(`CI validation cannot continue on error in ${filename}`);
+  }
+  const steps = Array.isArray(validation.steps) ? validation.steps : [];
+  const fullChecks = steps.filter(
+    (step) => isRecord(step) && step.run === "pnpm check",
+  );
+  if (
+    fullChecks.length !== 1 ||
+    fullChecks.some(
+      (step) =>
+        step.if !== undefined || step["continue-on-error"] !== undefined,
+    )
+  ) {
+    issues.push(`CI must run one unconditional pnpm check in ${filename}`);
+  }
+  if (
+    !steps.some((step) => isRecord(step) && step.run === "pnpm setup:agent")
+  ) {
+    issues.push(`CI must run the shared agent setup in ${filename}`);
+  }
+  if (
+    check.name !== "check" ||
+    check.if !== "${{ always() }}" ||
+    check.needs !== "validation" ||
+    JSON.stringify(check).includes("continue-on-error") ||
+    !JSON.stringify(check).includes(
+      'needs.validation.result }}\\" != \\"success\\"',
+    )
+  ) {
+    issues.push(`CI check aggregation is not fail-closed in ${filename}`);
+  }
+}
+
+function validateCopilotSetupWorkflow(workflow, issues, filename) {
+  const jobs = workflow.jobs;
+  if (
+    !isRecord(jobs) ||
+    JSON.stringify(Object.keys(jobs)) !==
+      JSON.stringify(["copilot-setup-steps"])
+  ) {
+    issues.push(`unexpected Copilot setup jobs in ${filename}`);
+    return;
+  }
+  const setup = jobs["copilot-setup-steps"];
+  const source = JSON.stringify(setup);
+  if (
+    !isRecord(setup) ||
+    JSON.stringify(setup.permissions) !== JSON.stringify({ contents: "read" })
+  ) {
+    issues.push(`unsafe Copilot setup job in ${filename}`);
+  }
+  if (
+    !source.includes("packages/web-components/package.json") ||
+    !source.includes("@sefaria/web-components") ||
+    !source.includes("pnpm setup:agent") ||
+    source.includes("feature/avilevin/frontend-toolkit-alpha")
+  ) {
+    issues.push(`Copilot setup is not toolkit-capability based in ${filename}`);
+  }
 }
 
 export function validateLockfilePolicy(source) {
