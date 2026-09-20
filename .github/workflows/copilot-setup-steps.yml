@@ -4,12 +4,16 @@ on:
   workflow_dispatch:
   pull_request:
     paths:
-      - .github/scripts/detect-toolkit.mjs
       - .github/workflows/copilot-setup-steps.yml
+      - demos/mcp/fixture-server/requirements.lock
+      - package.json
+      - pnpm-lock.yaml
   push:
     paths:
-      - .github/scripts/detect-toolkit.mjs
       - .github/workflows/copilot-setup-steps.yml
+      - demos/mcp/fixture-server/requirements.lock
+      - package.json
+      - pnpm-lock.yaml
 
 jobs:
   copilot-setup-steps:
@@ -18,16 +22,16 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v4
-      - name: Detect toolkit checkout
-        id: toolkit
-        shell: bash
-        run: node .github/scripts/detect-toolkit.mjs >> "$GITHUB_OUTPUT"
-      - if: steps.toolkit.outputs.applicable == 'true'
-        uses: pnpm/action-setup@v4
-      - if: steps.toolkit.outputs.applicable == 'true'
-        uses: actions/setup-node@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: pnpm
-      - if: steps.toolkit.outputs.applicable == 'true'
-        run: pnpm setup:agent
+      - uses: astral-sh/setup-uv@v10.0.1
+        with:
+          version: "0.11.23"
+          enable-cache: true
+          cache-dependency-glob: demos/mcp/fixture-server/requirements.lock
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm install:python
+      - run: pnpm exec playwright install --with-deps chromium
